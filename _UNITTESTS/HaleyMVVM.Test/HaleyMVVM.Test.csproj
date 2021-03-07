@@ -19,10 +19,64 @@
     </PackageReference>
   </ItemGroup>
 
-  <ItemGroup>
-    <ProjectReference Include="..\..\_CORE_PROJECTS\HaleyEvents\HaleyEvents.csproj" />
-    <ProjectReference Include="..\..\_CORE_PROJECTS\HaleyIOC\HaleyIOC.csproj" />
-    <ProjectReference Include="..\..\_CORE_PROJECTS\HaleyMVVM\HaleyMVVM.csproj" />
-  </ItemGroup>
+	<Import Project="$(SolutionDir)ProjectReferences_$(SolutionName).txt" Condition="Exists('$(SolutionDir)ProjectReferences_$(SolutionName).txt')" />
+	<Choose>
+		<When Condition="Exists($(HaleyExtensions))">
+			<ItemGroup>
+				<ProjectReference Include="$(HaleyExtensions)\HaleyExtensions.csproj">
+					<Name>HaleyExtensions</Name>
+				</ProjectReference>
+			</ItemGroup>
+		</When>
+		<Otherwise>
+			<ItemGroup>
+				<PackageReference Include="Haley.Extensions" Version="2.0.1" />
+			</ItemGroup>
+		</Otherwise>
+	</Choose>
 
+	<Choose>
+		<When Condition="Exists($(HaleyIOC))">
+			<ItemGroup>
+				<ProjectReference Include="$(HaleyIOC)\HaleyIOC.csproj">
+					<Name>HaleyIOC</Name>
+				</ProjectReference>
+			</ItemGroup>
+		</When>
+		<Otherwise>
+			<ItemGroup>
+				<PackageReference Include="Haley.IOC" Version="2.0.2" />
+			</ItemGroup>
+		</Otherwise>
+	</Choose>
+
+	<Choose>
+		<When Condition="Exists($(HaleyMVVM))">
+			<ItemGroup>
+				<ProjectReference Include="$(HaleyMVVM)\HaleyMVVM.csproj">
+					<Name>HaleyMVVM</Name>
+				</ProjectReference>
+			</ItemGroup>
+		</When>
+		<Otherwise>
+			<ItemGroup>
+				<PackageReference Include="Haley.MVVM" Version="4.0.1" />
+			</ItemGroup>
+		</Otherwise>
+	</Choose>
+
+	<Choose>
+		<When Condition="Exists($(HaleyEvents))">
+			<ItemGroup>
+				<ProjectReference Include="$(HaleyEvents)\HaleyEvents.csproj">
+					<Name>HaleyEvents</Name>
+				</ProjectReference>
+			</ItemGroup>
+		</When>
+		<Otherwise>
+			<ItemGroup>
+				<PackageReference Include="Haley.Events" Version="2.0.0" />
+			</ItemGroup>
+		</Otherwise>
+	</Choose>
 </Project>
