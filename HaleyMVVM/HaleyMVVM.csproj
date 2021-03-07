@@ -1,0 +1,115 @@
+﻿<Project Sdk="Microsoft.NET.Sdk.WindowsDesktop">
+  <PropertyGroup>
+	<TargetFrameworks>net461;netcoreapp3.1</TargetFrameworks>
+    <UseWPF>true</UseWPF>
+    <AssemblyName>Haley.MVVM</AssemblyName>
+    <RootNamespace>Haley.MVVM</RootNamespace>
+    <Version>4.0.1</Version>
+    <Authors>Lingam</Authors>
+    <Product>Haley MVVM Core</Product>
+    <Company>TheHaleyProject</Company>
+    <Description>A light weight MVVM implementation with IOC Containes, Delegate Commands, ChangeNotifier Model, NotifiableCollection and many more.</Description>
+    <PackageTags>WPF MVVM MVVM IOC DI Haley</PackageTags>
+    <RepositoryUrl>https://github.com/rmsmech/HaleyMVVM</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <Copyright>Haley @ 2020</Copyright>
+    <PackageReleaseNotes>Implemented ColorChanger in ImageUtils</PackageReleaseNotes>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <AssemblyVersion>4.0.1.0</AssemblyVersion>
+    <FileVersion>4.0.1.0</FileVersion>
+    <PackageIcon>Haley.png</PackageIcon>
+	<IncludeSymbols>true</IncludeSymbols>
+	<SymbolPackageFormat>snupkg</SymbolPackageFormat>
+	<SignAssembly>true</SignAssembly>
+	<AssemblyOriginatorKeyFile>HaleyProject.snk</AssemblyOriginatorKeyFile>
+  </PropertyGroup>
+
+	<PropertyGroup>
+		<GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+	</PropertyGroup>
+
+	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+		<DebugType>portable</DebugType>
+		<DebugSymbols>true</DebugSymbols>
+	</PropertyGroup>
+  
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <DefineConstants>TRACE;__MVVM_FM</DefineConstants>
+  </PropertyGroup>
+  
+  <ItemGroup>
+    <None Remove="Notes.txt" />
+  </ItemGroup>
+  
+  <ItemGroup>
+    <Content Include="Notes.txt">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Xaml.Behaviors.Wpf" Version="1.1.31" />
+    <PackageReference Include="System.Drawing.Common" Version="5.0.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="..\Haley.png">
+      <Pack>True</Pack>
+      <PackagePath></PackagePath>
+    </None>
+  </ItemGroup>
+
+	<!--<ItemGroup>
+		<Content Include="$(OutDir)Notes.txt">
+			<Pack>true</Pack>
+			<PackagePath>content\help\</PackagePath>
+		</Content>
+	</ItemGroup>-->
+
+  <ItemGroup>
+    <Compile Update="Views\NotificationWindow.xaml.cs">
+      <DependentUpon>NotificationWindow.xaml</DependentUpon>
+    </Compile>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Page Update="Dictionaries\haleyConverters.xaml">
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Update="Views\NotificationWindow.xaml">
+      <SubType>Designer</SubType>
+    </Page>
+  </ItemGroup>
+
+  <Import Project="$(SolutionDir)ProjectReferences_$(SolutionName).txt" Condition="Exists('$(SolutionDir)ProjectReferences_$(SolutionName).txt')" />
+<Choose>
+    <When Condition="Exists($(HaleyExtensions))">
+      <ItemGroup>
+        <ProjectReference Include="$(HaleyExtensions)\HaleyExtensions.csproj">
+          <Name>HaleyExtensions</Name>
+        </ProjectReference>
+      </ItemGroup>
+    </When>
+    <Otherwise>
+     <ItemGroup>
+       <PackageReference Include="Haley.Extensions" Version="2.0.1" />
+	 </ItemGroup>
+    </Otherwise>
+</Choose>  
+
+<Choose>
+    <When Condition="Exists($(HaleyIOC))">
+      <ItemGroup>
+        <ProjectReference Include="$(HaleyIOC)\HaleyIOC.csproj">
+          <Name>HaleyExtensions</Name>
+        </ProjectReference>
+      </ItemGroup>
+    </When>
+    <Otherwise>
+     <ItemGroup>
+       <PackageReference Include="Haley.IOC" Version="2.0.2" />
+	 </ItemGroup>
+    </Otherwise>
+</Choose>  
+
+</Project>
