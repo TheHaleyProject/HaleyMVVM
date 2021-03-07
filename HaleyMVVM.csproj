@@ -39,6 +39,13 @@
   </PropertyGroup>
   
   <ItemGroup>
+    <Compile Remove="_UnitTests\**" />
+    <EmbeddedResource Remove="_UnitTests\**" />
+    <None Remove="_UnitTests\**" />
+    <Page Remove="_UnitTests\**" />
+  </ItemGroup>
+  
+  <ItemGroup>
     <None Remove="Notes.txt" />
   </ItemGroup>
   
@@ -53,7 +60,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Include="..\Haley.png">
+    <None Include="Haley.png">
       <Pack>True</Pack>
       <PackagePath></PackagePath>
     </None>
