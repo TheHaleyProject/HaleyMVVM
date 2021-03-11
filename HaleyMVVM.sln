@@ -7,7 +7,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HaleyMVVM", "HaleyMVVM\Hale
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "UnitTests", "UnitTests", "{BEBD8317-6A3F-4C0D-90F8-3EE1C8D6CB1C}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HaleyMVVM.Test", "_UNITTESTS\HaleyMVVM.Test\HaleyMVVM.Test.csproj", "{5617BFB2-986F-49E2-ADA5-629BF1C5FA00}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HaleyMVVM.Test", "HaleyMVVM.Test\HaleyMVVM.Test.csproj", "{5617BFB2-986F-49E2-ADA5-629BF1C5FA00}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
