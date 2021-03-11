@@ -1,16 +1,16 @@
-name: Build and Publish
+name: master
 
 on:
   push:
     branches: [ master ]
     paths-ignore:
       - '**.md'
-      - '.gihub/workflows/**.yml'
-  pull_request:
-    branches: [ master ]
-    paths-ignore:
-      - '**.md'
-      - '.gihub/workflows/**.yml'
+      - '.github/workflows/**.yml'
+  #pull_request:
+   # branches: [ master ]
+    #paths-ignore:
+     # - '**.md'
+     # - '.gihub/workflows/**.yml'
 
 jobs:
 
@@ -54,16 +54,34 @@ jobs:
       env:
         Configuration: ${{ matrix.configuration }}
 
+  publish:
+    needs: build # So build is first executed
+    strategy:
+      matrix:
+        configuration: [Release]
+
+    runs-on: windows-latest  
+
+    env:
+      Solution_Name: HaleyMVVM.sln                         
+      Test_Project_Path: HaleyMVVM.Test\HaleyMVVM.Test.csproj      
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v2
+      with:
+        fetch-depth: 0
+
     #Extract Branch Name
-    - name: Extract branch name
-      shell: bash
-      run: echo "##[set-output name=branch;]$(echo ${GITHUB_REF#refs/heads/})"
-      id: extract_branch
+    #- name: Extract branch name
+    #  shell: bash
+    #  run: echo "##[set-output name=branch;]$(echo ${GITHUB_REF#refs/heads/})"
+    #  id: extract_branch
 
     #Publish to Nuget
     - name: Publish to NuGet
       uses: brandedoutcast/publish-nuget@v2
-      if: ${{ steps.extract_branch.outputs.branch }} = master
+     # if: ${{ steps.extract_branch.outputs.branch }} = master
       env:
         ACTIONS_ALLOW_UNSECURE_COMMANDS: 'true'
       with:
