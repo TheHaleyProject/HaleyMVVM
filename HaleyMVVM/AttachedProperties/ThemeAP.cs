@@ -1,66 +1,79 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.ComponentModel;
-using System.Collections.ObjectModel;
-using System.Runtime.CompilerServices;
-using Haley.Abstractions;
-using System.Windows;
-using System.Windows.Controls;
-using Haley.MVVM;
+﻿using System.Windows;
 using Haley.Enums;
 using Haley.Utils;
+using System.Windows.Data;
 
 namespace Haley.Models
 {
     public static class ThemeAP
     {
-        public static Theme GetOldTheme(DependencyObject obj)
+        public static SearchPriority GetPriority(DependencyObject obj)
         {
-            return (Theme)obj.GetValue(OldThemeProperty);
+            return (SearchPriority)obj.GetValue(PriorityProperty);
         }
 
-        public static void SetOldTheme(DependencyObject obj, Theme value)
+        public static void SetPriority(DependencyObject obj, SearchPriority value)
         {
-            obj.SetValue(OldThemeProperty, value);
+            obj.SetValue(PriorityProperty, value);
         }
 
-        // Using a DependencyProperty as the backing store for OldTheme.  This enables animation, styling, binding, etc...
-        public static readonly DependencyProperty OldThemeProperty =
-            DependencyProperty.RegisterAttached("OldTheme", typeof(Theme), typeof(ThemeAP), new FrameworkPropertyMetadata(null,FrameworkPropertyMetadataOptions.BindsTwoWayByDefault));
+        // Using a DependencyProperty as the backing store for Priority.  This enables animation, styling, binding, etc...
+        public static readonly DependencyProperty PriorityProperty =
+            DependencyProperty.RegisterAttached("Priority", typeof(SearchPriority), typeof(ThemeAP), new PropertyMetadata(SearchPriority.FrameworkElement));
 
-        public static Theme GetActiveTheme(DependencyObject obj)
+        //If users wants to set the active theme from control side 
+        public static Theme GetNewTheme(DependencyObject obj)
         {
-            return (Theme)obj.GetValue(ActiveThemeProperty);
+            return (Theme)obj.GetValue(NewThemeProperty);
         }
 
-        public static void SetActiveTheme(DependencyObject obj, Theme value)
+        public static void SetNewTheme(DependencyObject obj, Theme value)
         {
-            obj.SetValue(ActiveThemeProperty, value);
+            obj.SetValue(NewThemeProperty, value);
         }
 
-        // Using a DependencyProperty as the backing store for ActiveTheme.  This enables animation, styling, binding, etc...
-        public static readonly DependencyProperty ActiveThemeProperty =
-            DependencyProperty.RegisterAttached("ActiveTheme", typeof(Theme), typeof(ThemeAP), new PropertyMetadata(null,ActiveThemePropertyChanged));
+        // Using a DependencyProperty as the backing store for NewTheme.  This enables animation, styling, binding, etc...
+        public static readonly DependencyProperty NewThemeProperty =
+            DependencyProperty.RegisterAttached("NewTheme", typeof(Theme), typeof(ThemeAP), new PropertyMetadata(null,NewThemePropertyChanged));
 
-        private static void ActiveThemePropertyChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+        private static void NewThemePropertyChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
         {
             if (d == null || e.NewValue == null) return;
             Theme active = e.NewValue as Theme;
-            if (active == null || active.theme_PackURI == null || active.theme_to_replace == null || active.base_dictionary_name == null) return;
+            if (active == null || active.new_theme_uri == null || active.old_theme_uri == null) return;
 
-            //If Old theme is not null and if old theme packURI and current theme PackURI matches, then don't do anything.
-            var oldtheme = GetOldTheme(d);
-            if (oldtheme != null)
-            {
-                if (oldtheme.theme_PackURI == active.theme_PackURI) return;
-            }
+            var _priority = GetPriority(d);
+            var _compareWithActiveTheme = _priority == SearchPriority.Application; //Only in case of application level resources, we need to compare with old theme because it is changed for all. Else, we do not compare
            
-            SetOldTheme(d, active);
+            ThemeLoader.Singleton.changeTheme(d,active,_priority, _compareWithActiveTheme,false);
+        }
 
-            ThemeLoader.changeTheme(d,active);
+        public static bool GetTriggerChange(DependencyObject obj)
+        {
+            return (bool)obj.GetValue(TriggerChangeProperty);
+        }
+
+        public static void SetTriggerChange(DependencyObject obj, bool value)
+        {
+            obj.SetValue(TriggerChangeProperty, value);
+        }
+
+        // Using a DependencyProperty as the backing store for TriggerChange.  This enables animation, styling, binding, etc...
+        public static readonly DependencyProperty TriggerChangeProperty =
+            DependencyProperty.RegisterAttached("TriggerChange", typeof(bool), typeof(ThemeAP), new PropertyMetadata(false,TriggerChangePropertyChanged));
+        static void TriggerChangePropertyChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+        {
+            if (d == null || !((bool) e.NewValue)) return; //Theme hasn't changed.
+
+            //d.SetCurrentValue(NewThemeProperty, ThemeLoader.Singleton.active_theme);
+            //Bind with themeloader's active theme
+            var binding = new Binding
+            {
+                Path = new PropertyPath(ThemeLoader.active_themeProperty),
+                Source = ThemeLoader.Singleton
+            };
+
+            BindingOperations.SetBinding(d, NewThemeProperty, binding);
         }
     }
 }

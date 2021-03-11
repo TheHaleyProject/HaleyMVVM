@@ -9,7 +9,7 @@ using System;
 [assembly: XmlnsDefinition("http://schemas.hpod9.com/haley/mvvm", "Haley.Abstractions")]
 [assembly: XmlnsDefinition("http://schemas.hpod9.com/haley/mvvm", "Haley.Models")]
 [assembly: XmlnsDefinition("http://schemas.hpod9.com/haley/mvvm", "Haley.MVVM")]
-
+[assembly: XmlnsDefinition("http://schemas.hpod9.com/haley/mvvm", "Haley.Utils")]
 //FOR XAML NAMESPACES - WPF
 [assembly: XmlnsDefinition("http://schemas.hpod9.com/haley/wpf", "Haley.WPF.ViewModels")]
 [assembly: XmlnsDefinition("http://schemas.hpod9.com/haley/wpf", "Haley.WPF.Views")]

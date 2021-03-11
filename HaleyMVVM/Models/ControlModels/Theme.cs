@@ -1,16 +1,20 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Windows;
 
 namespace Haley.Models
 {
     public class Theme
     {
-        public string name { get; set; }
-        public string theme_PackURI { get; set; }
-        public string theme_to_replace { get; set; }
-        public string base_dictionary_name { get; set; }
-        public object sender { get; set; }
-        public Theme() { }
+        public Uri new_theme_uri { get; set; }
+        public Uri old_theme_uri { get; set; }
+        public Uri base_dictionary_uri { get; set; }
+        public Theme(Uri new_theme, Uri old_theme,Uri base_dictionary = null) 
+        {
+            new_theme_uri = new_theme; 
+            old_theme_uri = old_theme;
+            base_dictionary_uri = base_dictionary;
+        }
     }
 }

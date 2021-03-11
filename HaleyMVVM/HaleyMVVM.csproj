@@ -4,8 +4,8 @@
     <UseWPF>true</UseWPF>
     <AssemblyName>Haley.MVVM</AssemblyName>
     <RootNamespace>Haley.MVVM</RootNamespace>
-    <Version>4.0.2</Version>
-    <Authors>Lingam</Authors>
+    <Version>4.0.3</Version>
+    <Authors>The Haley Project</Authors>
     <Product>Haley MVVM Core</Product>
     <Company>TheHaleyProject</Company>
     <Description>A light weight MVVM implementation with IOC Containes, Delegate Commands, ChangeNotifier Model, NotifiableCollection and many more.</Description>
@@ -14,7 +14,7 @@
     <RepositoryType>git</RepositoryType>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <Copyright>Haley @ 2020</Copyright>
-    <PackageReleaseNotes>Updated</PackageReleaseNotes>
+    <PackageReleaseNotes>Updated ThemeLoader</PackageReleaseNotes>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <AssemblyVersion>4.0.2.0</AssemblyVersion>
     <FileVersion>4.0.2.0</FileVersion>
