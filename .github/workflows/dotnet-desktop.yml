@@ -8,7 +8,8 @@ on:
   pull_request:
     branches: [ master ]
     paths-ignore:
-      - '**/README.md'
+      - '/README.md'
+      - '.gihub/workflows/*.yml'
 
 jobs:
 
