@@ -1,6 +1,6 @@
 
 
-name: HaleyWPF-Core and Framework
+name: HaleyMVVM-Core and Framework
 
 on:
   push:
