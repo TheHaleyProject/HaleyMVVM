@@ -4,13 +4,13 @@ on:
   push:
     branches: [ master ]
     paths-ignore:
-      - '/README.md'
-      - '.gihub/workflows/*.yml'
+      - '**.md'
+      - '.gihub/workflows/**.yml'
   pull_request:
     branches: [ master ]
     paths-ignore:
-      - '/README.md'
-      - '.gihub/workflows/*.yml'
+      - '**.md'
+      - '.gihub/workflows/**.yml'
 
 jobs:
 
