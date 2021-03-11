@@ -5,11 +5,6 @@
         <ResourceDictionary Source="pack://application:,,,/Haley.MVVM;component/Dictionaries/haleyConverters.xaml"/>
   </ResourceDictionary.MergedDictionaries>
 
-  or 
-
-  <ResourceDictionary.MergedDictionaries>
-        <ResourceDictionary Source="pack://application:,,,/Haley.MVVM.Core;component/Dictionaries/haleyConverters.xaml"/>
-  </ResourceDictionary.MergedDictionaries>
 ******CODE******
 
 #### 2 ---- MODELS:
