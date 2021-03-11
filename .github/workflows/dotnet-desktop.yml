@@ -1,6 +1,4 @@
-
-
-name: HaleyMVVM-Core and Framework
+name: Nuget Publish
 
 on:
   push:
