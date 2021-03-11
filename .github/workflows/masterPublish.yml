@@ -1,4 +1,4 @@
-name: master
+name: NugetPublish
 
 on:
   push:
@@ -53,3 +53,22 @@ jobs:
       run: msbuild $env:Solution_Name /t:Restore /p:Configuration=$env:Configuration
       env:
         Configuration: ${{ matrix.configuration }}
+
+    #Extract Branch Name
+    #- name: Extract branch name
+    #  shell: bash
+    #  run: echo "##[set-output name=branch;]$(echo ${GITHUB_REF#refs/heads/})"
+    #  id: extract_branch
+
+    #Publish to Nuget
+    - name: Publish to NuGet
+      uses: brandedoutcast/publish-nuget@v2
+     # if: ${{ steps.extract_branch.outputs.branch }} = master
+      env:
+        ACTIONS_ALLOW_UNSECURE_COMMANDS: 'true'
+      with:
+        PROJECT_FILE_PATH: HaleyMVVM/HaleyMVVM.csproj
+        VERSION_REGEX: '^\s*<Version>(.*)<\/Version>\s*$'
+        TAG_FORMAT: '*'
+        NUGET_KEY: ${{secrets.NUGET_API_KEY}}
+        INCLUDE_SYMBOLS: 'true'
