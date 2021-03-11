@@ -8,6 +8,9 @@ using Haley.IOC;
 
 namespace Haley.MVVM
 {
+    /// <summary>
+    /// Sealed Container store which has DI, Controls, Windows 
+    /// </summary>
     public sealed class ContainerStore
     {
         public IHaleyDIContainer DI { get; set; }
