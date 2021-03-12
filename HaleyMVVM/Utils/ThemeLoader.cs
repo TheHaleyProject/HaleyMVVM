@@ -43,15 +43,16 @@ namespace Haley.Utils
         private IDialogService _ds = new DialogService();
         private bool _includeHaley;
        
-        private const string _haley_absolute_WPF = "pack://application:,,,/Haley.WPF;component/";
-        private const string _haley_absolute_MVVM = "pack://application:,,,/Haley.MVVM;component/";
-        private const string _haley_relative_WPF = "Haley.WPF;component/";
-        private const string _haley_relative_MVVM = "Haley.MVVM;component/";
-
+        private const string _hw_absolute = "pack://application:,,,/Haley.WPF;component/";
+        private const string _hm_absolute = "pack://application:,,,/Haley.MVVM;component/";
+        private const string _hw_relative = "Haley.WPF;component/";
+        private const string _hm_relative = "Haley.MVVM;component/";
+        private const string _hw_theme_start = "pack://application:,,,/Haley.WPF;component/Dictionaries/ThemeColors/Theme";
         #endregion
 
         #region HaleyThemes
-        private static Uri _internal_base_dic = new Uri("pack://application:,,,/Haley.WPF;component/Dictionaries/haleyRD.xaml",UriKind.RelativeOrAbsolute);
+        private static Uri _hw_RD = new Uri("pack://application:,,,/Haley.WPF;component/Dictionaries/haleyRD.xaml",UriKind.RelativeOrAbsolute);
+        private static Uri _hw_base = new Uri("pack://application:,,,/Haley.WPF;component/Dictionaries/haleyBase.xaml", UriKind.RelativeOrAbsolute);
         #endregion
 
         #region Constructor
@@ -65,7 +66,7 @@ namespace Haley.Utils
         {
             Singleton = new ThemeLoader();
         }
-        private ThemeLoader() { current_internal_mode = ThemeMode.Normal; }
+        private ThemeLoader() { _getCurrentInternalTheme(); }
         #endregion
 
         public bool changeTheme(Theme newtheme)
@@ -85,7 +86,7 @@ namespace Haley.Utils
 
             if (_new_uri == null || _old_uri== null) return false; //Don't proceed if internal uri is not fetchables.
 
-            Theme internal_new_theme = new Theme(_new_uri,_old_uri,_internal_base_dic) {};
+            Theme internal_new_theme = new Theme(_new_uri,_old_uri,_hw_RD) {};
             if ( _changeTheme(null, internal_new_theme, SearchPriority.Application, false, false, true,true))
             {
                 current_internal_mode = mode;
@@ -95,6 +96,32 @@ namespace Haley.Utils
         }
 
         #region Helpers
+        private void _getCurrentInternalTheme()
+        {
+            //this is just or processing and finding out the mode
+            try
+            {
+                //From Base, we need to get the first theme that matches a pattern
+                ResourceDictionary _base = new ResourceDictionary() { Source = _hw_base };
+                var theme_URI = _base?.MergedDictionaries?.FirstOrDefault(_md => (_md.Source?.OriginalString.StartsWith(_hw_theme_start)).Value).Source?.OriginalString;
+                var name_with_ex = theme_URI.Substring(_hw_theme_start.Length);
+                var name_plain = name_with_ex.Substring(0, name_with_ex.Length - 5);
+                foreach (var item in Enum.GetValues(typeof(ThemeMode)))
+                {
+                    ThemeMode _theme = (ThemeMode)item;
+                    if (name_plain.Equals(_theme.ToString()))
+                    {
+                        current_internal_mode = _theme;
+                        return;
+                    }
+                }
+                current_internal_mode = ThemeMode.Normal;
+            }
+            catch (Exception)
+            {
+                current_internal_mode = ThemeMode.Normal;
+            }
+        }
         private bool _changeTheme(DependencyObject sender, Theme newtheme, SearchPriority priority, bool compare_with_active_theme,bool raise_notification,bool include_haley_dictionaries = false, bool is_internal_cal = false)
         {
             //Priliminary verifications
@@ -159,8 +186,7 @@ namespace Haley.Utils
         }
         private Uri _getInternalURI(ThemeMode mode)
         {
-            string assembly_part = "Haley.WPF";
-            Uri actual = new Uri($@"pack://application:,,,/{assembly_part};component/Dictionaries/ThemeColors/Theme{mode.ToString()}.xaml", UriKind.RelativeOrAbsolute);
+            Uri actual = new Uri($@"{_hw_theme_start}{mode.ToString()}.xaml", UriKind.RelativeOrAbsolute);
             return actual;
         }
        
@@ -168,10 +194,10 @@ namespace Haley.Utils
         {
             if (_tocheck == null) return false;
             if (
-                 _tocheck.OriginalString.ToLower().StartsWith(_haley_absolute_WPF.ToLower()) ||
-                 _tocheck.OriginalString.ToLower().StartsWith(_haley_relative_WPF.ToLower()) ||
-                 _tocheck.OriginalString.ToLower().StartsWith(_haley_absolute_MVVM.ToLower())||
-                 _tocheck.OriginalString.ToLower().StartsWith(_haley_relative_MVVM.ToLower()) 
+                 _tocheck.OriginalString.ToLower().StartsWith(_hw_absolute.ToLower()) ||
+                 _tocheck.OriginalString.ToLower().StartsWith(_hw_relative.ToLower()) ||
+                 _tocheck.OriginalString.ToLower().StartsWith(_hm_absolute.ToLower())||
+                 _tocheck.OriginalString.ToLower().StartsWith(_hm_relative.ToLower()) 
                 )
             {
                 return true;

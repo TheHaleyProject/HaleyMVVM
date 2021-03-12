@@ -7,5 +7,6 @@ namespace Haley.Enums
     {
        Normal,
        Dark,
+       Mild
     }
 }
