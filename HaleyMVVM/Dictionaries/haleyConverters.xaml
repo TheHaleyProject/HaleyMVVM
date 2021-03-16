@@ -15,4 +15,6 @@
     <cnv:VerificationConverter x:Key="Verification"/>
     <cnv:EnumTypeToDescriptionListConverter x:Key="EnumTypeToDescriptionList"/>
     <cnv:MultiBindingEqualityCheckConverter x:Key="MultiBindingEqualityCheck"/>
+    <cnv:HalfValueConverter x:Key="HalfValue"/>
+    <cnv:ScrollLimitConverter x:Key="ScrollLimit"/>
 </ResourceDictionary>
