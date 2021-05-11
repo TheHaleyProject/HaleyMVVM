@@ -35,6 +35,7 @@ namespace Haley.Abstractions
         (Type viewmodel_type, Type view_type, RegisterMode registered_mode) getMappingValue(Enum @enum);
         (Type viewmodel_type, Type view_type, RegisterMode registered_mode) getMappingValue(string key);
         string findKey(Type target_type);
+        bool ContainsKey(string key);
         #endregion
     }
 }
