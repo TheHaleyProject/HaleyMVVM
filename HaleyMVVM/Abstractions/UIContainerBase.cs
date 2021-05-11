@@ -190,6 +190,10 @@ namespace Haley.Abstractions
             return _kvp.Key;
         }
 
+        public bool ContainsKey(String key)
+        {
+            return main_mapping.ContainsKey(key);
+        }
 
         #endregion
     }

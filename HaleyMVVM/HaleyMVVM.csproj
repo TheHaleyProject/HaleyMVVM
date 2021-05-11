@@ -4,7 +4,7 @@
     <UseWPF>true</UseWPF>
     <AssemblyName>Haley.MVVM</AssemblyName>
     <RootNamespace>Haley.MVVM</RootNamespace>
-    <Version>4.0.5</Version>
+    <Version>4.0.6</Version>
     <Authors>The Haley Project</Authors>
     <Product>Haley MVVM Core</Product>
     <Company>TheHaleyProject</Company>
@@ -14,7 +14,7 @@
     <RepositoryType>git</RepositoryType>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <Copyright>Haley @ 2020</Copyright>
-    <PackageReleaseNotes>Added few converters</PackageReleaseNotes>
+    <PackageReleaseNotes>Validate if a key is present in the UIContainerBase</PackageReleaseNotes>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <AssemblyVersion>4.0.2.0</AssemblyVersion>
     <FileVersion>4.0.2.0</FileVersion>
