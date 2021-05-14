@@ -30,7 +30,7 @@ namespace Haley.WPF.BaseControls
         #region Attributes
         private static SolidColorBrush _baseAccent = (SolidColorBrush)new BrushConverter().ConvertFromString("#FF324862");
         private static SolidColorBrush _baseAccentForeground = (SolidColorBrush)new BrushConverter().ConvertFromString("Yellow");
-        private static SolidColorBrush _baseToastAccent = (SolidColorBrush)new BrushConverter().ConvertFromString("#FF2F3542");
+        private static SolidColorBrush _baseToastAccent = (SolidColorBrush)new BrushConverter().ConvertFromString("#BF222832");
         private static SolidColorBrush _baseToastForeground = (SolidColorBrush)new BrushConverter().ConvertFromString("White");
 
         private const string UIEheader = "PART_header";
