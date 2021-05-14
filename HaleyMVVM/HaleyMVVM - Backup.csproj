@@ -4,7 +4,7 @@
     <UseWPF>true</UseWPF>
     <AssemblyName>Haley.MVVM</AssemblyName>
     <RootNamespace>Haley.MVVM</RootNamespace>
-    <Version>4.0.8</Version>
+    <Version>4.0.7</Version>
     <Authors>The Haley Project</Authors>
     <Product>Haley MVVM Core</Product>
     <Company>TheHaleyProject</Company>
@@ -14,7 +14,7 @@
     <RepositoryType>git</RepositoryType>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <Copyright>Haley @ 2020</Copyright>
-    <PackageReleaseNotes>DialogService Enhancements</PackageReleaseNotes>
+    <PackageReleaseNotes>Validate if a key is present in the UIContainerBase</PackageReleaseNotes>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <AssemblyVersion>4.0.2.0</AssemblyVersion>
     <FileVersion>4.0.2.0</FileVersion>
@@ -39,14 +39,6 @@
   </PropertyGroup>
   
   <ItemGroup>
-    <None Remove="Images\notify_error.png" />
-    <None Remove="Images\notify_error_medium.png" />
-    <None Remove="Images\notify_info.png" />
-    <None Remove="Images\notify_info_medium.png" />
-    <None Remove="Images\notify_success.png" />
-    <None Remove="Images\notify_success_medium.png" />
-    <None Remove="Images\notify_warning.png" />
-    <None Remove="Images\notify_warning_medium.png" />
     <None Remove="Notes.txt" />
   </ItemGroup>
   
@@ -75,28 +67,18 @@
 	</ItemGroup>-->
 
   <ItemGroup>
-    <Page Update="Dictionaries\haleyConverters.xaml">
-      <SubType>Designer</SubType>
-    </Page>
-    <Page Update="Themes\Generic.xaml">
-      <XamlRuntime>$(DefaultXamlRuntime)</XamlRuntime>
-      <SubType>Designer</SubType>
-    </Page>
-    <Page Update="Themes\ViewThemes\NotificationRD.xaml">
-      <XamlRuntime>$(DefaultXamlRuntime)</XamlRuntime>
-      <SubType>Designer</SubType>
-    </Page>
+    <Compile Update="Views\NotificationWindow.xaml.cs">
+      <DependentUpon>NotificationWindow.xaml</DependentUpon>
+    </Compile>
   </ItemGroup>
 
   <ItemGroup>
-    <Resource Include="Images\notify_error.png" />
-    <Resource Include="Images\notify_error_medium.png" />
-    <Resource Include="Images\notify_info.png" />
-    <Resource Include="Images\notify_info_medium.png" />
-    <Resource Include="Images\notify_success.png" />
-    <Resource Include="Images\notify_success_medium.png" />
-    <Resource Include="Images\notify_warning.png" />
-    <Resource Include="Images\notify_warning_medium.png" />
+    <Page Update="Dictionaries\haleyConverters.xaml">
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Update="Views\NotificationWindow.xaml">
+      <SubType>Designer</SubType>
+    </Page>
   </ItemGroup>
 
   <Import Project="$(SolutionDir)ProjectReferences_$(SolutionName).txt" Condition="Exists('$(SolutionDir)ProjectReferences_$(SolutionName).txt')" />
