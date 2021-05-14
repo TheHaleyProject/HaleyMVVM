@@ -131,6 +131,11 @@ namespace Haley.Abstractions
             string _key = typeof(viewmodelType).ToString();
             return generateView(_key, InputViewModel, mode);
         }
+        public BaseViewType generateView<viewType>(object InputViewModel = null, ResolveMode mode = ResolveMode.AsRegistered) where viewType : class, BaseViewType
+        {
+            string _key = typeof(viewType).ToString();
+            return generateView(_key, InputViewModel, mode);
+        }
         public BaseViewType generateView(Enum @enum, object InputViewModel = null, ResolveMode mode = ResolveMode.AsRegistered)
         {
             //Get the enum value and its type name to prepare a string

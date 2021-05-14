@@ -34,6 +34,7 @@ namespace Haley.WPF.BaseControls
         private static SolidColorBrush _baseToastForeground = (SolidColorBrush)new BrushConverter().ConvertFromString("White");
 
         private const string UIEheader = "PART_header";
+        private const string UIEcontainerHolder = "PART_ContainerHolder";
 
         private int _displayDuration = 5;
         private int _timerCount;
@@ -42,6 +43,7 @@ namespace Haley.WPF.BaseControls
 
         #region UIElements
         private FrameworkElement _header;
+        private ContentControl _containerHolder;
         #endregion
 
         #region Constructors
@@ -69,20 +71,30 @@ namespace Haley.WPF.BaseControls
         {
             base.OnApplyTemplate();
             _header = GetTemplateChild(UIEheader) as FrameworkElement;
-
-            _eventSubscription();
+            _containerHolder = GetTemplateChild(UIEcontainerHolder) as ContentControl;
+            _initiation();
         }
         #endregion
 
         #region Public Methods
         public static INotification ShowDialog(Notification input)
         {
-            if (input.Type == NotificationType.ToastInfo)
+            if (input.Type == DisplayType.ToastInfo || input.Type == DisplayType.ContainerView)
             {
                 // We should not have toast info type. If by some mistake, it was set, it has to be changed to notification.
-                input.Type = NotificationType.ShowInfo;
+                input.Type = DisplayType.ShowInfo;
             }
             var result = input.ShowDialog();
+            return (INotification)input;
+        }
+
+        public static INotification ShowContainerView(Notification input)
+        {
+            //If container is null, then send a info message.
+                var result = input.ShowDialog();
+                //Now get the viewmodel of the container view and add it to result.
+                var _vm = input.ContainerView.DataContext;
+                input.ContainerViewModel = _vm;
             return (INotification)input;
         }
 
@@ -90,7 +102,7 @@ namespace Haley.WPF.BaseControls
         {
             var _appTitle = AppDomain.CurrentDomain?.FriendlyName;
             if (input.AppName == null) input.AppName = _appTitle;
-            input.Type = NotificationType.ToastInfo; //Just to re-assure that the type is of toast 
+            input.Type = DisplayType.ToastInfo; //Just to re-assure that the type is of toast 
             input.Opacity = 0; //First start with 0 opacity so it is not shown in screen
             input.Show();
 
@@ -123,6 +135,8 @@ namespace Haley.WPF.BaseControls
         #endregion
 
         #region Common Properties
+        public object ContainerViewModel { get; set; }
+        public UserControl ContainerView { get; set; }
         public string Id { get; private set; }
         #endregion
 
@@ -156,15 +170,15 @@ namespace Haley.WPF.BaseControls
         public static readonly DependencyProperty AppNameProperty =
             DependencyProperty.Register(nameof(AppName), typeof(string), typeof(Notification), new PropertyMetadata(null));
 
-        public NotificationType Type
+        public DisplayType Type
         {
-            get { return (NotificationType)GetValue(TypeProperty); }
+            get { return (DisplayType)GetValue(TypeProperty); }
             set { SetValue(TypeProperty, value); }
         }
 
         // Using a DependencyProperty as the backing store for Type.  This enables animation, styling, binding, etc...
         public static readonly DependencyProperty TypeProperty =
-            DependencyProperty.Register(nameof(Type), typeof(NotificationType), typeof(Notification), new PropertyMetadata(NotificationType.ShowInfo));
+            DependencyProperty.Register(nameof(Type), typeof(DisplayType), typeof(Notification), new PropertyMetadata(DisplayType.ShowInfo));
         
         public string Message
         {
@@ -248,6 +262,12 @@ namespace Haley.WPF.BaseControls
         #endregion
 
         #region Private Methods
+
+        private void _initiation()
+        {
+            _eventSubscription();
+            _containerViewSetup();
+        }
         private void _autoClose()
         {
             _autoCloseTimer = new DispatcherTimer
@@ -271,6 +291,12 @@ namespace Haley.WPF.BaseControls
             if (_timerCount >= _displayDuration) this.Close();
         }
 
+        void _containerViewSetup()
+        {
+            if (Type != DisplayType.ContainerView || ContainerView == null || _containerHolder == null) return;
+
+            _containerHolder.Content = ContainerView; //If viewmodel is setup using ContainerStore, then it should fetch that.
+        }
         void _eventSubscription()
         {
             if (_header != null)
@@ -288,7 +314,7 @@ namespace Haley.WPF.BaseControls
         {
             try
             {
-                if (Type != NotificationType.ToastInfo)
+                if (Type != DisplayType.ToastInfo)
                 {
                     //Close can be raised from either any place.
                     bool dialogresult = (bool)e.Parameter;
@@ -297,7 +323,7 @@ namespace Haley.WPF.BaseControls
             }
             catch (Exception)
             {
-                if (Type != NotificationType.ToastInfo)
+                if (Type != DisplayType.ToastInfo)
                 {
                     this.DialogResult = false;
                 }
@@ -316,7 +342,7 @@ namespace Haley.WPF.BaseControls
                 {
                     if (wndw is Notification _notify_wndw)
                     {
-                       if (_notify_wndw.Type == NotificationType.ToastInfo)
+                       if (_notify_wndw.Type == DisplayType.ToastInfo)
                         {
                             try
                             {

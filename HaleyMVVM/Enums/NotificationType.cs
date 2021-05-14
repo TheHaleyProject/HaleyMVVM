@@ -3,11 +3,12 @@ using System.Linq;
 
 namespace Haley.Enums
 {
-    public enum NotificationType
+    public enum DisplayType
     {
      ShowInfo,
      GetInput,
      GetConfirmation,
-     ToastInfo
+     ToastInfo,
+     ContainerView
     }
 }

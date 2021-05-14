@@ -78,12 +78,12 @@
                     </Style>
                 </Image.Style>
             </Image>
-            <TextBlock Text="{Binding Message,RelativeSource={RelativeSource AncestorType={x:Type bc:Notification}}}" HorizontalAlignment="Left" VerticalAlignment="Center" Grid.Column="1">
+            <TextBlock Text="{Binding Message,RelativeSource={RelativeSource AncestorType={x:Type bc:Notification}}}" HorizontalAlignment="Left" VerticalAlignment="Center" Grid.Column="1" TextWrapping="Wrap" MaxWidth="800">
                 <TextBlock.Style>
                     <Style TargetType="{x:Type TextBlock}">
                         <Style.Triggers>
                             <!--Success-->
-                            <DataTrigger Binding="{Binding Type,RelativeSource={RelativeSource AncestorType={x:Type bc:Notification}}}" Value="{x:Static enums:NotificationType.ToastInfo}">
+                            <DataTrigger Binding="{Binding Type,RelativeSource={RelativeSource AncestorType={x:Type bc:Notification}}}" Value="{x:Static enums:DisplayType.ToastInfo}">
                                 <Setter Property="Foreground" Value="{Binding ToastForeground,RelativeSource={RelativeSource AncestorType={x:Type bc:Notification}}}"/>
                             </DataTrigger>
                         </Style.Triggers>
@@ -168,15 +168,15 @@
                     <ContentControl.Style>
                         <Style TargetType="ContentControl">
                             <Style.Triggers>
-                                <DataTrigger Binding="{Binding Type,RelativeSource={RelativeSource AncestorType={x:Type bc:Notification}}}" Value="{x:Static enums:NotificationType.ShowInfo}">
+                                <DataTrigger Binding="{Binding Type,RelativeSource={RelativeSource AncestorType={x:Type bc:Notification}}}" Value="{x:Static enums:DisplayType.ShowInfo}">
                                     <Setter Property="ContentTemplate" Value="{StaticResource internal_notification_showInfo}"/>
                                 </DataTrigger>
 
-                                <DataTrigger Binding="{Binding Type,RelativeSource={RelativeSource AncestorType={x:Type bc:Notification}}}" Value="{x:Static enums:NotificationType.GetConfirmation}">
+                                <DataTrigger Binding="{Binding Type,RelativeSource={RelativeSource AncestorType={x:Type bc:Notification}}}" Value="{x:Static enums:DisplayType.GetConfirmation}">
                                     <Setter Property="ContentTemplate" Value="{StaticResource internal_notification_confirm}"/>
                                 </DataTrigger>
 
-                                <DataTrigger Binding="{Binding Type,RelativeSource={RelativeSource AncestorType={x:Type bc:Notification}}}" Value="{x:Static enums:NotificationType.GetInput}">
+                                <DataTrigger Binding="{Binding Type,RelativeSource={RelativeSource AncestorType={x:Type bc:Notification}}}" Value="{x:Static enums:DisplayType.GetInput}">
                                     <Setter Property="ContentTemplate" Value="{StaticResource internal_notification_getInfo}"/>
                                 </DataTrigger>
                             </Style.Triggers>
@@ -242,7 +242,39 @@
             </Grid>
         </Border>
     </ControlTemplate>
-    
+
+    <ControlTemplate x:Key="internal_notification_containerView" TargetType="{x:Type bc:Notification}">
+        <Border x:Name="brdrMain" CornerRadius="10"  Height="Auto" Margin="10" BorderBrush="{TemplateBinding BorderBrush}" Background="Transparent">
+            <Border.Effect>
+                <DropShadowEffect ShadowDepth="0" BlurRadius="5" Color="Gray"/>
+            </Border.Effect>
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="30"/>
+                    <RowDefinition Height="Auto" MinHeight="100"/>
+                    <RowDefinition Height="8"/>
+                </Grid.RowDefinitions>
+
+                <!--HEADER-->
+                <Border Grid.Row="0" CornerRadius="8,8,0,0"  Background="{TemplateBinding AccentColor}">
+                    <Grid x:Name="grdHeader">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="35"/>
+                        </Grid.ColumnDefinitions>
+                        <Grid Grid.Column="0" x:Name="PART_header" Background="Transparent">
+                            <TextBlock  Text="{TemplateBinding Title}" Foreground="{TemplateBinding AccentForeground}" HorizontalAlignment="Center" VerticalAlignment="Center"  FontSize="14" FontFamily="Century Gothic" />
+                        </Grid>
+                        <Button Grid.Column="1" Style="{StaticResource internal_flexi_button}" Background="Transparent" Content="X" FontSize="15" FontStretch="ExtraExpanded" FontWeight="Bold" Foreground="{TemplateBinding AccentForeground}" Width="{Binding ElementName=grdHeader, Path=ActualHeight}" CommandParameter="{StaticResource False}" Command="{x:Static ApplicationCommands.Close}" BorderThickness="0" BorderBrush="Transparent" />
+                    </Grid>
+                </Border>
+
+                <!--ACTUAL CONTENT-->
+                <ContentControl x:Name="PART_ContainerHolder" Grid.Row="1" />
+            </Grid>
+        </Border>
+    </ControlTemplate>
+
     <Style TargetType="{x:Type bc:Notification}">
         <Setter Property="SizeToContent" Value="WidthAndHeight"/>
         <Setter Property="ResizeMode" Value="NoResize"/>
@@ -252,11 +284,13 @@
         <Setter Property="ShowInTaskbar" Value="False"/>
         <Setter Property="Topmost" Value="True"/>
         <Setter Property="MinWidth" Value="350"/>
-        <!--<Setter Property="MaxWidth" Value="850"/>-->
         <Setter Property="Template" Value="{StaticResource internal_notification_dialog}"/>
         <Style.Triggers>
             <Trigger Property="Type" Value="ToastInfo">
                 <Setter Property="Template" Value="{StaticResource internal_notification_toast}"/>
+            </Trigger>
+            <Trigger Property="Type" Value="ContainerView">
+                <Setter Property="Template" Value="{StaticResource internal_notification_containerView}"/>
             </Trigger>
         </Style.Triggers>
     </Style>

@@ -25,6 +25,7 @@ namespace Haley.Abstractions
 
         #region View Generation Methods
         BaseViewType generateView<VMType>(VMType InputViewModel=null, ResolveMode mode = ResolveMode.AsRegistered) where VMType : class, BaseVMType;
+        BaseViewType generateView<ViewType>(object InputViewModel = null, ResolveMode mode = ResolveMode.AsRegistered) where ViewType : class, BaseViewType;
         BaseViewType generateView(string key, object InputViewModel = null, ResolveMode mode = ResolveMode.AsRegistered);
         BaseViewType generateView(Enum key, object InputViewModel = null, ResolveMode mode = ResolveMode.AsRegistered);
         #endregion

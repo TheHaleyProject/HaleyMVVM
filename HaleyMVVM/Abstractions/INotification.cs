@@ -12,8 +12,9 @@ namespace Haley.Abstractions
     public interface INotification
     {
         #region Properties
+        object ContainerViewModel { get; }
         string Id { get;  }
-        NotificationType Type { get; set; }
+        DisplayType Type { get; set; }
         string Message { get; set; }
         NotificationIcon NotificationIcon { get; set; }
         bool ShowNotificationIcon { get; set; }

@@ -26,5 +26,11 @@ namespace Haley.Abstractions
         void ChangeAccentColors(SolidColorBrush AccentColor = null, SolidColorBrush AccentForeground = null, Brush ToastBackground = null, SolidColorBrush ToastForeground = null);
         INotification ShowDialog(string title, string message, NotificationIcon icon = NotificationIcon.Info, DialogMode mode = DialogMode.Notification, bool hideIcon = false, bool topMost= true, bool showInTaskBar = false);
         bool SendToast(string title, string message, NotificationIcon icon = NotificationIcon.Info, bool hideIcon = false, bool autoClose = true, int display_seconds = 7);
+
+        //For fetching views from Container
+        INotification ShowContainerView(string title, string key, object InputViewModel = null, ResolveMode mode = ResolveMode.AsRegistered, bool topMost = true, bool showInTaskBar = false);
+        INotification ShowContainerView(string title, Enum key, object InputViewModel = null, ResolveMode mode = ResolveMode.AsRegistered, bool topMost = true, bool showInTaskBar = false);
+        INotification ShowContainerView<ViewType>(string title, object InputViewModel = null, ResolveMode mode = ResolveMode.AsRegistered, bool topMost = true, bool showInTaskBar = false) where ViewType :class, IHaleyControl;
+        INotification ShowContainerView<VMType>(string title, VMType InputViewModel = null, ResolveMode mode = ResolveMode.AsRegistered, bool topMost = true, bool showInTaskBar = false) where VMType : class, IHaleyControlVM;
     }
 }
