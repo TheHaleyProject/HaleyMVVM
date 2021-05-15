@@ -5,6 +5,12 @@
         <ResourceDictionary Source="pack://application:,,,/Haley.MVVM;component/Dictionaries/haleyConverters.xaml"/>
   </ResourceDictionary.MergedDictionaries>
 
+FOR USING HALEY.WPF RESOURCES: When using Haley.WPF, please add the below resource dictionary directly. In that case, adding converter is not required as it is already added to haley RD.
+
+  <ResourceDictionary.MergedDictionaries>
+        <ResourceDictionary Source="pack://application:,,,/Haley.WPF;component/Dictionaries/haleyRD.xaml"/>
+  </ResourceDictionary.MergedDictionaries>
+
 ******CODE******
 
 #### 2 ---- MODELS:
