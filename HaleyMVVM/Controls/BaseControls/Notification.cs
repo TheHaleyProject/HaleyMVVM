@@ -21,6 +21,7 @@ using Haley.MVVM;
 using System.Collections.Concurrent;
 using System.Windows.Media.Animation;
 using System.Windows.Threading;
+using System.Windows.Media.Effects;
 
 namespace Haley.WPF.BaseControls
 {
@@ -39,6 +40,7 @@ namespace Haley.WPF.BaseControls
         private int _displayDuration = 5;
         private int _timerCount;
         private DispatcherTimer _autoCloseTimer;
+        private BlurEffect _wndwBlur = new BlurEffect();
         #endregion
 
         #region UIElements
@@ -59,7 +61,7 @@ namespace Haley.WPF.BaseControls
 
             AllowsTransparency = true;
             WindowStyle = WindowStyle.None;
-            WindowStartupLocation = WindowStartupLocation.CenterScreen;
+            WindowStartupLocation = WindowStartupLocation.CenterOwner;
             CommandBindings.Add(new CommandBinding(ApplicationCommands.Close, _closeAction));
             CommandBindings.Add(new CommandBinding(SystemCommands.CloseWindowCommand, _closeAllToasts));
 
@@ -77,23 +79,51 @@ namespace Haley.WPF.BaseControls
         #endregion
 
         #region Public Methods
-        public static INotification ShowDialog(Notification input)
+
+        private static void _showDialog(ref Notification input, bool blurWindows)
+        {
+            var _wndw = input as Window;
+            if (_wndw != null && _wndw?.WindowStartupLocation == WindowStartupLocation.CenterOwner)
+            {
+                var mainWndw = Application.Current.MainWindow;
+                if (mainWndw.IsVisible)
+                {
+                    _wndw.Owner = Application.Current.MainWindow;
+                }
+                else
+                {
+                    foreach (Window otherwindow in Application.Current.Windows)
+                    {
+                        if (otherwindow.IsActive == true)
+                        {
+                            _wndw.Owner = otherwindow;
+                            break;
+                        }
+                    }
+                }
+            }
+            if (blurWindows) input.BlurWindows(true); //Show blur
+            var result = input.ShowDialog();
+            if (blurWindows) input.BlurWindows(false); //Deactiavate blur after dialog is closed.
+        }
+
+        public static INotification ShowDialog(Notification input,bool blurWindows = false)
         {
             if (input.Type == DisplayType.ToastInfo || input.Type == DisplayType.ContainerView)
             {
                 // We should not have toast info type. If by some mistake, it was set, it has to be changed to notification.
                 input.Type = DisplayType.ShowInfo;
             }
-            var result = input.ShowDialog();
+            _showDialog(ref input, blurWindows);
             return (INotification)input;
         }
 
-        public static INotification ShowContainerView(Notification input)
+        public static INotification ShowContainerView(Notification input,bool blurWindows = false)
         {
-            //If container is null, then send a info message.
-                var result = input.ShowDialog();
-                //Now get the viewmodel of the container view and add it to result.
-                var _vm = input.ContainerView.DataContext;
+            _showDialog(ref input, blurWindows);
+                                                       
+            //Now get the viewmodel of the container view and add it to result.
+            var _vm = input.ContainerView.DataContext;
                 input.ContainerViewModel = _vm;
             return (INotification)input;
         }
@@ -262,7 +292,30 @@ namespace Haley.WPF.BaseControls
         #endregion
 
         #region Private Methods
+        private void BlurWindows(bool activate)
+        {
+            try
+            {
+                switch(activate)
+                {
+                    case true:
+                        _wndwBlur.Radius = 8;
+                        foreach (Window wndw in Application.Current.Windows)
+                        {
+                            if (wndw is Notification) continue;
+                            wndw.Effect = _wndwBlur;
+                        }
+                        break;
+                    case false:
+                        _wndwBlur.Radius = 0; //Remove blur. This effect is already applied to all windows. So they will get updated.
+                        break;
+                }
+            }
+            catch (Exception)
+            {
 
+            }
+        }
         private void _initiation()
         {
             _eventSubscription();

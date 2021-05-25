@@ -18,12 +18,16 @@ namespace Haley.MVVM.Services
         private SolidColorBrush _accentForeground;
         private SolidColorBrush _toastForeground;
         private Brush _toastBackground;
+        private bool _topMost = true;
+        private bool _showInTaskBar = false;
+        private WindowStartupLocation _startupLocation = WindowStartupLocation.CenterOwner;
         #endregion
 
+        #region Public Methods
         [Obsolete("Soon to be deprecated. Use ShowDialog or SendToast")]
-        public bool send(string title,string message, DialogMode mode = DialogMode.Notification)
+        public bool send(string title, string message, DialogMode mode = DialogMode.Notification)
         {
-            var _info = ShowDialog(title, message, mode: mode,hideIcon:true);
+            var _info = ShowDialog(title, message, mode: mode, hideIcon: true);
             if (!_info.DialogResult.HasValue) return false;
             return _info.DialogResult.Value;
         }
@@ -40,7 +44,7 @@ namespace Haley.MVVM.Services
             }
             return false;
         }
-     
+
         public void ChangeAccentColors(SolidColorBrush AccentColor = null, SolidColorBrush AccentForeground = null, Brush ToastBackground = null, SolidColorBrush ToastForeground = null)
         {
             _accentColor = AccentColor;
@@ -49,7 +53,119 @@ namespace Haley.MVVM.Services
             _toastBackground = ToastBackground;
         }
 
-        private Notification _getNotificationBaseWindow(string title, DisplayType type, bool topMost, bool showInTaskBar)
+        public void ChangeSettings(bool? topMost = null, bool? showInTaskBar = null, DialogStartupLocation startupLocation = DialogStartupLocation.CenterParent)
+        {
+            if (topMost != null) _topMost = topMost.Value;
+            if (showInTaskBar != null) _showInTaskBar = showInTaskBar.Value;
+
+            switch (startupLocation)
+            {
+                case DialogStartupLocation.CenterParent:
+                    _startupLocation = WindowStartupLocation.CenterOwner;
+                    break;
+                case DialogStartupLocation.CenterScreen:
+                    _startupLocation = WindowStartupLocation.CenterScreen;
+                    break;
+            }
+        }
+
+        public bool SendToast(string title, string message, NotificationIcon icon = NotificationIcon.Info, bool hideIcon = false, bool autoClose = true, int display_seconds = 7)
+        {
+            DisplayType _type = DisplayType.ToastInfo;
+            var _wndw = _getNotificationWindow(title, message, icon, _type, hideIcon,false,true);
+            _wndw.AutoClose = autoClose;
+            return Notification.SendToast(_wndw, display_seconds);
+        }
+       
+        public INotification ShowDialog(string title, string message, NotificationIcon icon = NotificationIcon.Info, DialogMode mode = DialogMode.Notification, bool hideIcon = false, bool blurWindows = false)
+        {
+            //First get the type of notification.
+            DisplayType _type = DisplayType.ShowInfo;
+            switch (mode)
+            {
+                case DialogMode.Notification:
+                    _type = DisplayType.ShowInfo;
+                    break;
+                case DialogMode.Confirmation:
+                    _type = DisplayType.GetConfirmation;
+                    break;
+                case DialogMode.GetInput:
+                    _type = DisplayType.GetInput;
+                    break;
+            }
+
+            var _wndw = _getNotificationWindow(title, message, icon, _type, hideIcon);
+
+            return Notification.ShowDialog(_wndw,blurWindows);
+        }
+
+        public INotification Info(string title, string message, DialogMode mode = DialogMode.Notification, bool blurWindows = false)
+        {
+            return ShowDialog(title, message, NotificationIcon.Info, blurWindows: blurWindows);
+        }
+
+        public INotification Warning(string title, string message, DialogMode mode = DialogMode.Notification, bool blurWindows = false)
+        {
+            return ShowDialog(title, message, NotificationIcon.Warning, blurWindows: blurWindows);
+        }
+
+        public INotification Error(string title, string message, DialogMode mode = DialogMode.Notification, bool blurWindows = false)
+        {
+            return ShowDialog(title, message, NotificationIcon.Error, blurWindows: blurWindows);
+        }
+
+        public INotification Success(string title, string message, DialogMode mode = DialogMode.Notification, bool blurWindows = false)
+        {
+            return ShowDialog(title, message, NotificationIcon.Success, blurWindows: blurWindows);
+        }
+        #endregion
+
+        #region Container Methods
+        public INotification ShowContainerView(string title, string key, object InputViewModel = null, ResolveMode mode = ResolveMode.AsRegistered, bool blurWindows = false)
+        {
+            UserControl _view = null;
+            try
+            {
+                //Containerstore resolve the controls to get the control
+                _view = (UserControl)ContainerStore.Singleton.controls.generateView(key, InputViewModel, mode);
+            }
+            catch (Exception ex)
+            {
+                string _msg = $@"No UserControl is associated with the key - {key}" + Environment.NewLine + ex.ToString();
+                var _infoWndw = _getNotificationWindow(title, _msg, NotificationIcon.Error, DisplayType.ShowInfo, false);
+                return Notification.ShowDialog(_infoWndw,blurWindows);
+            }
+
+            if (_view == null)
+            {
+                string _msg = $@"No UserControl is associated with the key - {key}";
+                var _infoWndw = _getNotificationWindow(title, _msg, NotificationIcon.Error, DisplayType.ShowInfo, false);
+                return Notification.ShowDialog(_infoWndw,blurWindows);
+            }
+
+            var _wndw = _getNotificationWindow(title, _view, DisplayType.ContainerView);
+            return Notification.ShowContainerView(_wndw,blurWindows); //notification will fetch the viewmodel and add it to INotification result.
+        }
+        public INotification ShowContainerView(string title, Enum @enum, object InputViewModel = null, ResolveMode mode = ResolveMode.AsRegistered, bool blurWindows = false)
+        {
+            string _key = @enum.getKey();
+            return ShowContainerView(title, _key, InputViewModel, mode, blurWindows);
+        }
+        public INotification ShowContainerView<ViewType>(string title, object InputViewModel = null, ResolveMode mode = ResolveMode.AsRegistered, bool blurWindows = false) where ViewType : class, IHaleyControl
+        {
+            string _key = typeof(ViewType).ToString();
+            return ShowContainerView(title, _key, InputViewModel, mode, blurWindows);
+        }
+        public INotification ShowContainerView<VMType>(string title, VMType InputViewModel = null, ResolveMode mode = ResolveMode.AsRegistered, bool blurWindows = false) where VMType : class, IHaleyControlVM
+        {
+            string _key = typeof(VMType).ToString();
+            return ShowContainerView(title, _key, InputViewModel, mode, blurWindows);
+        }
+
+        #endregion
+
+        #region Private Methods
+        private Notification _getNotificationBaseWindow(string title, DisplayType type,bool? showInTaskBar = null, bool? topMost = null)
         {
             Notification _newWindow = new Notification();
 
@@ -75,21 +191,20 @@ namespace Haley.MVVM.Services
             }
             _newWindow.Title = title;
             _newWindow.Type = type;
-            _newWindow.ShowInTaskbar = showInTaskBar;
-            _newWindow.Topmost = topMost;
+            _newWindow.ShowInTaskbar = showInTaskBar == null ? _showInTaskBar : showInTaskBar.Value;
+            _newWindow.Topmost = topMost == null? _topMost : topMost.Value;
+            _newWindow.WindowStartupLocation = _startupLocation;
             return _newWindow;
         }
-
-        private Notification _getNotificationWindow(string title, UserControl container_view, DisplayType type,  bool topMost, bool showInTaskBar)
+        private Notification _getNotificationWindow(string title, UserControl container_view, DisplayType type, bool? showInTaskBar = null, bool? topMost = null)
         {
-            var _newWindow = _getNotificationBaseWindow(title,type,topMost,showInTaskBar);
+            var _newWindow = _getNotificationBaseWindow(title, type,showInTaskBar,topMost );
             _newWindow.ContainerView = container_view;
             return _newWindow;
         }
-
-        private Notification _getNotificationWindow(string title, string message, NotificationIcon icon , DisplayType type, bool hideIcon, bool topMost, bool showInTaskBar)
+        private Notification _getNotificationWindow(string title, string message, NotificationIcon icon, DisplayType type, bool hideIcon, bool? showInTaskBar = null, bool? topMost = null)
         {
-            var _newWindow = _getNotificationBaseWindow(title, type, topMost, showInTaskBar);
+            var _newWindow = _getNotificationBaseWindow(title, type,showInTaskBar,topMost );
             //Set base properties
             _newWindow.Message = message;
             _newWindow.NotificationIcon = icon;
@@ -97,74 +212,7 @@ namespace Haley.MVVM.Services
             return _newWindow;
         }
 
-        public INotification ShowDialog(string title, string message, NotificationIcon icon = NotificationIcon.Info, DialogMode mode = DialogMode.Notification, bool hideIcon = false, bool topMost = true, bool showInTaskBar = false)
-        {
-            //First get the type of notification.
-            DisplayType _type = DisplayType.ShowInfo;
-            switch (mode)
-            {
-                case DialogMode.Notification:
-                    _type = DisplayType.ShowInfo;
-                    break;
-                case DialogMode.Confirmation:
-                    _type = DisplayType.GetConfirmation;
-                    break;
-                case DialogMode.GetInput:
-                    _type = DisplayType.GetInput;
-                    break;
-            }
-
-            var _wndw = _getNotificationWindow(title,message,icon,_type,hideIcon,topMost,showInTaskBar);
-            return Notification.ShowDialog(_wndw);
-        }
-
-        public bool SendToast(string title, string message, NotificationIcon icon = NotificationIcon.Info, bool hideIcon = false, bool autoClose = true, int display_seconds = 7)
-        {
-            DisplayType _type = DisplayType.ToastInfo;
-            var _wndw = _getNotificationWindow(title, message, icon, _type, hideIcon,true,false);
-            _wndw.AutoClose = autoClose;
-            return Notification.SendToast(_wndw,display_seconds);
-        }
-
-        public INotification ShowContainerView(string title, string key, object InputViewModel = null, ResolveMode mode = ResolveMode.AsRegistered, bool topMost = true, bool showInTaskBar = false)
-        {
-            UserControl _view = null;
-            try
-            {
-                //Containerstore resolve the controls to get the control
-                _view = (UserControl)ContainerStore.Singleton.controls.generateView(key, InputViewModel, mode);
-            }
-            catch (Exception ex)
-            {
-                string _msg = $@"No UserControl is associated with the key - {key}" + Environment.NewLine + ex.ToString();
-                var _infoWndw = _getNotificationWindow(title, _msg, NotificationIcon.Error, DisplayType.ShowInfo, false, topMost, showInTaskBar);
-                return Notification.ShowDialog(_infoWndw);
-            }
-           
-            if (_view == null)
-            {
-                string _msg = $@"No UserControl is associated with the key - {key}";
-                var _infoWndw = _getNotificationWindow(title, _msg, NotificationIcon.Error, DisplayType.ShowInfo, false, topMost, showInTaskBar);
-               return Notification.ShowDialog(_infoWndw);
-            }
-
-            var _wndw = _getNotificationWindow(title, _view, DisplayType.ContainerView, topMost, showInTaskBar);
-            return Notification.ShowContainerView(_wndw); //notification will fetch the viewmodel and add it to INotification result.
-        }
-        public INotification ShowContainerView(string title, Enum @enum, object InputViewModel = null, ResolveMode mode = ResolveMode.AsRegistered, bool topMost = true, bool showInTaskBar = false)
-        {
-            string _key = @enum.getKey();
-            return ShowContainerView(title,_key, InputViewModel, mode,topMost,showInTaskBar);
-        }
-        public INotification ShowContainerView<ViewType>(string title, object InputViewModel = null, ResolveMode mode = ResolveMode.AsRegistered, bool topMost = true, bool showInTaskBar = false) where ViewType : class, IHaleyControl
-        {
-            string _key = typeof(ViewType).ToString();
-            return ShowContainerView(title,_key, InputViewModel, mode, topMost, showInTaskBar);
-        }
-        public INotification ShowContainerView<VMType>(string title, VMType InputViewModel = null, ResolveMode mode = ResolveMode.AsRegistered, bool topMost = true, bool showInTaskBar = false) where VMType : class, IHaleyControlVM
-        {
-            string _key = typeof(VMType).ToString();
-            return ShowContainerView(title,_key, InputViewModel, mode, topMost, showInTaskBar);
-        }
+        
+        #endregion
     }
 }
