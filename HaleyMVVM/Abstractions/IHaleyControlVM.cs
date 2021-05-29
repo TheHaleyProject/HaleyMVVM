@@ -4,8 +4,13 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.ComponentModel;
+using Haley.Events;
 
 namespace Haley.Abstractions
 {
-    public interface IHaleyControlVM { }
+    [Obsolete("Replace with generic IHaleyVM")]
+        public interface IHaleyControlVM:IHaleyVM
+    {
+            
+        }
 }

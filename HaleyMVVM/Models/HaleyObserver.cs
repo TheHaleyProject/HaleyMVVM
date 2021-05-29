@@ -20,7 +20,7 @@ namespace Haley.Models
         //3. Status can either be true or false. Which means, we can either close the window or keep it active. 
         //4. So, View, which has subscribed to that event, receives that status and saves as dialog result. If dialog result is true, then it will close the winodw else it will keep it active.
         public IHaleyWindow subscriber { get; set; }
-        public IHaleyWindowVM publisher { get; set; }
+        public IHaleyVM publisher { get; set; }
 
         public void subscribe()
         {
@@ -46,7 +46,7 @@ namespace Haley.Models
             }
         }
 
-        public HaleyObserver(IHaleyWindow subscriberView, IHaleyWindowVM publisherViewModel)
+        public HaleyObserver(IHaleyWindow subscriberView, IHaleyVM publisherViewModel)
         {
             subscriber = subscriberView;
             publisher = publisherViewModel;

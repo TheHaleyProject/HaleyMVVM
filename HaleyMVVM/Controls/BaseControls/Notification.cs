@@ -120,6 +120,10 @@ namespace Haley.WPF.BaseControls
 
         public static INotification ShowContainerView(Notification input,bool blurWindows = false)
         {
+            if (input.ContainerView.DataContext is IHaleyVM _dc)
+            {
+                _dc.OnWindowsClosed += (o, e) => { input.Close(); };
+            }
             _showDialog(ref input, blurWindows);
                                                        
             //Now get the viewmodel of the container view and add it to result.

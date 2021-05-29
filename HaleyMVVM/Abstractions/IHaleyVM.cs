@@ -8,9 +8,8 @@ using Haley.Events;
 
 namespace Haley.Abstractions
 {
-    [Obsolete("Replace with IHaleyVM")]
-        public interface IHaleyWindowVM :IHaleyVM
+        public interface IHaleyVM 
         {
-            
+            event EventHandler<FrameClosingEventArgs> OnWindowsClosed; //this is the name... :) :) :) 
         }
 }

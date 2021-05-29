@@ -10,7 +10,7 @@ using Haley.Enums;
 
 namespace Haley.IOC
 {
-    public sealed class ControlContainer : UIContainerBase<IHaleyControlVM,IHaleyControl>, IHaleyControlContainer<IHaleyControlVM, IHaleyControl>
+    public sealed class ControlContainer : UIContainerBase<IHaleyVM,IHaleyControl>, IHaleyControlContainer<IHaleyVM, IHaleyControl>
     {
         public ControlContainer(IHaleyDIContainer _injection_container):base(_injection_container) { }
 
@@ -20,12 +20,12 @@ namespace Haley.IOC
             {
                 //If input view model is not null, then don't try to generate viewmodel.
                 IHaleyControl _view = null;
-                IHaleyControlVM _vm = null;
+                IHaleyVM _vm = null;
                 if (InputViewModel != null)
                 {
                     var _mapping_value = getMappingValue(key);
                     _view = _generateView(_mapping_value.view_type);
-                    _vm = (IHaleyControlVM)InputViewModel;
+                    _vm = (IHaleyVM)InputViewModel;
                 }
                 else
                 {

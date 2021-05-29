@@ -156,7 +156,7 @@ namespace Haley.MVVM.Services
             string _key = typeof(ViewType).ToString();
             return ShowContainerView(title, _key, InputViewModel, mode, blurWindows);
         }
-        public INotification ShowContainerView<VMType>(string title, VMType InputViewModel = null, ResolveMode mode = ResolveMode.AsRegistered, bool blurWindows = false) where VMType : class, IHaleyControlVM
+        public INotification ShowContainerView<VMType>(string title, VMType InputViewModel = null, ResolveMode mode = ResolveMode.AsRegistered, bool blurWindows = false) where VMType : class, IHaleyVM
         {
             string _key = typeof(VMType).ToString();
             return ShowContainerView(title, _key, InputViewModel, mode, blurWindows);

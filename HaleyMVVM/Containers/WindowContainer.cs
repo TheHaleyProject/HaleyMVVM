@@ -14,7 +14,7 @@ using Haley.Enums;
 
 namespace Haley.IOC
 {
-    public sealed class WindowContainer : UIContainerBase<IHaleyWindowVM,IHaleyWindow>, IHaleyWindowContainer<IHaleyWindowVM, IHaleyWindow>  //Implementation of the DialogService Interface.
+    public sealed class WindowContainer : UIContainerBase<IHaleyVM,IHaleyWindow>, IHaleyWindowContainer<IHaleyVM, IHaleyWindow>  //Implementation of the DialogService Interface.
     {
         public WindowContainer(IHaleyDIContainer _injection_container) : base(_injection_container) { }
 
@@ -24,7 +24,7 @@ namespace Haley.IOC
             string _key = key.getKey();
             return showDialog(_key, InputViewModel, resolve_mode);
         }
-        public bool? showDialog<ViewModelType>(ViewModelType InputViewModel = null, ResolveMode resolve_mode = ResolveMode.AsRegistered) where ViewModelType : class, IHaleyWindowVM
+        public bool? showDialog<ViewModelType>(ViewModelType InputViewModel = null, ResolveMode resolve_mode = ResolveMode.AsRegistered) where ViewModelType : class, IHaleyVM
         {
             string _key = typeof(ViewModelType).ToString();
             return showDialog(_key, InputViewModel, resolve_mode);
@@ -41,7 +41,7 @@ namespace Haley.IOC
         #endregion
 
         #region Show Methods
-        public void show<ViewModelType>(ViewModelType InputViewModel = null, ResolveMode resolve_mode = ResolveMode.AsRegistered) where ViewModelType : class, IHaleyWindowVM
+        public void show<ViewModelType>(ViewModelType InputViewModel = null, ResolveMode resolve_mode = ResolveMode.AsRegistered) where ViewModelType : class, IHaleyVM
         {
             string _key = typeof(ViewModelType).ToString();
             show(_key, InputViewModel, resolve_mode);
@@ -70,12 +70,12 @@ namespace Haley.IOC
             {
                 //If input view model is not null, then don't try to generate viewmodel.
                 IHaleyWindow _view = null;
-                IHaleyWindowVM _vm = null;
+                IHaleyVM _vm = null;
                 if (InputViewModel != null)
                 {
                     var _mapping_value = getMappingValue(key);
                     _view = _generateView(_mapping_value.view_type);
-                    _vm =  (IHaleyWindowVM) InputViewModel;
+                    _vm =  (IHaleyVM) InputViewModel;
                 }
                 else
                 {
