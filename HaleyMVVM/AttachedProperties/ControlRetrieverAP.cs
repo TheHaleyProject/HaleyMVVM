@@ -83,7 +83,7 @@ namespace Haley.Models
 
         // Using a DependencyProperty as the backing store for ControlContainer.  This enables animation, styling, binding, etc...
         public static readonly DependencyProperty ControlContainerProperty =
-            DependencyProperty.RegisterAttached("ControlContainer", typeof(IControlContainer), typeof(ControlRetrieverAP), new PropertyMetadata(null));
+            DependencyProperty.RegisterAttached("ControlContainer", typeof(IControlContainer), typeof(ControlRetrieverAP), new PropertyMetadata(null,ControlContainerPropertyChanged));
 
         #endregion
 
@@ -106,11 +106,6 @@ namespace Haley.Models
         {
             try
             {
-                //We donot apply this for windows.
-                if (d is Window || d is UserControl) return;
-
-                if (!(d is ContentControl)) return;
-
                 string _key = string.Empty;
                 //new value of e could be string or enum.
                 if (e.NewValue is string)
@@ -125,6 +120,42 @@ namespace Haley.Models
                         _key = _enum.getKey();
                     }
                 }
+                RetrieveView(d, _key);
+            }
+            catch (Exception)
+            {
+                //do nothing as of now.
+            }
+        }
+
+        static void ControlContainerPropertyChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+        {
+            string _key = string.Empty;
+
+            var _stringkey = d.GetValue(KeyProperty) as string;
+            var _enumKey = d.GetValue(KeyEnumProperty) as Enum;
+
+            if (_stringkey != null)
+            {
+                _key = _stringkey;
+            }
+            else if (_enumKey != null)
+            {
+                _key = _enumKey.getKey();
+            }
+
+            RetrieveView(d, _key);
+        }
+
+
+        static void RetrieveView(DependencyObject d, string key)
+        {
+            try
+            {
+                //We donot apply this for windows.
+                if (d is Window || d is UserControl) return;
+
+                if (!(d is ContentControl)) return;
 
                 //Get resolve mode
                 ResolveMode _resolve_mode = (ResolveMode)d.GetValue(ResolveModeProperty);
@@ -140,18 +171,19 @@ namespace Haley.Models
                 //Get control
                 UserControl _targetControl = null;
 
-                if (_key != null)
+                if (key != null)
                 {
-                    _targetControl = _container.GenerateView(_key, mode: _resolve_mode);
+                    _targetControl = _container.GenerateView(key, mode: _resolve_mode);
                 }
 
-            ((ContentControl)d).Content = _targetControl;
+           ((ContentControl)d).Content = _targetControl;
             }
             catch (Exception)
             {
                 //do nothing as of now.
             }
         }
+        
         #endregion
     }
 }
