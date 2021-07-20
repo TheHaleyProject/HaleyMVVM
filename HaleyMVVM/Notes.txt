@@ -25,9 +25,9 @@ FOR USING HALEY.WPF RESOURCES: When using Haley.WPF, please add the below resour
 
 #### 3 ---- CONTAINERS:
 
-1. Use, "ContainerStore.Singleton.windows" to register and use windows.
+1. Use, "ContainerStore.Singleton.Windows" to register and use windows.
 
-2. Use, "ContainerStore.Singleton.controls" to register and use controls.
+2. Use, "ContainerStore.Singleton.Controls" to register and use controls.
 
 3. Use, "ContainerStore.Singleton.DI" to register and resolve for dependency injection cases.
 

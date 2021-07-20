@@ -11,19 +11,30 @@ namespace Haley.MVVM
     /// <summary>
     /// Sealed Container store which has DI, Controls, Windows 
     /// </summary>
-    public sealed class ContainerStore
+    public sealed class ContainerStore : IContainerFactory
     {
-        public IHaleyDIContainer DI { get; set; }
-        public IHaleyControlContainer<IHaleyVM,UserControl> controls { get;  }
-        public IHaleyWindowContainer<IHaleyVM,Window> windows { get;  }
+        public string Id { get; }
+        public IBaseContainer DI { get; set; }
+        public IControlContainer Controls { get;  }
+        public IWindowContainer Windows { get;  }
 
         public ContainerStore() 
         {
+            Id = Guid.NewGuid().ToString();
             DI = new DIContainer() {};
-            controls = new ControlContainer(DI); 
-            windows = new WindowContainer(DI);
+            Controls = new ControlContainer(DI); 
+            Windows = new WindowContainer(DI);
+            _registerSelf();
             _registerDialogs();
             _registerServices();
+        }
+
+        private void _registerSelf()
+        {
+            //Never register Base container because it is already registered.
+            DI.Register<IControlContainer, ControlContainer>((ControlContainer)Controls, true);
+            DI.Register<IWindowContainer, WindowContainer>((WindowContainer)Windows, true);
+            DI.Register<IContainerFactory, ContainerStore>((ContainerStore)this, true);
         }
 
         private void _registerDialogs()

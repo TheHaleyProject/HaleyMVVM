@@ -106,7 +106,7 @@ namespace Haley.MVVM.Services
             try
             {
                 //Containerstore resolve the controls to get the control
-                _view = (UserControl)ContainerStore.Singleton.controls.generateView(key, InputViewModel, mode);
+                _view = (UserControl)ContainerStore.Singleton.Controls.GenerateView(key, InputViewModel, mode);
             }
             catch (Exception ex)
             {

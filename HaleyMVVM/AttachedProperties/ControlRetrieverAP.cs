@@ -71,19 +71,19 @@ namespace Haley.Models
 
         #region ControlContainer
 
-        public static IHaleyControlContainer<IHaleyVM,UserControl> GetControlContainer(DependencyObject obj)
+        public static IControlContainer GetControlContainer(DependencyObject obj)
         {
-            return (IHaleyControlContainer<IHaleyVM,UserControl>)obj.GetValue(ControlContainerProperty);
+            return (IControlContainer)obj.GetValue(ControlContainerProperty);
         }
 
-        public static void SetControlContainer(DependencyObject obj, IHaleyControlContainer<IHaleyVM,UserControl> value)
+        public static void SetControlContainer(DependencyObject obj, IControlContainer value)
         {
             obj.SetValue(ControlContainerProperty, value);
         }
 
         // Using a DependencyProperty as the backing store for ControlContainer.  This enables animation, styling, binding, etc...
         public static readonly DependencyProperty ControlContainerProperty =
-            DependencyProperty.RegisterAttached("ControlContainer", typeof(IHaleyControlContainer<IHaleyVM,UserControl>), typeof(ControlRetrieverAP), new PropertyMetadata(null));
+            DependencyProperty.RegisterAttached("ControlContainer", typeof(IControlContainer), typeof(ControlRetrieverAP), new PropertyMetadata(null));
 
         #endregion
 
@@ -130,11 +130,11 @@ namespace Haley.Models
                 ResolveMode _resolve_mode = (ResolveMode)d.GetValue(ResolveModeProperty);
 
                 //Get Control Container
-                var _container = d.GetValue(ControlContainerProperty) as IHaleyControlContainer<IHaleyVM, UserControl>;
+                var _container = d.GetValue(ControlContainerProperty) as IControlContainer;
 
                 if (_container == null)
                 {
-                    _container = ContainerStore.Singleton.controls;
+                    _container = ContainerStore.Singleton.Controls;
                 }
 
                 //Get control
@@ -142,7 +142,7 @@ namespace Haley.Models
 
                 if (_key != null)
                 {
-                    _targetControl = _container.generateView(_key, mode: _resolve_mode);
+                    _targetControl = _container.GenerateView(_key, mode: _resolve_mode);
                 }
 
             ((ContentControl)d).Content = _targetControl;

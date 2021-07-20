@@ -109,11 +109,11 @@ namespace Haley.Models
             {
                 try
                 {
-                    //If d is usercontrol and also implements ihaleycontrol, then resolve the viewmodel
+                    //If d is usercontrol and also implements UserControl, then resolve the viewmodel
                     string _key = _getKey(d);
                     if (d is UserControl)
                     {
-                        var _vm = ContainerStore.Singleton.controls.generateViewModel(_key, GetResolveMode(d));
+                        var _vm = ContainerStore.Singleton.Controls.GenerateViewModel(_key, GetResolveMode(d));
                         if (_vm != null) //Only if not null, assign it.
                         {
                             ((UserControl)d).DataContext = _vm;
@@ -121,7 +121,7 @@ namespace Haley.Models
                     }
                     else if (d is Window)
                     {
-                        var _vm = ContainerStore.Singleton.windows.generateViewModel(_key, GetResolveMode(d));
+                        var _vm = ContainerStore.Singleton.Windows.GenerateViewModel(_key, GetResolveMode(d));
                         if (_vm != null) //Only if not null, assign it.
                         {
                             ((Window)d).DataContext = _vm;
@@ -155,11 +155,11 @@ namespace Haley.Models
                 {
                     if (d is UserControl)
                     {
-                        _key = ContainerStore.Singleton.controls.findKey(d.GetType());
+                        _key = ContainerStore.Singleton.Controls.FindKey(d.GetType());
                     }
                     else
                     {
-                        _key = ContainerStore.Singleton.windows.findKey(d.GetType());
+                        _key = ContainerStore.Singleton.Windows.FindKey(d.GetType());
                     }
                 }
                 if (_key == null) _key = d.GetType().ToString();

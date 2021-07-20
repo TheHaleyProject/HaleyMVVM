@@ -10,14 +10,17 @@ using Haley.Enums;
 
 namespace Haley.Abstractions
 {
-    public abstract class UIContainerBase<BaseViewModelType,BaseViewType> : IHaleyUIContainer<BaseViewModelType, BaseViewType>
+    public abstract class UIContainerBase<BaseViewModelType,BaseViewType> : IUIContainerBase<BaseViewModelType, BaseViewType>
     {
+        public string Id { get; }
+
         #region Initation
-        protected IHaleyDIContainer _di_instance;
+        protected IBaseContainer _di_instance;
         protected ConcurrentDictionary<string,(Type VMtype, Type ViewType,RegisterMode mode)> main_mapping { get; set; } //Dictionary to store enumvalue and viewmodel type as key and usercontrol as value
 
-        public UIContainerBase(IHaleyDIContainer _injection_container)
+        public UIContainerBase(IBaseContainer _injection_container)
         {
+            Id = Guid.NewGuid().ToString();
             main_mapping = new ConcurrentDictionary<string, (Type VMtype, Type ViewType, RegisterMode mode)>();
             if (_injection_container != null)
             {
@@ -28,7 +31,7 @@ namespace Haley.Abstractions
         #endregion
 
         #region Register Methods
-        public virtual string register<viewmodelType, viewType>(viewmodelType InputViewModel = null, bool use_vm_as_key = true, RegisterMode mode = RegisterMode.Singleton)
+        public virtual string Register<viewmodelType, viewType>(viewmodelType InputViewModel = null, bool use_vm_as_key = true, RegisterMode mode = RegisterMode.Singleton)
             where viewmodelType : class, BaseViewModelType
             where viewType : BaseViewType
         {
@@ -42,19 +45,19 @@ namespace Haley.Abstractions
                 _key = typeof(viewType).ToString();
             }
 
-           return register<viewmodelType, viewType>(_key, InputViewModel, mode);
+           return Register<viewmodelType, viewType>(_key, InputViewModel, mode);
         }
 
-        public virtual string register<viewmodelType, viewType>(Enum @enum, viewmodelType InputViewModel = null, RegisterMode mode = RegisterMode.Singleton)
+        public virtual string Register<viewmodelType, viewType>(Enum @enum, viewmodelType InputViewModel = null, RegisterMode mode = RegisterMode.Singleton)
            where viewmodelType : class, BaseViewModelType
            where viewType : BaseViewType
         {
             //Get the enum value and its type name to prepare a string
             string _key = @enum.getKey();
-           return register<viewmodelType, viewType>(_key, InputViewModel, mode);
+           return Register<viewmodelType, viewType>(_key, InputViewModel, mode);
         }
 
-        public virtual string register<viewmodelType, viewType>(string key, viewmodelType InputViewModel = null, RegisterMode mode = RegisterMode.Singleton)
+        public virtual string Register<viewmodelType, viewType>(string key, viewmodelType InputViewModel = null, RegisterMode mode = RegisterMode.Singleton)
             where viewmodelType : class, BaseViewModelType
             where viewType : BaseViewType
         {
@@ -72,7 +75,7 @@ namespace Haley.Abstractions
                 //Register this in the DI only if it is singleton
                 if (mode == RegisterMode.Singleton)
                 {
-                    var _status = _di_instance.checkIfRegistered(typeof(viewmodelType), null);
+                    var _status = _di_instance.CheckIfRegistered(typeof(viewmodelType), null);
                     if (!_status.status)
                     {
                         _di_instance.Register<viewmodelType>(InputViewModel);
@@ -92,7 +95,7 @@ namespace Haley.Abstractions
 
         protected (BaseViewModelType view_model, BaseViewType view) _generateValuePair(string key, ResolveMode mode)
         {
-            var _mapping_value = getMappingValue(key);
+            var _mapping_value = GetMappingValue(key);
 
             //Generate a View
             BaseViewType resultcontrol = _generateView(_mapping_value.view_type);
@@ -102,7 +105,10 @@ namespace Haley.Abstractions
 
         protected BaseViewType _generateView(Type viewType)
         {
-            BaseViewType resultcontrol = (BaseViewType)Activator.CreateInstance(viewType);
+            //Even view should be resolved by _di instance. because sometimes, views can direclty expect some 
+            if (viewType == null) return default(BaseViewType);
+
+            BaseViewType resultcontrol = (BaseViewType)_di_instance.Resolve(viewType);
             return resultcontrol;
         }
 
@@ -126,34 +132,34 @@ namespace Haley.Abstractions
 
         #region View Retrieval Methods
         //Return a generic type which implements BaseViewType 
-        public BaseViewType generateView<viewmodelType>(viewmodelType InputViewModel = null, ResolveMode mode = ResolveMode.AsRegistered) where viewmodelType : class, BaseViewModelType
+        public BaseViewType GenerateView<viewmodelType>(viewmodelType InputViewModel = null, ResolveMode mode = ResolveMode.AsRegistered) where viewmodelType : class, BaseViewModelType
         {
             string _key = typeof(viewmodelType).ToString();
-            return generateView(_key, InputViewModel, mode);
+            return GenerateView(_key, InputViewModel, mode);
         }
-        public BaseViewType generateView<viewType>(object InputViewModel = null, ResolveMode mode = ResolveMode.AsRegistered) where viewType : class, BaseViewType
+        public BaseViewType GenerateView<viewType>(object InputViewModel = null, ResolveMode mode = ResolveMode.AsRegistered) where viewType : class, BaseViewType
         {
             string _key = typeof(viewType).ToString();
-            return generateView(_key, InputViewModel, mode);
+            return GenerateView(_key, InputViewModel, mode);
         }
-        public BaseViewType generateView(Enum @enum, object InputViewModel = null, ResolveMode mode = ResolveMode.AsRegistered)
+        public BaseViewType GenerateView(Enum @enum, object InputViewModel = null, ResolveMode mode = ResolveMode.AsRegistered)
         {
             //Get the enum value and its type name to prepare a string
             string _key = @enum.getKey();
-            return generateView(_key, InputViewModel, mode);
+            return GenerateView(_key, InputViewModel, mode);
         }
-        public abstract BaseViewType generateView(string key, object InputViewModel = null, ResolveMode mode = ResolveMode.AsRegistered);
+        public abstract BaseViewType GenerateView(string key, object InputViewModel = null, ResolveMode mode = ResolveMode.AsRegistered);
         
         #endregion
 
         #region VM Retrieval Methods
-        public (Type viewmodel_type, Type view_type, RegisterMode registered_mode) getMappingValue(Enum @enum)
+        public (Type viewmodel_type, Type view_type, RegisterMode registered_mode) GetMappingValue(Enum @enum)
         {
             //Get the enum value and its type name to prepare a string
             string _key = @enum.getKey();
-            return getMappingValue(_key);
+            return GetMappingValue(_key);
         }
-        public (Type viewmodel_type, Type view_type, RegisterMode registered_mode) getMappingValue(string key)
+        public (Type viewmodel_type, Type view_type, RegisterMode registered_mode) GetMappingValue(string key)
         {
             if (main_mapping.Count == 0 || !main_mapping.ContainsKey(key))
             {
@@ -174,20 +180,20 @@ namespace Haley.Abstractions
 
             return _registered_tuple;
         }
-        public BaseViewModelType generateViewModel(Enum @enum, ResolveMode mode = ResolveMode.AsRegistered)
+        public BaseViewModelType GenerateViewModel(Enum @enum, ResolveMode mode = ResolveMode.AsRegistered)
         {
             //Get the enum value and its type name to prepare a string
             string _key = @enum.getKey();
-            BaseViewModelType _result = generateViewModel(_key, mode);
+            BaseViewModelType _result = GenerateViewModel(_key, mode);
             return _result;
         }
-        public BaseViewModelType generateViewModel(string key, ResolveMode mode = ResolveMode.AsRegistered) //If required we can even return the actural viewmodel concrete type as well.
+        public BaseViewModelType GenerateViewModel(string key, ResolveMode mode = ResolveMode.AsRegistered) //If required we can even return the actural viewmodel concrete type as well.
         {
-            var _mapping_value = getMappingValue(key);
+            var _mapping_value = GetMappingValue(key);
             return _generateViewModel(_mapping_value.viewmodel_type, mode);
         }
 
-        public string findKey(Type target_type)
+        public string FindKey(Type target_type)
         {
             //For the given target type, find if it is present in the mapping values. if found, return the first key.
             var _kvp = main_mapping.FirstOrDefault(kvp => kvp.Value.VMtype == target_type || kvp.Value.ViewType == target_type);

@@ -14,12 +14,12 @@ namespace HaleyMVVM.Test
 {
     public class DependencyInjectionTest
     {
-        IHaleyDIContainer _diSingleton = ContainerStore.Singleton.DI;
+        IBaseContainer _diSingleton = ContainerStore.Singleton.DI;
         [Fact]
         public void Concrete__Equals()
         {
             //Arrange
-            IHaleyDIContainer _di = new DIContainer();
+            IBaseContainer _di = new DIContainer();
             Person p_expected = new Person() { name = "Latha G" };
             _di.Register<Person>(p_expected);
 
@@ -34,7 +34,7 @@ namespace HaleyMVVM.Test
         public void Concrete_NotEquals()
         {
             //Arrange
-            IHaleyDIContainer _di = new DIContainer();
+            IBaseContainer _di = new DIContainer();
             Person p_expected = new Person() { name = "Senguttuvan" };
             _di.Register<Person>(p_expected);
 
@@ -46,10 +46,53 @@ namespace HaleyMVVM.Test
         }
 
         [Fact]
+        public void ForcedSingeltonCheck()
+        {
+            //Arrange
+            IBaseContainer _di = new DIContainer();
+            string basename = "Pranav Krishna";
+            Person p_expected = new Person() { name = basename };
+            _di.Register<Person>(p_expected,true); //Registering as forced singleton. So, even if transient is requested, it should always give pranavkrishna
+
+            //Act
+            var p_actual = _di.Resolve<Person>(ResolveMode.Transient); //Since generating new instance, this should not be equal. However, we have registered person as ForcedSingleton. So whatever we do, we always get pranav krishna.
+
+            //Assert
+            Assert.Equal(p_expected, p_actual);
+        }
+
+
+        [Fact]
+        public void ContainersSelfRegistrationCheck()
+        {
+            //Arrange
+            //Set01
+            IContainerFactory _factory = new ContainerStore(); //This should register itself, basecontainer, uicontainer, and control container.
+
+            //Set 02
+            IBaseContainer _newbase = new DIContainer();
+            IControlContainer _newControl = new ControlContainer(_newbase);
+            IWindowContainer _newWndw = new WindowContainer(_newbase);
+
+            var _houseFactory01 =_factory.DI.Resolve<HouseFactory>(); //This should have all relevance to main factory.
+
+
+            //Act
+            var _house02 = _newbase.Resolve<House>(); //resolve using newbasecontainer
+            var _oldhouse = _factory.DI.Resolve<House>(); //resolve using the main factory.
+
+            //Assert
+            Assert.Equal(_houseFactory01.house.Container.Id, _oldhouse.Container.Id); //Both houses should have received same base container.
+            Assert.Equal(_newbase.Id, _house02.Container.Id); //New house has received new id.
+            Assert.NotEqual(_houseFactory01.house.Container.Id, _house02.Container.Id); //Both houses resolved using different containers should have different ids.
+
+        }
+
+        [Fact]
         public void Concrete_CustomMapping()
         {
             //Arrange
-            IHaleyDIContainer _di = new DIContainer();
+            IBaseContainer _di = new DIContainer();
             Person p1 = new Person() { name = "Senguttuvan" };
             _di.Register<Person>(p1);
             string expected = "BhadriNarayanan";
@@ -70,7 +113,7 @@ namespace HaleyMVVM.Test
         public void ConcreteMapping_Abstract()
         {
             //Arrange
-            IHaleyDIContainer _di = new DIContainer();
+            IBaseContainer _di = new DIContainer();
             IPerson p1 = new SuperHero() { name = "Bruce Wayne", alter_ego="BatMan" };
 
             //Act
@@ -85,7 +128,7 @@ namespace HaleyMVVM.Test
         public void TypeMapping_Equals_Singleton()
         {
             //Arrange
-            IHaleyDIContainer _di = new DIContainer();
+            IBaseContainer _di = new DIContainer();
             SuperHero p1 = new SuperHero() { name = "Bruce Wayne", alter_ego = "BatMan" };
 
             //Act
@@ -100,7 +143,7 @@ namespace HaleyMVVM.Test
         public void TypeMapping_NoConstructor_Instance()
         {
             //Arrange
-            IHaleyDIContainer _di = new DIContainer();
+            IBaseContainer _di = new DIContainer();
             //Act
             _di.Register<IPerson, SuperHero>();
             var _shero = (SuperHero) _di.Resolve<IPerson>();
@@ -113,7 +156,7 @@ namespace HaleyMVVM.Test
         public void TypeMapping__IMapping_Resolve()
         {
             //Arrange
-            IHaleyDIContainer _di = new DIContainer();
+            IBaseContainer _di = new DIContainer();
             string power = "Money";
             MappingProviderBase _mpb = new MappingProviderBase();
             _mpb.Add<string>(nameof(SuperHero.power), power, typeof(SuperHero), InjectionTarget.Property);
@@ -129,7 +172,7 @@ namespace HaleyMVVM.Test
         public void TypeMapping__IMapping_Register()
         {
             //Arrange
-            IHaleyDIContainer _di = new DIContainer();
+            IBaseContainer _di = new DIContainer();
             string power = "Money";
             MappingProviderBase _mpb = new MappingProviderBase();
             _mpb.Add<string>(nameof(SuperHero.power), power, typeof(SuperHero), InjectionTarget.Property);

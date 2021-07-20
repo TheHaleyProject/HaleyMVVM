@@ -15,49 +15,49 @@ using System.Windows;
 
 namespace Haley.IOC
 {
-    public sealed class WindowContainer : UIContainerBase<IHaleyVM,Window>, IHaleyWindowContainer<IHaleyVM, Window>  //Implementation of the DialogService Interface.
+    public sealed class WindowContainer : UIContainerBase<IHaleyVM,Window>, IWindowContainer  //Implementation of the DialogService Interface.
     {
-        public WindowContainer(IHaleyDIContainer _injection_container) : base(_injection_container) { }
+        public WindowContainer(IBaseContainer _injection_container) : base(_injection_container) { }
 
         #region ShowDialog Methods
-        public bool? showDialog(Enum key, object InputViewModel = null, ResolveMode resolve_mode = ResolveMode.AsRegistered)
+        public bool? ShowDialog(Enum key, object InputViewModel = null, ResolveMode resolve_mode = ResolveMode.AsRegistered)
         {
             string _key = key.getKey();
-            return showDialog(_key, InputViewModel, resolve_mode);
+            return ShowDialog(_key, InputViewModel, resolve_mode);
         }
-        public bool? showDialog<ViewModelType>(ViewModelType InputViewModel = null, ResolveMode resolve_mode = ResolveMode.AsRegistered) where ViewModelType : class, IHaleyVM
+        public bool? ShowDialog<ViewModelType>(ViewModelType InputViewModel = null, ResolveMode resolve_mode = ResolveMode.AsRegistered) where ViewModelType : class, IHaleyVM
         {
             string _key = typeof(ViewModelType).ToString();
-            return showDialog(_key, InputViewModel, resolve_mode);
+            return ShowDialog(_key, InputViewModel, resolve_mode);
         }
-        public bool? showDialog<ViewType>(ResolveMode resolve_mode = ResolveMode.AsRegistered) where ViewType : Window
+        public bool? ShowDialog<ViewType>(ResolveMode resolve_mode = ResolveMode.AsRegistered) where ViewType : Window
         {
             string _key = typeof(ViewType).ToString();
-            return showDialog(_key, null, resolve_mode);
+            return ShowDialog(_key, null, resolve_mode);
         }
-        public bool? showDialog(string key, object InputViewModel = null, ResolveMode resolve_mode = ResolveMode.AsRegistered)
+        public bool? ShowDialog(string key, object InputViewModel = null, ResolveMode resolve_mode = ResolveMode.AsRegistered)
         {
             return _invokeDisplay(key, InputViewModel, resolve_mode, is_modeless: false); //This is modal
         }
         #endregion
 
         #region Show Methods
-        public void show<ViewModelType>(ViewModelType InputViewModel = null, ResolveMode resolve_mode = ResolveMode.AsRegistered) where ViewModelType : class, IHaleyVM
+        public void Show<ViewModelType>(ViewModelType InputViewModel = null, ResolveMode resolve_mode = ResolveMode.AsRegistered) where ViewModelType : class, IHaleyVM
         {
             string _key = typeof(ViewModelType).ToString();
-            show(_key, InputViewModel, resolve_mode);
+            Show(_key, InputViewModel, resolve_mode);
         }
-        public void show<ViewType>(ResolveMode resolve_mode = ResolveMode.AsRegistered) where ViewType : Window
+        public void Show<ViewType>(ResolveMode resolve_mode = ResolveMode.AsRegistered) where ViewType : Window
         {
             string _key = typeof(ViewType).ToString();
-            show(_key, null, resolve_mode);
+            Show(_key, null, resolve_mode);
         }
-        public void show(Enum key, object InputViewModel = null, ResolveMode resolve_mode = ResolveMode.AsRegistered)
+        public void Show(Enum key, object InputViewModel = null, ResolveMode resolve_mode = ResolveMode.AsRegistered)
         {
             string _key = key.getKey();
-            show(_key, InputViewModel, resolve_mode);
+            Show(_key, InputViewModel, resolve_mode);
         }
-        public void show(string key, object InputViewModel = null, ResolveMode resolve_mode = ResolveMode.AsRegistered)
+        public void Show(string key, object InputViewModel = null, ResolveMode resolve_mode = ResolveMode.AsRegistered)
         {
             _invokeDisplay(key, InputViewModel, resolve_mode, is_modeless: true); //This is modeless
         }
@@ -65,7 +65,7 @@ namespace Haley.IOC
         #endregion
 
         #region Overridden Methods
-        public override Window generateView(string key, object InputViewModel = null, ResolveMode mode = ResolveMode.AsRegistered)
+        public override Window GenerateView(string key, object InputViewModel = null, ResolveMode mode = ResolveMode.AsRegistered)
         {
             try
             {
@@ -74,7 +74,7 @@ namespace Haley.IOC
                 IHaleyVM _vm = null;
                 if (InputViewModel != null)
                 {
-                    var _mapping_value = getMappingValue(key);
+                    var _mapping_value = GetMappingValue(key);
                     _view = _generateView(_mapping_value.view_type);
                     _vm =  (IHaleyVM) InputViewModel;
                 }
@@ -107,7 +107,7 @@ namespace Haley.IOC
             {
                 Thread new_ui_thread = new Thread(() =>
                 {
-                    Window _hwindow = generateView(key, InputViewModel, resolve_mode);
+                    Window _hwindow = GenerateView(key, InputViewModel, resolve_mode);
                     _result = _displayWindow(_hwindow, is_modeless);
                 });
                 new_ui_thread.SetApartmentState(ApartmentState.STA);
@@ -116,7 +116,7 @@ namespace Haley.IOC
             }
             else
             {
-                Window _hwindow = generateView(key, InputViewModel, resolve_mode);
+                Window _hwindow = GenerateView(key, InputViewModel, resolve_mode);
                 _result = _displayWindow(_hwindow, is_modeless);
             }
 

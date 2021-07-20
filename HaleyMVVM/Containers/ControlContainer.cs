@@ -12,11 +12,11 @@ using System.Windows.Controls;
 
 namespace Haley.IOC
 {
-    public sealed class ControlContainer : UIContainerBase<IHaleyVM,UserControl>, IHaleyControlContainer<IHaleyVM, UserControl> 
+    public sealed class ControlContainer : UIContainerBase<IHaleyVM,UserControl>, IControlContainer 
     {
-        public ControlContainer(IHaleyDIContainer _injection_container):base(_injection_container) { }
+        public ControlContainer(IBaseContainer _injection_container):base(_injection_container) { }
 
-        public override UserControl generateView(string key, object InputViewModel = null, ResolveMode mode = ResolveMode.AsRegistered)
+        public override UserControl GenerateView(string key, object InputViewModel = null, ResolveMode mode = ResolveMode.AsRegistered)
         {
             try
             {
@@ -25,7 +25,7 @@ namespace Haley.IOC
                 IHaleyVM _vm = null;
                 if (InputViewModel != null)
                 {
-                    var _mapping_value = getMappingValue(key);
+                    var _mapping_value = GetMappingValue(key);
                     _view = _generateView(_mapping_value.view_type);
                     _vm = (IHaleyVM)InputViewModel;
                 }

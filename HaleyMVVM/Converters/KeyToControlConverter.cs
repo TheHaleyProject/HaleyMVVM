@@ -32,7 +32,7 @@ namespace Haley.MVVM.Converters
                         _resolve_mode = ResolveMode.Transient;
                         break;
                 }
-                return ContainerStore.Singleton.controls.generateView((string)value, mode: _resolve_mode);
+                return ContainerStore.Singleton.Controls.GenerateView((string)value, mode: _resolve_mode);
             }
             catch (Exception)
             {
