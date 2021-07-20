@@ -4,7 +4,7 @@
     <UseWPF>true</UseWPF>
     <AssemblyName>Haley.MVVM</AssemblyName>
     <RootNamespace>Haley.MVVM</RootNamespace>
-    <Version>5.0.3</Version>
+    <Version>6.0.0-prelease</Version>
     <Authors>The Haley Project</Authors>
     <Product>Haley MVVM Core</Product>
     <Company>TheHaleyProject</Company>
@@ -14,7 +14,9 @@
     <RepositoryType>git</RepositoryType>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <Copyright>Haley @ 2020</Copyright>
-    <PackageReleaseNotes>Enhanced Input Constraint to block negative numeric inputs</PackageReleaseNotes>
+    <PackageReleaseNotes>Removed obsolete methods.
+Now, Windows/Controls doesn't need IHaleyWindow or IHaleyControl interface to be added. 
+Added new Attached Property ControlRetriever which will be helpful to retrieved registered controls to view</PackageReleaseNotes>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <AssemblyVersion>4.0.2.0</AssemblyVersion>
     <FileVersion>4.0.2.0</FileVersion>

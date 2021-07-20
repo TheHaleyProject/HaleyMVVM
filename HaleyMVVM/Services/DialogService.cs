@@ -24,27 +24,6 @@ namespace Haley.MVVM.Services
         #endregion
 
         #region Public Methods
-        [Obsolete("Soon to be deprecated. Use ShowDialog or SendToast")]
-        public bool send(string title, string message, DialogMode mode = DialogMode.Notification)
-        {
-            var _info = ShowDialog(title, message, mode: mode, hideIcon: true);
-            if (!_info.DialogResult.HasValue) return false;
-            return _info.DialogResult.Value;
-        }
-
-        [Obsolete("Soon to be deprecated. Use ShowDialog or SendToast")]
-        public bool receive(string title, string message, out string user_input)
-        {
-            user_input = null;
-            var _info = ShowDialog(title, message, mode: DialogMode.GetInput, hideIcon: true);
-            if (!_info.DialogResult.HasValue) return false;
-            if (_info.DialogResult.Value)
-            {
-                user_input = _info.UserInput;
-            }
-            return false;
-        }
-
         public void ChangeAccentColors(SolidColorBrush AccentColor = null, SolidColorBrush AccentForeground = null, Brush ToastBackground = null, SolidColorBrush ToastForeground = null)
         {
             _accentColor = AccentColor;
@@ -151,7 +130,7 @@ namespace Haley.MVVM.Services
             string _key = @enum.getKey();
             return ShowContainerView(title, _key, InputViewModel, mode, blurWindows);
         }
-        public INotification ShowContainerView<ViewType>(string title, object InputViewModel = null, ResolveMode mode = ResolveMode.AsRegistered, bool blurWindows = false) where ViewType : class, IHaleyControl
+        public INotification ShowContainerView<ViewType>(string title, object InputViewModel = null, ResolveMode mode = ResolveMode.AsRegistered, bool blurWindows = false) where ViewType : UserControl
         {
             string _key = typeof(ViewType).ToString();
             return ShowContainerView(title, _key, InputViewModel, mode, blurWindows);

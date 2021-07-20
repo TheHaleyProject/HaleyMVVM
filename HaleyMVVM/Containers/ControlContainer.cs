@@ -7,19 +7,21 @@ using Haley.Abstractions;
 using Haley.Utils;
 using System.Collections.Concurrent;
 using Haley.Enums;
+using System.Windows;
+using System.Windows.Controls;
 
 namespace Haley.IOC
 {
-    public sealed class ControlContainer : UIContainerBase<IHaleyVM,IHaleyControl>, IHaleyControlContainer<IHaleyVM, IHaleyControl>
+    public sealed class ControlContainer : UIContainerBase<IHaleyVM,UserControl>, IHaleyControlContainer<IHaleyVM, UserControl> 
     {
         public ControlContainer(IHaleyDIContainer _injection_container):base(_injection_container) { }
 
-        public override IHaleyControl generateView(string key, object InputViewModel = null, ResolveMode mode = ResolveMode.AsRegistered)
+        public override UserControl generateView(string key, object InputViewModel = null, ResolveMode mode = ResolveMode.AsRegistered)
         {
             try
             {
                 //If input view model is not null, then don't try to generate viewmodel.
-                IHaleyControl _view = null;
+                UserControl _view = null;
                 IHaleyVM _vm = null;
                 if (InputViewModel != null)
                 {

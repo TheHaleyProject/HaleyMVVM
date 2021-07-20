@@ -3,6 +3,8 @@ using Haley.Abstractions;
 using Haley.MVVM.Services;
 using Haley.Enums;
 using Haley.IOC;
+using System.Windows;
+using System.Windows.Controls;
 
 namespace Haley.MVVM
 {
@@ -12,8 +14,8 @@ namespace Haley.MVVM
     public sealed class ContainerStore
     {
         public IHaleyDIContainer DI { get; set; }
-        public IHaleyControlContainer<IHaleyVM,IHaleyControl> controls { get;  }
-        public IHaleyWindowContainer<IHaleyVM,IHaleyWindow> windows { get;  }
+        public IHaleyControlContainer<IHaleyVM,UserControl> controls { get;  }
+        public IHaleyWindowContainer<IHaleyVM,Window> windows { get;  }
 
         public ContainerStore() 
         {

@@ -9,6 +9,7 @@ using Haley.Events;
 using System.Collections.Concurrent;
 using System.Threading;
 using System.Windows.Threading;
+using System.Windows;
 
 namespace Haley.Models
 {
@@ -19,17 +20,17 @@ namespace Haley.Models
         //2. At the end of the action, it triggers the event inside the ViewModel (OnClosingEvent; it is actually publishing the status about the end of process.) 
         //3. Status can either be true or false. Which means, we can either close the window or keep it active. 
         //4. So, View, which has subscribed to that event, receives that status and saves as dialog result. If dialog result is true, then it will close the winodw else it will keep it active.
-        public IHaleyWindow subscriber { get; set; }
+        public Window subscriber { get; set; }
         public IHaleyVM publisher { get; set; }
 
         public void subscribe()
         {
-            publisher.OnWindowsClosed += _onWindowsClosedHandler;
+            publisher.OnViewClosed += _onWindowsClosedHandler;
         }
 
         public void unSubscribe() // This takes care of unsubscribing the events
         {
-            publisher.OnWindowsClosed -= _onWindowsClosedHandler;
+            publisher.OnViewClosed -= _onWindowsClosedHandler;
         }
 
         private void _onWindowsClosedHandler(object sender, FrameClosingEventArgs e)
@@ -46,7 +47,7 @@ namespace Haley.Models
             }
         }
 
-        public HaleyObserver(IHaleyWindow subscriberView, IHaleyVM publisherViewModel)
+        public HaleyObserver(Window subscriberView, IHaleyVM publisherViewModel)
         {
             subscriber = subscriberView;
             publisher = publisherViewModel;

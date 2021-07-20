@@ -6,16 +6,12 @@ using System.Threading.Tasks;
 using System.ComponentModel;
 using Haley.Enums;
 using System.Windows.Media;
+using System.Windows.Controls;
 
 namespace Haley.Abstractions
 {
     public interface IDialogService
     {
-        [Obsolete("To be deprecated in future. Use DialogService.Show")]
-        bool send(string title,string message, DialogMode mode = DialogMode.Notification);
-        [Obsolete("To be deprecated in future. Use DialogService.Show")]
-        bool receive(string title, string message, out string user_input);
-        
        /// <summary>
        /// To Enable user to change color as and when required.
        /// </summary>
@@ -36,7 +32,7 @@ namespace Haley.Abstractions
         //For fetching views from Container
         INotification ShowContainerView(string title, string key, object InputViewModel = null, ResolveMode mode = ResolveMode.AsRegistered,bool blurWindows = false);
         INotification ShowContainerView(string title, Enum key, object InputViewModel = null, ResolveMode mode = ResolveMode.AsRegistered, bool blurWindows = false);
-        INotification ShowContainerView<ViewType>(string title, object InputViewModel = null, ResolveMode mode = ResolveMode.AsRegistered, bool blurWindows = false) where ViewType :class, IHaleyControl;
+        INotification ShowContainerView<ViewType>(string title, object InputViewModel = null, ResolveMode mode = ResolveMode.AsRegistered, bool blurWindows = false) where ViewType : UserControl;
         INotification ShowContainerView<VMType>(string title, VMType InputViewModel = null, ResolveMode mode = ResolveMode.AsRegistered, bool blurWindows = false) where VMType : class, IHaleyVM;
     }
 }

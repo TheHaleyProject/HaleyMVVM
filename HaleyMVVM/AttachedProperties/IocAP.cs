@@ -11,12 +11,13 @@ using System.Windows;
 using System.Windows.Controls;
 using Haley.MVVM;
 using Haley.Enums;
+using Haley.Utils;
 
 namespace Haley.Models
 {
     public static class IocAP
     {
-        #region Key
+        #region Key_String
 
         public static string GetContainerKey(DependencyObject obj)
         {
@@ -31,6 +32,24 @@ namespace Haley.Models
         // Using a DependencyProperty as the backing store for ContainerKey.  This enables animation, styling, binding, etc...
         public static readonly DependencyProperty ContainerKeyProperty =
             DependencyProperty.RegisterAttached("ContainerKey", typeof(string), typeof(IocAP), new PropertyMetadata(null));
+
+        #endregion
+
+        #region Key_Enum
+
+        public static Enum GetContainerKeyEnum(DependencyObject obj)
+        {
+            return (Enum)obj.GetValue(ContainerKeyEnumProperty);
+        }
+
+        public static void SetContainerKeyEnum(DependencyObject obj, Enum value)
+        {
+            obj.SetValue(ContainerKeyEnumProperty, value);
+        }
+
+        // Using a DependencyProperty as the backing store for ContainerKeyEnum.  This enables animation, styling, binding, etc...
+        public static readonly DependencyProperty ContainerKeyEnumProperty =
+            DependencyProperty.RegisterAttached("ContainerKeyEnum", typeof(Enum), typeof(IocAP), new PropertyMetadata(null));
 
         #endregion
 
@@ -84,27 +103,28 @@ namespace Haley.Models
 
         private static void InjectVMPropertyChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
         {
+            if (!((bool)e.NewValue)) return; //If value is false, do not do anything.
             //Applicable only to HaleyControls and Windows.
-            if (d is IHaleyControl || d is IHaleyWindow)
+            if (d is UserControl || d is Window)
             {
                 try
                 {
                     //If d is usercontrol and also implements ihaleycontrol, then resolve the viewmodel
                     string _key = _getKey(d);
-                    if (d is IHaleyControl)
+                    if (d is UserControl)
                     {
                         var _vm = ContainerStore.Singleton.controls.generateViewModel(_key, GetResolveMode(d));
                         if (_vm != null) //Only if not null, assign it.
                         {
-                            ((IHaleyControl)d).DataContext = _vm;
+                            ((UserControl)d).DataContext = _vm;
                         }
                     }
-                    else if (d is IHaleyWindow)
+                    else if (d is Window)
                     {
                         var _vm = ContainerStore.Singleton.windows.generateViewModel(_key, GetResolveMode(d));
                         if (_vm != null) //Only if not null, assign it.
                         {
-                            ((IHaleyWindow)d).DataContext = _vm;
+                            ((Window)d).DataContext = _vm;
                         }
                     }
                 }
@@ -118,11 +138,22 @@ namespace Haley.Models
         private static string _getKey(DependencyObject d)
         {
             string _key = GetContainerKey(d);
+            //if _key is null, check if enum is present.
+            if (_key == null)
+            {
+                var _enum = GetContainerKeyEnum(d);
+                if (_enum != null)
+                {
+                    _key = _enum.getKey();
+                }
+            }
+            
+
             if (_key == null) //If container key is absent, then give preference to finding the key.
             {
                 if (GetFindKey(d))
                 {
-                    if (d is IHaleyControl)
+                    if (d is UserControl)
                     {
                         _key = ContainerStore.Singleton.controls.findKey(d.GetType());
                     }

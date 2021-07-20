@@ -129,7 +129,7 @@ namespace Haley.Utils
             {
                 if (raise_notification)
                 {
-                    _ds.send("Error", $@"The theme URIs cannot be empty. Please fill both new and old theme values.");
+                    _ds.Warning("Error", $@"The theme URIs cannot be empty. Please fill both new and old theme values.");
                 }
                 return false;
             }
@@ -142,7 +142,7 @@ namespace Haley.Utils
                 {
                     if (raise_notification)
                     {
-                        _ds.send("Conflict", $@"The theme ""{newtheme.new_theme_uri}"" is the current theme. Nothing to change. Please check");
+                        _ds.Warning("Conflict", $@"The theme ""{newtheme.new_theme_uri}"" is the current theme. Nothing to change. Please check");
                     }
                     return false;
                 }
@@ -154,7 +154,7 @@ namespace Haley.Utils
             {
                 if (raise_notification)
                 {
-                    _ds.send("Conflict", $@"The theme ""{newtheme.new_theme_uri}"" is the current theme. Nothing to change. Please check");
+                    _ds.Warning("Conflict", $@"The theme ""{newtheme.new_theme_uri}"" is the current theme. Nothing to change. Please check");
                 }
                 return false;
             }
@@ -272,7 +272,7 @@ namespace Haley.Utils
             {
                 if (_raise_notification)
                 {
-                    _ds.send("Error", ex.ToString());
+                    _ds.Error("Error", ex.ToString());
                 }
                 return false;
             }
