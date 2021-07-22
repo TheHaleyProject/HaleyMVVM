@@ -80,22 +80,22 @@ namespace Haley.MVVM.Services
 
         public INotification Info(string title, string message, DialogMode mode = DialogMode.Notification, bool blurWindows = false)
         {
-            return ShowDialog(title, message, NotificationIcon.Info, blurWindows: blurWindows);
+            return ShowDialog(title, message, NotificationIcon.Info,mode, blurWindows: blurWindows);
         }
 
         public INotification Warning(string title, string message, DialogMode mode = DialogMode.Notification, bool blurWindows = false)
         {
-            return ShowDialog(title, message, NotificationIcon.Warning, blurWindows: blurWindows);
+            return ShowDialog(title, message, NotificationIcon.Warning,mode, blurWindows: blurWindows);
         }
 
         public INotification Error(string title, string message, DialogMode mode = DialogMode.Notification, bool blurWindows = false)
         {
-            return ShowDialog(title, message, NotificationIcon.Error, blurWindows: blurWindows);
+            return ShowDialog(title, message, NotificationIcon.Error,mode, blurWindows: blurWindows);
         }
 
         public INotification Success(string title, string message, DialogMode mode = DialogMode.Notification, bool blurWindows = false)
         {
-            return ShowDialog(title, message, NotificationIcon.Success, blurWindows: blurWindows);
+            return ShowDialog(title, message, NotificationIcon.Success,mode, blurWindows: blurWindows);
         }
         #endregion
 

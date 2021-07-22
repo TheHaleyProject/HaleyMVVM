@@ -332,7 +332,17 @@ namespace Haley.Utils
             }
             else
             {
-                resource = Application.Current.Resources;
+                if (Application.Current != null)
+                {
+                    resource = Application.Current?.Resources;
+                }
+                else
+                {
+                    if (_sender != null)
+                    {
+                        resource = ((FrameworkElement)_sender).Resources;
+                    }
+                }
             }
 
             return resource;

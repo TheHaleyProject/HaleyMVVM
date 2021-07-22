@@ -52,10 +52,12 @@ namespace Haley.WPF.BaseControls
         static Notification()
         {
             DefaultStyleKeyProperty.OverrideMetadata(typeof(Notification), new FrameworkPropertyMetadata(typeof(Notification)));
+
         }
 
         public Notification()
         {
+            InitiateWindows();
             //Assign an ID
             Id = Guid.NewGuid().ToString();
 
@@ -65,6 +67,17 @@ namespace Haley.WPF.BaseControls
             CommandBindings.Add(new CommandBinding(ApplicationCommands.Close, _closeAction));
             CommandBindings.Add(new CommandBinding(SystemCommands.CloseWindowCommand, _closeAllToasts));
 
+        }
+
+        private void InitiateWindows()
+        {
+            //If you are working on windows form and using WPF controls using ElementHost, then it might result in error.
+            if (null == Application.Current)
+            {
+                new Application();
+                //Only when we are dealing with no current WPF application (in other words, when working in Windows form)
+                Application.Current.ShutdownMode = ShutdownMode.OnExplicitShutdown;
+            }
         }
         #endregion
 
@@ -86,7 +99,9 @@ namespace Haley.WPF.BaseControls
             if (_wndw != null && _wndw?.WindowStartupLocation == WindowStartupLocation.CenterOwner)
             {
                 var mainWndw = Application.Current.MainWindow;
-                if (mainWndw.IsVisible)
+
+                //if nothing pans out below, we might not have any owner window.
+                if (mainWndw != null && mainWndw.IsVisible)
                 {
                     _wndw.Owner = Application.Current.MainWindow;
                 }
