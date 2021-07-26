@@ -13,7 +13,7 @@ namespace Haley.Abstractions
     public interface IContainerFactory
     {
         string Id { get; }
-        IBaseContainer DI { get; set; }
+        IServiceProvider Services { get;  }
         IControlContainer Controls { get; }
         IWindowContainer Windows { get; }
     }

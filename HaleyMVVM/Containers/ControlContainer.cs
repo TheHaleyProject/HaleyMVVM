@@ -14,7 +14,7 @@ namespace Haley.IOC
 {
     public sealed class ControlContainer : UIContainerBase<IHaleyVM,UserControl>, IControlContainer 
     {
-        public ControlContainer(IBaseContainer _injection_container):base(_injection_container) { }
+        public ControlContainer(IServiceProvider _injection_container):base(_injection_container) { }
 
         public override UserControl GenerateView(string key, object InputViewModel = null, ResolveMode mode = ResolveMode.AsRegistered)
         {
@@ -26,7 +26,7 @@ namespace Haley.IOC
                 if (InputViewModel != null)
                 {
                     var _mapping_value = GetMappingValue(key);
-                    _view = _generateView(_mapping_value.view_type);
+                    _view = _generateView(_mapping_value.view_type,mode);
                     _vm = (IHaleyVM)InputViewModel;
                 }
                 else

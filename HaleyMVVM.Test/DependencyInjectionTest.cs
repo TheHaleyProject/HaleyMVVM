@@ -67,19 +67,21 @@ namespace HaleyMVVM.Test
         {
             //Arrange
             //Set01
-            IContainerFactory _factory = new ContainerStore(); //This should register itself, basecontainer, uicontainer, and control container.
+            IContainerFactory _factory = new ContainerFactory(new DIContainer()); //This should register itself, basecontainer, uicontainer, and control container.
 
             //Set 02
             IBaseContainer _newbase = new DIContainer();
             IControlContainer _newControl = new ControlContainer(_newbase);
             IWindowContainer _newWndw = new WindowContainer(_newbase);
 
-            var _houseFactory01 =_factory.DI.Resolve<HouseFactory>(); //This should have all relevance to main factory.
+            //var _houseFactory01 = ((IBaseContainer)_factory.DI).Resolve<HouseFactory>(); //This should have all relevance to main factory.
+
+            var _houseFactory01 = ((ContainerFactory)_factory).GetDI().Resolve<HouseFactory>(); //This should have all relevance to main factory.
 
 
             //Act
             var _house02 = _newbase.Resolve<House>(); //resolve using newbasecontainer
-            var _oldhouse = _factory.DI.Resolve<House>(); //resolve using the main factory.
+            var _oldhouse = ((IBaseContainer)_factory.Services).Resolve<House>(); //resolve using the main factory.
 
             //Assert
             Assert.Equal(_houseFactory01.house.Container.Id, _oldhouse.Container.Id); //Both houses should have received same base container.

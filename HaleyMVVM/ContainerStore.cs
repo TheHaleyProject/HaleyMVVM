@@ -11,40 +11,86 @@ namespace Haley.MVVM
     /// <summary>
     /// Sealed Container store which has DI, Controls, Windows 
     /// </summary>
-    public sealed class ContainerStore : IContainerFactory
+    public sealed class ContainerStore
     {
-        public string Id { get; }
-        public IBaseContainer DI { get; set; }
-        public IControlContainer Controls { get;  }
-        public IWindowContainer Windows { get;  }
+        #region Static Attributes
+        private static ContainerStore _instance;
 
-        public ContainerStore() 
+        #endregion
+
+        private IContainerFactory _factory;
+        public bool CanRegister { get; private set; }
+        public IBaseContainer DI => _getDI();
+        public IServiceProvider Provider => _factory.Services;
+        public IWindowContainer Windows => _factory.Windows;
+        public IControlContainer Controls => _factory.Controls;
+        public string Id { get; private set; }
+
+        private IBaseContainer _getDI()
         {
-            Id = Guid.NewGuid().ToString();
-            DI = new DIContainer() {};
-            Controls = new ControlContainer(DI); 
-            Windows = new WindowContainer(DI);
+            if (_factory.Services is IBaseContainer)
+            {
+                return (IBaseContainer)_factory.Services;
+            }
+            else
+            {
+                return null;
+            }
+        }
+
+        private static ContainerStore getSingleton()
+        {
+            if (_instance == null)
+            {
+                //We will make default
+                _instance = new ContainerStore(new DIContainer()); //We use the base DI container.
+            }
+            return _instance;
+        }
+
+        public static ContainerStore CreateSingleton(IContainerFactory factory)
+        {
+            if (_instance != null)
+            {
+                throw new ArgumentException("Factory can be initiated only once.");
+            }
+
+            _instance = new ContainerStore(factory);
+            return _instance;
+        }
+
+        private ContainerStore(IContainerFactory container_factory)
+        {
+            _initiate(container_factory);
+        }
+
+        private ContainerStore(IBaseContainer _baseContainer)
+        {
+            _initiate(new ContainerFactory(_baseContainer));
             _registerSelf();
-            _registerDialogs();
             _registerServices();
+        }
+
+        private void _initiate(IContainerFactory container_factory)
+        {
+            //Set ID
+            Id = Guid.NewGuid().ToString();
+            //just set this.
+            _factory = container_factory;
+            CanRegister = _factory is IBaseContainer;
         }
 
         private void _registerSelf()
         {
-            //Never register Base container because it is already registered.
             DI.Register<IControlContainer, ControlContainer>((ControlContainer)Controls, true);
             DI.Register<IWindowContainer, WindowContainer>((WindowContainer)Windows, true);
-            DI.Register<IContainerFactory, ContainerStore>((ContainerStore)this, true);
-        }
-
-        private void _registerDialogs()
-        {
+            DI.Register<IContainerFactory, ContainerFactory>((ContainerFactory) _factory, true);
         }
 
         private void _registerServices()
         {
             DI.Register<IDialogService, DialogService>(RegisterMode.Transient);
         }
-        public static ContainerStore Singleton = new ContainerStore();
+        public static ContainerStore Singleton => getSingleton();
     }
 }

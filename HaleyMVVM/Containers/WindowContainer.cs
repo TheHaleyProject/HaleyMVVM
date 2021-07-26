@@ -17,7 +17,7 @@ namespace Haley.IOC
 {
     public sealed class WindowContainer : UIContainerBase<IHaleyVM,Window>, IWindowContainer  //Implementation of the DialogService Interface.
     {
-        public WindowContainer(IBaseContainer _injection_container) : base(_injection_container) { }
+        public WindowContainer(IServiceProvider _injection_container) : base(_injection_container) { }
 
         #region ShowDialog Methods
         public bool? ShowDialog(Enum key, object InputViewModel = null, ResolveMode resolve_mode = ResolveMode.AsRegistered)
@@ -75,7 +75,7 @@ namespace Haley.IOC
                 if (InputViewModel != null)
                 {
                     var _mapping_value = GetMappingValue(key);
-                    _view = _generateView(_mapping_value.view_type);
+                    _view = _generateView(_mapping_value.view_type,mode);
                     _vm =  (IHaleyVM) InputViewModel;
                 }
                 else

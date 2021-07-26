@@ -17,7 +17,7 @@ namespace Haley.MVVM.Converters
         {
             try
             {
-                if (!(value.GetType() == typeof(string))) return null;
+               //GET PARAMETERS
                 int param = 0; //Sometimes users can choose not to enter parameter value, in such cases, we make 0 as default.
                 if (parameter != null) int.TryParse((string)parameter, out param);
                 ResolveMode _resolve_mode = ResolveMode.AsRegistered;
@@ -32,7 +32,18 @@ namespace Haley.MVVM.Converters
                         _resolve_mode = ResolveMode.Transient;
                         break;
                 }
-                return ContainerStore.Singleton.Controls.GenerateView((string)value, mode: _resolve_mode);
+
+                if (value is Enum)
+                {
+                    //Generate view using Enum.
+                    return ContainerStore.Singleton.Controls.GenerateView((Enum)value, mode: _resolve_mode);
+                }
+                else
+                {
+                    //Validate if it is string
+                    if (!(value.GetType() == typeof(string))) return null;
+                    return ContainerStore.Singleton.Controls.GenerateView((string)value, mode: _resolve_mode);
+                }
             }
             catch (Exception)
             {

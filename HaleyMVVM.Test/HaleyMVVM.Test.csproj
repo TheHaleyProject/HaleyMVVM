@@ -45,7 +45,7 @@
 		</When>
 		<Otherwise>
 			<ItemGroup>
-				<PackageReference Include="Haley.IOC" Version="3.0.0" />
+				<PackageReference Include="Haley.IOC" Version="3.0.1" />
 			</ItemGroup>
 		</Otherwise>
 	</Choose>

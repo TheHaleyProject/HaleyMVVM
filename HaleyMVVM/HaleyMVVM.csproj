@@ -4,7 +4,7 @@
     <UseWPF>true</UseWPF>
     <AssemblyName>Haley.MVVM</AssemblyName>
     <RootNamespace>Haley.MVVM</RootNamespace>
-    <Version>6.0.1.1</Version>
+    <Version>6.0.2</Version>
     <Authors>The Haley Project</Authors>
     <Product>Haley MVVM Core</Product>
     <Company>TheHaleyProject</Company>
@@ -14,9 +14,7 @@
     <RepositoryType>git</RepositoryType>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <Copyright>Haley @ 2020</Copyright>
-    <PackageReleaseNotes>Removed obsolete methods.
-Now, Windows/Controls doesn't need IHaleyWindow or IHaleyControl interface to be added. 
-Added new Attached Property ControlRetriever which will be helpful to retrieved registered controls to view.</PackageReleaseNotes>
+    <PackageReleaseNotes>Added IServiceProvider Implementation to Control and Window Container to make it work with Microsoft Dependency Injection</PackageReleaseNotes>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <AssemblyVersion>4.0.2.0</AssemblyVersion>
     <FileVersion>4.0.2.0</FileVersion>
@@ -127,7 +125,7 @@ Added new Attached Property ControlRetriever which will be helpful to retrieved 
     </When>
     <Otherwise>
      <ItemGroup>
-       <PackageReference Include="Haley.IOC" Version="3.0.0" />
+       <PackageReference Include="Haley.IOC" Version="3.0.1" />
 	 </ItemGroup>
     </Otherwise>
 </Choose>  

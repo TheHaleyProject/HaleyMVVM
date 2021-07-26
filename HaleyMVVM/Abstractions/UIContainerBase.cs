@@ -15,16 +15,16 @@ namespace Haley.Abstractions
         public string Id { get; }
 
         #region Initation
-        protected IBaseContainer _di_instance;
+        protected IServiceProvider service_provider;
         protected ConcurrentDictionary<string,(Type VMtype, Type ViewType,RegisterMode mode)> main_mapping { get; set; } //Dictionary to store enumvalue and viewmodel type as key and usercontrol as value
 
-        public UIContainerBase(IBaseContainer _injection_container)
+        public UIContainerBase(IServiceProvider _serviceProvider)
         {
             Id = Guid.NewGuid().ToString();
             main_mapping = new ConcurrentDictionary<string, (Type VMtype, Type ViewType, RegisterMode mode)>();
-            if (_injection_container != null)
+            if (_serviceProvider != null)
             {
-                _di_instance= _injection_container;
+                service_provider= _serviceProvider;
             }
         }
 
@@ -72,15 +72,20 @@ namespace Haley.Abstractions
                 var _tuple = (typeof(viewmodelType), typeof(viewType), mode);
                 main_mapping.TryAdd(key, _tuple);
 
-                //Register this in the DI only if it is singleton
-                if (mode == RegisterMode.Singleton)
+                //If service provider is of type base provider then we can register it aswell (as it will have an implementation)
+                if (service_provider is IBaseContainer)
                 {
-                    var _status = _di_instance.CheckIfRegistered(typeof(viewmodelType), null);
-                    if (!_status.status)
+                    //Register this in the DI only if it is singleton
+                    if (mode == RegisterMode.Singleton)
                     {
-                        _di_instance.Register<viewmodelType>(InputViewModel);
+                        var _status = ((IBaseContainer) service_provider).CheckIfRegistered(typeof(viewmodelType), null);
+                        if (!_status.status)
+                        {
+                            ((IBaseContainer)service_provider).Register<viewmodelType>(InputViewModel);
+                        }
                     }
                 }
+                
                 return key;
             }
             catch (Exception ex)
@@ -98,17 +103,26 @@ namespace Haley.Abstractions
             var _mapping_value = GetMappingValue(key);
 
             //Generate a View
-            BaseViewType resultcontrol = _generateView(_mapping_value.view_type);
+            BaseViewType resultcontrol = _generateView(_mapping_value.view_type,mode);
             BaseViewModelType resultViewModel = _generateViewModel(_mapping_value.viewmodel_type, mode);
             return (resultViewModel, resultcontrol);
         }
 
-        protected BaseViewType _generateView(Type viewType)
+        protected BaseViewType _generateView(Type viewType, ResolveMode mode = ResolveMode.AsRegistered)
         {
             //Even view should be resolved by _di instance. because sometimes, views can direclty expect some 
             if (viewType == null) return default(BaseViewType);
+            BaseViewType resultcontrol;
 
-            BaseViewType resultcontrol = (BaseViewType)_di_instance.Resolve(viewType);
+            if (service_provider is IBaseContainer)
+            {
+                resultcontrol = (BaseViewType)((IBaseContainer)service_provider).Resolve(viewType, mode);
+            }
+            else
+            {
+                resultcontrol = (BaseViewType)service_provider.GetService(viewType);
+            }
+
             return resultcontrol;
         }
 
@@ -119,7 +133,16 @@ namespace Haley.Abstractions
                 BaseViewModelType _result;
                 if (viewModelType == null) return default(BaseViewModelType);
                 //If the viewmodel is registered in DI as a singleton, then it willbe returned, else, DI will resolve it as a transient and will return the result.
-                _result = (BaseViewModelType)_di_instance.Resolve(viewModelType, mode);
+
+                if (service_provider is IBaseContainer)
+                {
+                    _result = (BaseViewModelType)((IBaseContainer) service_provider).Resolve(viewModelType, mode);
+                }
+                else
+                {
+                    _result = (BaseViewModelType)service_provider.GetService(viewModelType);
+                }
+                
                 return _result;
             }
             catch (Exception ex)
