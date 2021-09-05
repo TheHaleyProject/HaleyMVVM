@@ -110,7 +110,7 @@
     </When>
     <Otherwise>
      <ItemGroup>
-       <PackageReference Include="Haley.Extensions" Version="2.0.1" />
+       <PackageReference Include="Haley.Extensions" Version="2.0.2" />
 	 </ItemGroup>
     </Otherwise>
 </Choose>  
@@ -125,7 +125,7 @@
     </When>
     <Otherwise>
      <ItemGroup>
-       <PackageReference Include="Haley.IOC" Version="3.0.1" />
+       <PackageReference Include="Haley.IOC" Version="3.0.2" />
 	 </ItemGroup>
     </Otherwise>
 </Choose>  

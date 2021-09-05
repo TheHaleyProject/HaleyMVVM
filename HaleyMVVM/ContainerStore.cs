@@ -82,9 +82,7 @@ namespace Haley.MVVM
 
         private void _registerSelf()
         {
-            DI.Register<IControlContainer, ControlContainer>((ControlContainer)Controls, true);
-            DI.Register<IWindowContainer, WindowContainer>((WindowContainer)Windows, true);
-            DI.Register<IContainerFactory, ContainerFactory>((ContainerFactory) _factory, true);
+            _factory.RegisterSelf();
         }
 
         private void _registerServices()

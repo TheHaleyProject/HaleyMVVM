@@ -16,5 +16,6 @@ namespace Haley.Abstractions
         IServiceProvider Services { get;  }
         IControlContainer Controls { get; }
         IWindowContainer Windows { get; }
+        bool RegisterSelf();
     }
 }

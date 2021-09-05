@@ -67,7 +67,9 @@ namespace HaleyMVVM.Test
         {
             //Arrange
             //Set01
-            IContainerFactory _factory = new ContainerFactory(new DIContainer()); //This should register itself, basecontainer, uicontainer, and control container.
+            IContainerFactory _factory = new ContainerFactory(new DIContainer());
+            //If we use a containerstore, then it will selfregister. But if we are using a container factory, we can also use alternative IOC Container (which implements IServiceProvider). So in this case, we need to register self manually.
+            var hasRgisterd =_factory.RegisterSelf(); 
 
             //Set 02
             IBaseContainer _newbase = new DIContainer();
