@@ -17,39 +17,22 @@ namespace Haley.Models
 {
     public static class IocAP
     {
+
         #region Key_String
 
-        public static string GetContainerKey(DependencyObject obj)
+        public static object GetKey(DependencyObject obj)
         {
-            return (string)obj.GetValue(ContainerKeyProperty);
+            return (object)obj.GetValue(KeyProperty);
         }
 
-        public static void SetContainerKey(DependencyObject obj, string value)
+        public static void SetKey(DependencyObject obj, object value)
         {
-            obj.SetValue(ContainerKeyProperty, value);
+            obj.SetValue(KeyProperty, value);
         }
 
-        // Using a DependencyProperty as the backing store for ContainerKey.  This enables animation, styling, binding, etc...
-        public static readonly DependencyProperty ContainerKeyProperty =
-            DependencyProperty.RegisterAttached("ContainerKey", typeof(string), typeof(IocAP), new PropertyMetadata(null));
-
-        #endregion
-
-        #region Key_Enum
-
-        public static Enum GetContainerKeyEnum(DependencyObject obj)
-        {
-            return (Enum)obj.GetValue(ContainerKeyEnumProperty);
-        }
-
-        public static void SetContainerKeyEnum(DependencyObject obj, Enum value)
-        {
-            obj.SetValue(ContainerKeyEnumProperty, value);
-        }
-
-        // Using a DependencyProperty as the backing store for ContainerKeyEnum.  This enables animation, styling, binding, etc...
-        public static readonly DependencyProperty ContainerKeyEnumProperty =
-            DependencyProperty.RegisterAttached("ContainerKeyEnum", typeof(Enum), typeof(IocAP), new PropertyMetadata(null));
+        // Using a DependencyProperty as the backing store for Key.  This enables animation, styling, binding, etc...
+        public static readonly DependencyProperty KeyProperty =
+            DependencyProperty.RegisterAttached("Key", typeof(object), typeof(IocAP), new PropertyMetadata(null));
 
         #endregion
 
@@ -111,6 +94,8 @@ namespace Haley.Models
                 {
                     //If d is usercontrol and also implements UserControl, then resolve the viewmodel
                     string _key = _getKey(d);
+
+                    //TODO: ADD IMPLEMENTATIONS TO INCLUDE CUSTOM CONTROLCONTAINER & WINDOW CONTAINER
                     if (d is UserControl)
                     {
                         var _vm = ContainerStore.Singleton.Controls.GenerateViewModel(_key, GetResolveMode(d));
@@ -137,19 +122,24 @@ namespace Haley.Models
 
         private static string _getKey(DependencyObject d)
         {
-            string _key = GetContainerKey(d);
-            //if _key is null, check if enum is present.
-            if (_key == null)
+            var key_obj = d.GetValue(KeyProperty) as object;
+
+            string _key = string.Empty;
+            //new value of e could be string or enum.
+            if (key_obj is string)
             {
-                var _enum = GetContainerKeyEnum(d);
+                _key = key_obj as string;
+            }
+            else if (key_obj is Enum)
+            {
+                var _enum = key_obj as Enum;
                 if (_enum != null)
                 {
                     _key = _enum.getKey();
                 }
             }
-            
-
-            if (_key == null) //If container key is absent, then give preference to finding the key.
+                       
+            if (string.IsNullOrWhiteSpace(_key)) //If container key is absent, then give preference to finding the key.
             {
                 if (GetFindKey(d))
                 {

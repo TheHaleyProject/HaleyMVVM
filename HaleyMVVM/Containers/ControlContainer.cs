@@ -9,6 +9,7 @@ using System.Collections.Concurrent;
 using Haley.Enums;
 using System.Windows;
 using System.Windows.Controls;
+using Haley.Models;
 
 namespace Haley.IOC
 {
@@ -36,7 +37,8 @@ namespace Haley.IOC
                     _vm = _kvp.view_model;
                 }
                 _view.DataContext = _vm;
-
+                //Before returning the view, setup a control observer.
+                var _observer = new ControlObserver(_view, _vm);
                 return _view;
             }
             catch (Exception ex)

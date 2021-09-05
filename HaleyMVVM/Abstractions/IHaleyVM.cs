@@ -10,6 +10,8 @@ namespace Haley.Abstractions
 {
         public interface IHaleyVM 
         {
-            event EventHandler<FrameClosingEventArgs> OnViewClosed; //this is the name... :) :) :) 
-        }
+            event EventHandler<FrameClosingEventArgs> ViewModelClosed; //this is the name... :) :) :) 
+
+        void OnViewLoaded(object sender);
+    }
 }

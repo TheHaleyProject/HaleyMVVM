@@ -35,17 +35,17 @@ namespace Haley.Models
         public static readonly DependencyProperty CommandParameterProperty =
             DependencyProperty.Register(nameof(CommandParameter), typeof(object), typeof(EventToCommand), null);
 
-        public object EventParameter
+        public bool BindEventArgs
         {
-            get { return (object)GetValue(EventParameterProperty); }
-            set { SetValue(EventParameterProperty, value); }
+            get { return (bool)GetValue(BindEventArgsProperty); }
+            set { SetValue(BindEventArgsProperty, value); }
         }
 
-        // Using a DependencyProperty as the backing store for EventParameter.  This enables animation, styling, binding, etc...
-        public static readonly DependencyProperty EventParameterProperty =
-            DependencyProperty.Register(nameof(EventParameter), typeof(object), typeof(EventToCommand), null);
+        // Using a DependencyProperty as the backing store for BindEventArgs.  This enables animation, styling, binding, etc...
+        public static readonly DependencyProperty BindEventArgsProperty =
+            DependencyProperty.Register(nameof(BindEventArgs), typeof(bool), typeof(EventToCommand), new PropertyMetadata(true));
 
-#endregion
+        #endregion
 
         private string _command_name;
         public string CommandName
@@ -60,7 +60,15 @@ namespace Haley.Models
 #region Methods
         protected override void Invoke(object parameter)
         {
-            EventParameter = parameter; //Assigning the event parameter.
+            //if commandparameter is null, then check if we should bind the params. Then bind it.
+
+            if (CommandParameter == null)
+            {
+                if (BindEventArgs)
+                {
+                    CommandParameter = parameter;
+                }
+            }
 
             if (this.AssociatedObject != null)
             {
@@ -76,7 +84,9 @@ namespace Haley.Models
         {
             ICommand result_cmd = null;
 
-            if (Command != null) return Command;
+            if (Command != null) return Command; 
+
+            //IF the users send in command as a string value (for commandname property) than binding actual command, then go below.
 
             var frameworkElement = this.AssociatedObject as FrameworkElement;
             if (frameworkElement != null)

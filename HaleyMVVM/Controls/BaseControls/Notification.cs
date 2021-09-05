@@ -137,7 +137,7 @@ namespace Haley.WPF.BaseControls
         {
             if (input.ContainerView.DataContext is IHaleyVM _dc)
             {
-                _dc.OnViewClosed += (o, e) => { input.Close(); };
+                _dc.ViewModelClosed += (o, e) => { input.Close(); };
             }
             _showDialog(ref input, blurWindows);
                                                        
