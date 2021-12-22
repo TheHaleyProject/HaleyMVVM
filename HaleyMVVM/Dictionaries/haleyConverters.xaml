@@ -17,4 +17,5 @@
     <cnv:MultiBindingEqualityCheckConverter x:Key="MultiBindingEqualityCheck"/>
     <cnv:HalfValueConverter x:Key="HalfValue"/>
     <cnv:ScrollLimitConverter x:Key="ScrollLimit"/>
+    <cnv:ColorToBrushConverter x:Key="ColorToBrush"/>
 </ResourceDictionary>
