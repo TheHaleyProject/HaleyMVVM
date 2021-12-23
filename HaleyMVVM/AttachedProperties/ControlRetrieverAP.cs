@@ -31,7 +31,6 @@ namespace Haley.Models
             obj.SetValue(KeyProperty, value);
         }
 
-        // Using a DependencyProperty as the backing store for Key.  This enables animation, styling, binding, etc...
         public static readonly DependencyProperty KeyProperty =
             DependencyProperty.RegisterAttached("Key", typeof(object), typeof(ControlRetrieverAP), new PropertyMetadata(null, CommonPropertyChanged));
 
@@ -48,7 +47,6 @@ namespace Haley.Models
             obj.SetValue(ResolveModeProperty, value);
         }
 
-        // Using a DependencyProperty as the backing store for ResolveMode.  This enables animation, styling, binding, etc...
         public static readonly DependencyProperty ResolveModeProperty =
             DependencyProperty.RegisterAttached("ResolveMode", typeof(ResolveMode), typeof(ControlRetrieverAP), new PropertyMetadata(ResolveMode.AsRegistered));
         #endregion
@@ -65,7 +63,6 @@ namespace Haley.Models
             obj.SetValue(ControlContainerProperty, value);
         }
 
-        // Using a DependencyProperty as the backing store for ControlContainer.  This enables animation, styling, binding, etc...
         public static readonly DependencyProperty ControlContainerProperty =
             DependencyProperty.RegisterAttached("ControlContainer", typeof(IControlContainer), typeof(ControlRetrieverAP), new PropertyMetadata(null, CommonPropertyChanged));
 
@@ -83,7 +80,6 @@ namespace Haley.Models
             obj.SetValue(DataContextProperty, value);
         }
 
-        // Using a DependencyProperty as the backing store for DataContext.  This enables animation, styling, binding, etc...
         public static readonly DependencyProperty DataContextProperty =
             DependencyProperty.RegisterAttached("DataContext", typeof(IHaleyVM), typeof(ControlRetrieverAP), new FrameworkPropertyMetadata(null, FrameworkPropertyMetadataOptions.BindsTwoWayByDefault, CommonPropertyChanged));
 

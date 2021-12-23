@@ -8,8 +8,9 @@ using Haley.WPF.BaseControls;
 using Haley.Utils;
 using System.Windows;
 using System.Windows.Controls;
+using Haley.MVVM;
 
-namespace Haley.MVVM.Services
+namespace Haley.Services
 {
     public class DialogService : IDialogService
     {

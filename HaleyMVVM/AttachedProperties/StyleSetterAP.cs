@@ -34,7 +34,6 @@ namespace Haley.Models
             obj.SetValue(InputBindingsProperty, value);
         }
 
-        // Using a DependencyProperty as the backing store for InputBindings.  This enables animation, styling, binding, etc...
         public static readonly DependencyProperty InputBindingsProperty =
             DependencyProperty.RegisterAttached("InputBindings", typeof(InputBindingCollection), typeof(StyleSetterAP), new FrameworkPropertyMetadata(new InputBindingCollection(), propertyChangedCallback: InputBindinsPropertyChanged));
         static void InputBindinsPropertyChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
@@ -58,7 +57,6 @@ namespace Haley.Models
             obj.SetValue(BehavioursProperty, value);
         }
 
-        // Using a DependencyProperty as the backing store for Behaviours.  This enables animation, styling, binding, etc...
         public static readonly DependencyProperty BehavioursProperty =
             DependencyProperty.RegisterAttached("Behaviours", typeof(Collection<Behavior>), typeof(StyleSetterAP), new FrameworkPropertyMetadata(new Collection<Behavior>(), propertyChangedCallback: OnBehaviorsChanged));
         static void OnBehaviorsChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)

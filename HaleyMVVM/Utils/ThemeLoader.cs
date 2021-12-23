@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using Haley.Models;
-using Haley.MVVM.Services;
+using Haley.Services;
 using Haley.Abstractions;
 using Haley.Enums;
 using Haley.Utils;
@@ -26,7 +26,6 @@ namespace Haley.Utils
             //set { SetValue(active_themeProperty, value); }
         }
 
-        // Using a DependencyProperty as the backing store for active_theme.  This enables animation, styling, binding, etc...
         public static readonly DependencyProperty active_themeProperty =
             DependencyProperty.Register("active_theme", typeof(Theme), typeof(ThemeLoader), new PropertyMetadata(null));
 

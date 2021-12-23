@@ -21,7 +21,6 @@ namespace Haley.Models
             set { SetValue(CommandProperty, value); }
         }
 
-        // Using a DependencyProperty as the backing store for Command.  This enables animation, styling, binding, etc...
         public static readonly DependencyProperty CommandProperty =
             DependencyProperty.Register(nameof(Command), typeof(ICommand), typeof(EventToCommand), null);
 
@@ -31,7 +30,6 @@ namespace Haley.Models
             set { SetValue(CommandParameterProperty, value); }
         }
 
-        // Using a DependencyProperty as the backing store for CommandParameter.  This enables animation, styling, binding, etc...
         public static readonly DependencyProperty CommandParameterProperty =
             DependencyProperty.Register(nameof(CommandParameter), typeof(object), typeof(EventToCommand), null);
 
@@ -41,7 +39,6 @@ namespace Haley.Models
             set { SetValue(BindEventArgsProperty, value); }
         }
 
-        // Using a DependencyProperty as the backing store for BindEventArgs.  This enables animation, styling, binding, etc...
         public static readonly DependencyProperty BindEventArgsProperty =
             DependencyProperty.Register(nameof(BindEventArgs), typeof(bool), typeof(EventToCommand), new PropertyMetadata(true));
 

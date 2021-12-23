@@ -1,6 +1,6 @@
 ﻿ using System;
 using Haley.Abstractions;
-using Haley.MVVM.Services;
+using Haley.Services;
 using Haley.Enums;
 using Haley.IOC;
 using System.Windows;

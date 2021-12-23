@@ -29,7 +29,6 @@ namespace Haley.Models
             set { SetValue(MaxValueProperty, value); }
         }
 
-        // Using a DependencyProperty as the backing store for MaxValue.  This enables animation, styling, binding, etc...
         public static readonly DependencyProperty MaxValueProperty =
             DependencyProperty.Register(nameof(MaxValue), typeof(object), typeof(NumericLimiter), new PropertyMetadata(null));
         public object MinValue
@@ -38,7 +37,6 @@ namespace Haley.Models
             set { SetValue(MinValueProperty, value); }
         }
 
-        // Using a DependencyProperty as the backing store for MinValue.  This enables animation, styling, binding, etc...
         public static readonly DependencyProperty MinValueProperty =
             DependencyProperty.Register(nameof(MinValue), typeof(object), typeof(NumericLimiter), new PropertyMetadata(null));
 

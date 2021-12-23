@@ -30,7 +30,6 @@ namespace Haley.Models
             obj.SetValue(KeyProperty, value);
         }
 
-        // Using a DependencyProperty as the backing store for Key.  This enables animation, styling, binding, etc...
         public static readonly DependencyProperty KeyProperty =
             DependencyProperty.RegisterAttached("Key", typeof(object), typeof(IocAP), new PropertyMetadata(null));
 
@@ -47,7 +46,6 @@ namespace Haley.Models
             obj.SetValue(ResolveModeProperty, value);
         }
 
-        // Using a DependencyProperty as the backing store for ResolveMode.  This enables animation, styling, binding, etc...
         public static readonly DependencyProperty ResolveModeProperty =
             DependencyProperty.RegisterAttached("ResolveMode", typeof(ResolveMode), typeof(IocAP), new PropertyMetadata(ResolveMode.AsRegistered));
         #endregion
@@ -64,7 +62,6 @@ namespace Haley.Models
             obj.SetValue(FindKeyProperty, value);
         }
 
-        // Using a DependencyProperty as the backing store for FindKey.  This enables animation, styling, binding, etc...
         public static readonly DependencyProperty FindKeyProperty =
             DependencyProperty.RegisterAttached("FindKey", typeof(bool), typeof(IocAP), new PropertyMetadata(false));
         #endregion
@@ -80,7 +77,6 @@ namespace Haley.Models
             obj.SetValue(InjectVMProperty, value);
         }
 
-        // Using a DependencyProperty as the backing store for InjectVM.  This enables animation, styling, binding, etc...
         public static readonly DependencyProperty InjectVMProperty =
             DependencyProperty.RegisterAttached("InjectVM", typeof(bool), typeof(IocAP), new PropertyMetadata(false, InjectVMPropertyChanged));
 
