@@ -20,6 +20,7 @@ namespace Haley.Utils
 {
     public sealed class ColorUtils
     {
+        private static Dictionary<string, Color> _systemColors = new Dictionary<string, Color>();
         public static void ClampLimits(ref int actual,int min = 0, int max = 255)
         {
             if (actual > max) actual = max;
@@ -42,6 +43,27 @@ namespace Haley.Utils
             }
         }
 
+        public static Dictionary<string,Color> GetSystemColors()
+        {
+            if (_systemColors == null || _systemColors?.Count < 1 )
+            {
+                foreach (var color_prop in typeof(Colors).GetProperties())
+                {
+                    if (color_prop.PropertyType == typeof(Color))
+                    {
+                        if (!_systemColors.ContainsKey(color_prop.Name))
+                        {
+                            var _clr = color_prop.GetValue(null);
+                            if (_clr != null)
+                            {
+                                _systemColors.Add(color_prop.Name, (Color)_clr);
+                            }
+                        }
+                    }
+                }
+            }
+            return _systemColors;
+        }
         public static string ColorToHex(Color color)
         {
             return RgbToHex(color.R, color.G, color.B);
