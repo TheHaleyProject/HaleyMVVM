@@ -20,6 +20,7 @@ namespace Haley.Abstractions
        /// <param name="ToastBackground"></param>
        /// <param name="ToastForeground"></param>
         void ChangeAccentColors(SolidColorBrush AccentColor = null, SolidColorBrush AccentForeground = null, Brush ToastBackground = null, SolidColorBrush ToastForeground = null);
+        void SetGlow(Color? glowColor, double glowRadius = 3);
         void ChangeSettings(bool? topMost = null, bool? showInTaskBar = null, DialogStartupLocation startupLocation = DialogStartupLocation.CenterParent);
         INotification ShowDialog(string title, string message, NotificationIcon icon = NotificationIcon.Info, DialogMode mode = DialogMode.Notification, bool hideIcon = false,bool blurWindows = false);
 

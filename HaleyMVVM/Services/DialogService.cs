@@ -4,7 +4,7 @@ using System.Text;
 using System.Windows.Media;
 using Haley.Abstractions;
 using Haley.Enums;
-using Haley.WPF.BaseControls;
+using Haley.WPF.Controls;
 using Haley.Utils;
 using System.Windows;
 using System.Windows.Controls;
@@ -18,6 +18,8 @@ namespace Haley.Services
         private SolidColorBrush _accentColor;
         private SolidColorBrush _accentForeground;
         private SolidColorBrush _toastForeground;
+        private Color _glowColor = Colors.Gray;
+        private double _glowRadius = 3.0;
         private Brush _toastBackground;
         private bool _topMost = true;
         private bool _showInTaskBar = false;
@@ -25,6 +27,21 @@ namespace Haley.Services
         #endregion
 
         #region Public Methods
+
+        /// <summary>
+        /// Set glow and its radius.
+        /// </summary>
+        /// <param name="glowColor">null, if no change is required.</param>
+        /// <param name="glowRadius"></param>
+        public void SetGlow(Color? glowColor, double glowRadius = 3.0)
+        {
+            if (glowColor.HasValue)
+            {
+                _glowColor = glowColor.Value;
+            }
+            _glowRadius = glowRadius;
+
+        }
         public void ChangeAccentColors(SolidColorBrush AccentColor = null, SolidColorBrush AccentForeground = null, Brush ToastBackground = null, SolidColorBrush ToastForeground = null)
         {
             _accentColor = AccentColor;
@@ -169,6 +186,10 @@ namespace Haley.Services
             {
                 _newWindow.ToastForeground = _toastForeground;
             }
+
+            _newWindow.GlowColor = _glowColor;
+            _newWindow.GlowRadius = _glowRadius;
+
             _newWindow.Title = title;
             _newWindow.Type = type;
             _newWindow.ShowInTaskbar = showInTaskBar == null ? _showInTaskBar : showInTaskBar.Value;
