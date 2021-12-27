@@ -85,7 +85,14 @@ namespace Haley.Utils
             //for the given key try to get the provider.
            return _resourceProviders.FirstOrDefault(p => p.Key == provider_key); //Could also be null.
         }
-        public static string Translate(string resource_key, string provider_key)
+        public static string Translate(string resource_key)
+        {
+            //The calling method should have an assembly.
+            Assembly assembly = Assembly.GetCallingAssembly();
+            var _asmName = assembly.GetName().Name;
+            return Translate(resource_key, _asmName);
+        }
+            public static string Translate(string resource_key, string provider_key)
         {
             //if (CurrentCulture == null) CurrentCulture = CultureInfo.CreateSpecificCulture("en");
             if (CurrentCulture == null) CurrentCulture = CultureInfo.InvariantCulture;
