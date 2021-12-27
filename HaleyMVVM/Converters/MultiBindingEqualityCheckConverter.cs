@@ -22,6 +22,11 @@ namespace Haley.MVVM.Converters
                 var current = i;
                 var next = i + 1;
                 if (next == length || next > length) break;
+
+                var current_obj = values[current];
+                var next_obj = values[next];
+                if (current_obj == null || next_obj == null || current_obj == DependencyProperty.UnsetValue || next_obj == DependencyProperty.UnsetValue) return false;
+                //The object cannot be null or unset.
                 var current_string = values[current].asString();
                 var next_string = values[next].asString();
                 if (!current_string.Equals(next_string)) return false;

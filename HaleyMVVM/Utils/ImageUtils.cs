@@ -420,9 +420,9 @@ namespace Haley.Utils
             try
             {
                 //Ensure that the color values are with in the allowed range.
-                resetColorLimits(ref red);
-                resetColorLimits(ref green);
-                resetColorLimits(ref blue);
+                ColorUtils.ClampLimits(ref red);
+                ColorUtils.ClampLimits(ref green);
+                ColorUtils.ClampLimits(ref blue);
 
                 //Now using the imageinfo source, create a new array and fill it with the input color.
                 byte[] newimage = new byte[source.length];
@@ -461,11 +461,6 @@ namespace Haley.Utils
             {
                 return source; //In case of error, just reuse the source image itself.
             }
-        }
-        private static void resetColorLimits(ref int actual)
-        {
-            if (actual > 255) actual = 255;
-            if (actual < 0) actual = 0;
         }
 
         #endregion

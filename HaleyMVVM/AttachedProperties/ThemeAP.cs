@@ -17,7 +17,6 @@ namespace Haley.Models
             obj.SetValue(PriorityProperty, value);
         }
 
-        // Using a DependencyProperty as the backing store for Priority.  This enables animation, styling, binding, etc...
         public static readonly DependencyProperty PriorityProperty =
             DependencyProperty.RegisterAttached("Priority", typeof(SearchPriority), typeof(ThemeAP), new PropertyMetadata(SearchPriority.FrameworkElement));
 
@@ -32,7 +31,6 @@ namespace Haley.Models
             obj.SetValue(NewThemeProperty, value);
         }
 
-        // Using a DependencyProperty as the backing store for NewTheme.  This enables animation, styling, binding, etc...
         public static readonly DependencyProperty NewThemeProperty =
             DependencyProperty.RegisterAttached("NewTheme", typeof(Theme), typeof(ThemeAP), new PropertyMetadata(null,NewThemePropertyChanged));
 
@@ -58,7 +56,6 @@ namespace Haley.Models
             obj.SetValue(TriggerChangeProperty, value);
         }
 
-        // Using a DependencyProperty as the backing store for TriggerChange.  This enables animation, styling, binding, etc...
         public static readonly DependencyProperty TriggerChangeProperty =
             DependencyProperty.RegisterAttached("TriggerChange", typeof(bool), typeof(ThemeAP), new PropertyMetadata(false,TriggerChangePropertyChanged));
         static void TriggerChangePropertyChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)

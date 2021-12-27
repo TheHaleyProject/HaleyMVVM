@@ -17,39 +17,22 @@ namespace Haley.Models
 {
     public static class ControlRetrieverAP
     {
+        private static bool holdProcessing = false;
+
         #region Key_String
 
-        public static string GetKey(DependencyObject obj)
+        public static object GetKey(DependencyObject obj)
         {
-            return (string)obj.GetValue(KeyProperty);
+            return (object)obj.GetValue(KeyProperty);
         }
 
-        public static void SetKey(DependencyObject obj, string value)
+        public static void SetKey(DependencyObject obj, object value)
         {
             obj.SetValue(KeyProperty, value);
         }
 
-        // Using a DependencyProperty as the backing store for Key.  This enables animation, styling, binding, etc...
         public static readonly DependencyProperty KeyProperty =
-            DependencyProperty.RegisterAttached("Key", typeof(string), typeof(ControlRetrieverAP), new PropertyMetadata(null,KeyPropertyChanged));
-
-        #endregion
-
-        #region Key_Enum
-
-        public static Enum GetKeyEnum(DependencyObject obj)
-        {
-            return (Enum)obj.GetValue(KeyEnumProperty);
-        }
-
-        public static void SetKeyEnum(DependencyObject obj, Enum value)
-        {
-            obj.SetValue(KeyEnumProperty, value);
-        }
-
-        // Using a DependencyProperty as the backing store for KeyEnum.  This enables animation, styling, binding, etc...
-        public static readonly DependencyProperty KeyEnumProperty =
-            DependencyProperty.RegisterAttached("KeyEnum", typeof(Enum), typeof(ControlRetrieverAP), new PropertyMetadata(null,KeyEnumPropertyChanged));
+            DependencyProperty.RegisterAttached("Key", typeof(object), typeof(ControlRetrieverAP), new PropertyMetadata(null, CommonPropertyChanged));
 
         #endregion
 
@@ -64,7 +47,6 @@ namespace Haley.Models
             obj.SetValue(ResolveModeProperty, value);
         }
 
-        // Using a DependencyProperty as the backing store for ResolveMode.  This enables animation, styling, binding, etc...
         public static readonly DependencyProperty ResolveModeProperty =
             DependencyProperty.RegisterAttached("ResolveMode", typeof(ResolveMode), typeof(ControlRetrieverAP), new PropertyMetadata(ResolveMode.AsRegistered));
         #endregion
@@ -81,46 +63,62 @@ namespace Haley.Models
             obj.SetValue(ControlContainerProperty, value);
         }
 
-        // Using a DependencyProperty as the backing store for ControlContainer.  This enables animation, styling, binding, etc...
         public static readonly DependencyProperty ControlContainerProperty =
-            DependencyProperty.RegisterAttached("ControlContainer", typeof(IControlContainer), typeof(ControlRetrieverAP), new PropertyMetadata(null,ControlContainerPropertyChanged));
+            DependencyProperty.RegisterAttached("ControlContainer", typeof(IControlContainer), typeof(ControlRetrieverAP), new PropertyMetadata(null, CommonPropertyChanged));
+
+        #endregion
+
+        #region ViewModel
+
+        public static IHaleyVM GetDataContext(DependencyObject obj)
+        {
+            return (IHaleyVM)obj.GetValue(DataContextProperty);
+        }
+
+        public static void SetDataContext(DependencyObject obj, IHaleyVM value)
+        {
+            obj.SetValue(DataContextProperty, value);
+        }
+
+        public static readonly DependencyProperty DataContextProperty =
+            DependencyProperty.RegisterAttached("DataContext", typeof(IHaleyVM), typeof(ControlRetrieverAP), new FrameworkPropertyMetadata(null, FrameworkPropertyMetadataOptions.BindsTwoWayByDefault, CommonPropertyChanged));
 
         #endregion
 
         #region Private Methods
-        static void KeyPropertyChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+
+        static void CommonPropertyChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
         {
-            RetrieveView(d, e);
-        }
-        static void KeyEnumPropertyChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
-        {
-            //invoke only if key is null.
-            var _stringKey = d.GetValue(KeyProperty) as string;
-            if (string.IsNullOrEmpty(_stringKey))
-            {
-                RetrieveView(d, e);
-            }
+            if (holdProcessing) return;
+            RetrieveView(d, null);
         }
 
-        static void RetrieveView(DependencyObject d, DependencyPropertyChangedEventArgs e)
+        static void RetrieveView(DependencyObject d, object e)
         {
             try
             {
+                if (e == null)
+                {
+                    e = d.GetValue(KeyProperty) as object;
+                }
+
                 string _key = string.Empty;
                 //new value of e could be string or enum.
-                if (e.NewValue is string)
+                if (e is string)
                 {
-                    _key = e.NewValue as string;
+                    _key = e as string;
                 }
-                else if (e.NewValue is Enum)
+                else if (e is Enum)
                 {
-                    var _enum = e.NewValue as Enum;
+                    var _enum = e as Enum;
                     if (_enum != null)
                     {
                         _key = _enum.getKey();
                     }
                 }
-                RetrieveView(d, _key);
+
+                var _dcontext = d.GetValue(DataContextProperty) as IHaleyVM;
+                RetrieveView(d, _key, _dcontext);
             }
             catch (Exception)
             {
@@ -128,33 +126,10 @@ namespace Haley.Models
             }
         }
 
-        static void ControlContainerPropertyChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
-        {
-            string _key = string.Empty;
-
-            var _stringkey = d.GetValue(KeyProperty) as string;
-            var _enumKey = d.GetValue(KeyEnumProperty) as Enum;
-
-            if (_stringkey != null)
-            {
-                _key = _stringkey;
-            }
-            else if (_enumKey != null)
-            {
-                _key = _enumKey.getKey();
-            }
-
-            RetrieveView(d, _key);
-        }
-
-
-        static void RetrieveView(DependencyObject d, string key)
+        static void RetrieveView(DependencyObject d, string key, IHaleyVM datacontext)
         {
             try
             {
-                //We donot apply this for windows.
-                if (d is Window || d is UserControl) return;
-
                 if (!(d is ContentControl)) return;
 
                 //Get resolve mode
@@ -173,14 +148,29 @@ namespace Haley.Models
 
                 if (key != null)
                 {
-                    _targetControl = _container.GenerateView(key, mode: _resolve_mode);
+                    _targetControl = _container.GenerateView(key,datacontext, mode: _resolve_mode);
                 }
 
-           ((ContentControl)d).Content = _targetControl;
+                //Sometimes the datacontext can be empty.
+                if (datacontext == null)
+                {
+                    //This is for two way binding.
+                    holdProcessing = true;
+                    d.SetValue(DataContextProperty, _targetControl.DataContext);
+                }
+
+                holdProcessing = false;
+
+                ((ContentControl)d).Content = _targetControl;
+
             }
             catch (Exception)
             {
                 //do nothing as of now.
+            }
+            finally
+            {
+                holdProcessing = false;
             }
         }
         

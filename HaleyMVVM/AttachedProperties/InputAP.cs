@@ -37,7 +37,6 @@ namespace Haley.Models
             obj.SetValue(AllowNegativeProperty, value);
         }
 
-        // Using a DependencyProperty as the backing store for AllowNegative.  This enables animation, styling, binding, etc...
         public static readonly DependencyProperty AllowNegativeProperty =
             DependencyProperty.RegisterAttached("AllowNegative", typeof(bool), typeof(InputAP), new FrameworkPropertyMetadata(defaultValue: true,propertyChangedCallback: AllowNegativePropertyChanged));
 
@@ -52,7 +51,6 @@ namespace Haley.Models
         public static void SetConstraint(DependencyObject obj, InputConstraintType value)
         { obj.SetValue(ConstraintProperty, value); }
 
-        // Using a DependencyProperty as the backing store for Constraint.  This enables animation, styling, binding, etc...
         public static readonly DependencyProperty ConstraintProperty =
             DependencyProperty.RegisterAttached(
             "Constraint",

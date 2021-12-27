@@ -25,6 +25,11 @@ namespace Haley.Abstractions
         string UserInput { get; set; }
         bool? DialogResult { get; set; }
         string AppName { get; set; }
+
+        bool AutoClose { get; set; }
+        int CountDown { get; set; }
+        Color GlowColor { get; set; }
+        double GlowRadius { get; set; }
         #endregion
     }
 }

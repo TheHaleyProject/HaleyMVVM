@@ -23,36 +23,28 @@ using System.Windows.Media.Animation;
 using System.Windows.Threading;
 using System.Windows.Media.Effects;
 
-namespace Haley.WPF.BaseControls
+namespace Haley.WPF.Controls
 {
     //Notification is not a control. It is a window that will be displayed to user as a separate dialog or as a toast in the desktop.
     public sealed class Notification : Window, INotification
     {
         #region Attributes
-        private static SolidColorBrush _baseAccent = (SolidColorBrush)new BrushConverter().ConvertFromString("#FF324862");
-        private static SolidColorBrush _baseAccentForeground = (SolidColorBrush)new BrushConverter().ConvertFromString("Yellow");
+        private static SolidColorBrush _baseAccent = (SolidColorBrush)new BrushConverter().ConvertFromString("#FF3A6974");
+        private static SolidColorBrush _baseAccentForeground = new SolidColorBrush(Colors.White);
         private static SolidColorBrush _baseToastAccent = (SolidColorBrush)new BrushConverter().ConvertFromString("#BF222832");
-        private static SolidColorBrush _baseToastForeground = (SolidColorBrush)new BrushConverter().ConvertFromString("White");
-
-        private const string UIEheader = "PART_header";
-        private const string UIEcontainerHolder = "PART_ContainerHolder";
+        private static SolidColorBrush _baseToastForeground = new SolidColorBrush(Colors.White);
 
         private int _displayDuration = 5;
         private int _timerCount;
         private DispatcherTimer _autoCloseTimer;
         private BlurEffect _wndwBlur = new BlurEffect();
-        #endregion
 
-        #region UIElements
-        private FrameworkElement _header;
-        private ContentControl _containerHolder;
         #endregion
 
         #region Constructors
         static Notification()
         {
             DefaultStyleKeyProperty.OverrideMetadata(typeof(Notification), new FrameworkPropertyMetadata(typeof(Notification)));
-
         }
 
         public Notification()
@@ -66,7 +58,7 @@ namespace Haley.WPF.BaseControls
             WindowStartupLocation = WindowStartupLocation.CenterOwner;
             CommandBindings.Add(new CommandBinding(ApplicationCommands.Close, _closeAction));
             CommandBindings.Add(new CommandBinding(SystemCommands.CloseWindowCommand, _closeAllToasts));
-
+            CommandBindings.Add(new CommandBinding(ComponentCommands.MoveDown, _dragMove));
         }
 
         private void InitiateWindows()
@@ -85,9 +77,6 @@ namespace Haley.WPF.BaseControls
         public override void OnApplyTemplate()
         {
             base.OnApplyTemplate();
-            _header = GetTemplateChild(UIEheader) as FrameworkElement;
-            _containerHolder = GetTemplateChild(UIEcontainerHolder) as ContentControl;
-            _initiation();
         }
         #endregion
 
@@ -135,9 +124,9 @@ namespace Haley.WPF.BaseControls
 
         public static INotification ShowContainerView(Notification input,bool blurWindows = false)
         {
-            if (input.ContainerView.DataContext is IHaleyVM _dc)
+            if (input.ContainerView?.DataContext is IHaleyVM _dc)
             {
-                _dc.OnViewClosed += (o, e) => { input.Close(); };
+                _dc.ViewModelClosed += (o, e) => { input.Close(); };
             }
             _showDialog(ref input, blurWindows);
                                                        
@@ -196,7 +185,6 @@ namespace Haley.WPF.BaseControls
             set { SetValue(AutoCloseProperty, value); }
         }
 
-        // Using a DependencyProperty as the backing store for AutoClose.  This enables animation, styling, binding, etc...
         public static readonly DependencyProperty AutoCloseProperty =
             DependencyProperty.Register(nameof(AutoClose), typeof(bool), typeof(Notification), new PropertyMetadata(true));
         public int CountDown
@@ -205,7 +193,6 @@ namespace Haley.WPF.BaseControls
             set { SetValue(CountDownProperty, value); }
         }
 
-        // Using a DependencyProperty as the backing store for CountDown.  This enables animation, styling, binding, etc...
         public static readonly DependencyProperty CountDownProperty =
             DependencyProperty.Register(nameof(CountDown), typeof(int), typeof(Notification), new FrameworkPropertyMetadata(0));
 
@@ -215,7 +202,6 @@ namespace Haley.WPF.BaseControls
             set { SetValue(AppNameProperty, value); }
         }
 
-        // Using a DependencyProperty as the backing store for AppName.  This enables animation, styling, binding, etc...
         public static readonly DependencyProperty AppNameProperty =
             DependencyProperty.Register(nameof(AppName), typeof(string), typeof(Notification), new PropertyMetadata(null));
 
@@ -225,7 +211,6 @@ namespace Haley.WPF.BaseControls
             set { SetValue(TypeProperty, value); }
         }
 
-        // Using a DependencyProperty as the backing store for Type.  This enables animation, styling, binding, etc...
         public static readonly DependencyProperty TypeProperty =
             DependencyProperty.Register(nameof(Type), typeof(DisplayType), typeof(Notification), new PropertyMetadata(DisplayType.ShowInfo));
         
@@ -235,7 +220,6 @@ namespace Haley.WPF.BaseControls
             set { SetValue(MessageProperty, value); }
         }
 
-        // Using a DependencyProperty as the backing store for Message.  This enables animation, styling, binding, etc...
         public static readonly DependencyProperty MessageProperty =
             DependencyProperty.Register(nameof(Message), typeof(string), typeof(Notification), new PropertyMetadata(null));
 
@@ -245,7 +229,6 @@ namespace Haley.WPF.BaseControls
             set { SetValue(NotificationIconProperty, value); }
         }
 
-        // Using a DependencyProperty as the backing store for NotificationIcon.  This enables animation, styling, binding, etc...
         public static readonly DependencyProperty NotificationIconProperty =
             DependencyProperty.Register(nameof(NotificationIcon), typeof(NotificationIcon), typeof(Notification), new PropertyMetadata(NotificationIcon.Info));
 
@@ -255,9 +238,26 @@ namespace Haley.WPF.BaseControls
             set { SetValue(ShowNotificationIconProperty, value); }
         }
 
-        // Using a DependencyProperty as the backing store for ShowNotificationIcon.  This enables animation, styling, binding, etc...
         public static readonly DependencyProperty ShowNotificationIconProperty =
             DependencyProperty.Register(nameof(ShowNotificationIcon), typeof(bool), typeof(Notification), new PropertyMetadata(true));
+
+        public Color GlowColor
+        {
+            get { return (Color)GetValue(GlowColorProperty); }
+            set { SetValue(GlowColorProperty, value); }
+        }
+
+        public static readonly DependencyProperty GlowColorProperty =
+            DependencyProperty.Register(nameof(GlowColor), typeof(Color), typeof(Notification), new FrameworkPropertyMetadata(Colors.Gray));
+
+        public double GlowRadius
+        {
+            get { return (double)GetValue(GlowRadiusProperty); }
+            set { SetValue(GlowRadiusProperty, value); }
+        }
+
+        public static readonly DependencyProperty GlowRadiusProperty =
+            DependencyProperty.Register(nameof(GlowRadius), typeof(double), typeof(Notification), new FrameworkPropertyMetadata(3.0,null,coerceValueCallback:GlowRadiusPropertyCoerce));
 
         public SolidColorBrush AccentColor
         {
@@ -265,7 +265,6 @@ namespace Haley.WPF.BaseControls
             set { SetValue(AccentColorProperty, value); }
         }
 
-        // Using a DependencyProperty as the backing store for AccentColor.  This enables animation, styling, binding, etc...
         public static readonly DependencyProperty AccentColorProperty =
             DependencyProperty.Register(nameof(AccentColor), typeof(SolidColorBrush), typeof(Notification), new FrameworkPropertyMetadata(_baseAccent));
 
@@ -275,7 +274,6 @@ namespace Haley.WPF.BaseControls
             set { SetValue(AccentForegroundProperty, value); }
         }
 
-        // Using a DependencyProperty as the backing store for AccentForeground.  This enables animation, styling, binding, etc...
         public static readonly DependencyProperty AccentForegroundProperty =
             DependencyProperty.Register(nameof(AccentForeground), typeof(SolidColorBrush), typeof(Notification), new FrameworkPropertyMetadata(_baseAccentForeground));
 
@@ -285,7 +283,6 @@ namespace Haley.WPF.BaseControls
             set { SetValue(ToastForegroundProperty, value); }
         }
 
-        // Using a DependencyProperty as the backing store for ToastForeground.  This enables animation, styling, binding, etc...
         public static readonly DependencyProperty ToastForegroundProperty =
             DependencyProperty.Register(nameof(ToastForeground), typeof(SolidColorBrush), typeof(Notification), new PropertyMetadata(_baseToastForeground));
 
@@ -295,7 +292,6 @@ namespace Haley.WPF.BaseControls
             set { SetValue(ToastBackgroundProperty, value); }
         }
 
-        // Using a DependencyProperty as the backing store for ToastBackground.  This enables animation, styling, binding, etc...
         public static readonly DependencyProperty ToastBackgroundProperty =
             DependencyProperty.Register(nameof(ToastBackground), typeof(Brush), typeof(Notification), new PropertyMetadata(_baseToastAccent));
 
@@ -305,7 +301,6 @@ namespace Haley.WPF.BaseControls
             set { SetValue(UserInputProperty, value); }
         }
 
-        // Using a DependencyProperty as the backing store for UserInput.  This enables animation, styling, binding, etc...
         public static readonly DependencyProperty UserInputProperty =
             DependencyProperty.Register(nameof(UserInput), typeof(string), typeof(Notification), new FrameworkPropertyMetadata(null,FrameworkPropertyMetadataOptions.BindsTwoWayByDefault));
         #endregion
@@ -335,11 +330,6 @@ namespace Haley.WPF.BaseControls
 
             }
         }
-        private void _initiation()
-        {
-            _eventSubscription();
-            _containerViewSetup();
-        }
         private void _autoClose()
         {
             _autoCloseTimer = new DispatcherTimer
@@ -363,21 +353,7 @@ namespace Haley.WPF.BaseControls
             if (_timerCount >= _displayDuration) this.Close();
         }
 
-        void _containerViewSetup()
-        {
-            if (Type != DisplayType.ContainerView || ContainerView == null || _containerHolder == null) return;
-
-            _containerHolder.Content = ContainerView; //If viewmodel is setup using ContainerStore, then it should fetch that.
-        }
-        void _eventSubscription()
-        {
-            if (_header != null)
-            {
-                _header.PreviewMouseLeftButtonDown += _header_PreviewMouseLeftButtonDown;
-            }
-        }
-
-        private void _header_PreviewMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+        void _dragMove(object sender, ExecutedRoutedEventArgs e)
         {
             this.DragMove();
         }
@@ -433,6 +409,16 @@ namespace Haley.WPF.BaseControls
             {
 
             }
+        }
+        static object GlowRadiusPropertyCoerce(DependencyObject d, object baseValue)
+        {
+            if (d is Notification nf)
+            {
+                var _actual = (double)baseValue;
+                if (_actual < 3.0) return 3.0;
+                if (_actual > 20.0) return 20.0;
+            }
+            return baseValue;
         }
 
         #endregion

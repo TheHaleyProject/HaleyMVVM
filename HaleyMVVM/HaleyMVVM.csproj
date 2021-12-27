@@ -4,17 +4,17 @@
     <UseWPF>true</UseWPF>
     <AssemblyName>Haley.MVVM</AssemblyName>
     <RootNamespace>Haley.MVVM</RootNamespace>
-    <Version>6.0.2</Version>
+    <Version>6.0.8-development-1</Version>
     <Authors>The Haley Project</Authors>
     <Product>Haley MVVM Core</Product>
     <Company>TheHaleyProject</Company>
     <Description>A light weight MVVM implementation with IOC Containes, Delegate Commands, ChangeNotifier Model, NotifiableCollection and many more.</Description>
     <PackageTags>WPF MVVM MVVM IOC DI Haley</PackageTags>
-    <RepositoryUrl>https://github.com/rmsmech/HaleyMVVM</RepositoryUrl>
+    <RepositoryUrl>https://github.com/TheHaleyProject/HaleyMVVM</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <Copyright>Haley @ 2020</Copyright>
-    <PackageReleaseNotes>Added IServiceProvider Implementation to Control and Window Container to make it work with Microsoft Dependency Injection</PackageReleaseNotes>
+    <PackageReleaseNotes>Added color helper utils, converters for color, added/modified attached properties</PackageReleaseNotes>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <AssemblyVersion>4.0.2.0</AssemblyVersion>
     <FileVersion>4.0.2.0</FileVersion>
@@ -110,7 +110,7 @@
     </When>
     <Otherwise>
      <ItemGroup>
-       <PackageReference Include="Haley.Extensions" Version="2.0.1" />
+       <PackageReference Include="Haley.Extensions" Version="2.0.2" />
 	 </ItemGroup>
     </Otherwise>
 </Choose>  
@@ -125,7 +125,7 @@
     </When>
     <Otherwise>
      <ItemGroup>
-       <PackageReference Include="Haley.IOC" Version="3.0.1" />
+       <PackageReference Include="Haley.IOC" Version="3.0.2" />
 	 </ItemGroup>
     </Otherwise>
 </Choose>  

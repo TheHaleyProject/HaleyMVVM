@@ -87,7 +87,7 @@ namespace Haley.IOC
                 _view.DataContext = _vm;
 
                 //Enable Haleyobserver so that when view closes, viewmodel event is triggered.
-                HaleyObserver CustomOP = new HaleyObserver(_view, _vm);
+                WindowObserver CustomOP = new WindowObserver(_view, _vm);
                 return _view;
             }
             catch (Exception ex)

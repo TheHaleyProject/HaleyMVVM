@@ -24,6 +24,23 @@ namespace Haley.IOC
             return null;
         }
 
+        /// <summary>
+        /// Will register only if the serviceprovider is of type BaseContainer.
+        /// </summary>
+        /// <returns></returns>
+        public virtual bool RegisterSelf()
+        {
+            if (Services is IBaseContainer)
+            {
+                var DI = GetDI();
+                DI.Register<IControlContainer, ControlContainer>((ControlContainer)Controls, true);
+                DI.Register<IWindowContainer, WindowContainer>((WindowContainer)Windows, true);
+                DI.Register<IContainerFactory, ContainerFactory>((ContainerFactory)this, true);
+                return true;
+            }
+            return false;
+        }
+
         public ContainerFactory(IServiceProvider serviceProvider)
         {
             Id = Guid.NewGuid().ToString();

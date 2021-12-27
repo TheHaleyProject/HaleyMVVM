@@ -113,14 +113,25 @@ namespace Haley.Abstractions
             //Even view should be resolved by _di instance. because sometimes, views can direclty expect some 
             if (viewType == null) return default(BaseViewType);
             BaseViewType resultcontrol;
+            object _baseView = null;
 
             if (service_provider is IBaseContainer)
             {
-                resultcontrol = (BaseViewType)((IBaseContainer)service_provider).Resolve(viewType, mode);
+                _baseView = ((IBaseContainer)service_provider).Resolve(viewType, mode);
             }
             else
             {
-                resultcontrol = (BaseViewType)service_provider.GetService(viewType);
+                _baseView = service_provider.GetService(viewType);
+            }
+
+            if (_baseView != null)
+            {
+                resultcontrol = (BaseViewType)_baseView;
+            }
+            else
+            {
+                //Just to ensure that it is not null.
+                resultcontrol = (BaseViewType)Activator.CreateInstance(viewType);
             }
 
             return resultcontrol;
@@ -130,17 +141,23 @@ namespace Haley.Abstractions
         {
             try
             {
-                BaseViewModelType _result;
+                BaseViewModelType _result  = default(BaseViewModelType);
                 if (viewModelType == null) return default(BaseViewModelType);
                 //If the viewmodel is registered in DI as a singleton, then it willbe returned, else, DI will resolve it as a transient and will return the result.
-
+                object _baseVm = null;
                 if (service_provider is IBaseContainer)
                 {
-                    _result = (BaseViewModelType)((IBaseContainer) service_provider).Resolve(viewModelType, mode);
+                    _baseVm = ((IBaseContainer) service_provider).Resolve(viewModelType, mode);
                 }
                 else
                 {
-                    _result = (BaseViewModelType)service_provider.GetService(viewModelType);
+
+                    _baseVm = service_provider.GetService(viewModelType);
+                }
+
+                if (_baseVm != null)
+                {
+                    _result = (BaseViewModelType)_baseVm;
                 }
                 
                 return _result;
