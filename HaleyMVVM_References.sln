@@ -15,6 +15,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NotificationDemo", "_TESTIN
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "UITest", "UITest", "{A56EE6E7-3E83-45F2-BEB9-EB9D21E0EFE3}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LocalizationResources", "LocalizationResources\LocalizationResources.csproj", "{DB33CF1C-FFD6-4853-9EA5-096BD6DB6B4A}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -37,6 +39,10 @@ Global
 		{A3BD5E82-C41B-43D9-A4D4-1363A15D2610}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{A3BD5E82-C41B-43D9-A4D4-1363A15D2610}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{A3BD5E82-C41B-43D9-A4D4-1363A15D2610}.Release|Any CPU.Build.0 = Release|Any CPU
+		{DB33CF1C-FFD6-4853-9EA5-096BD6DB6B4A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{DB33CF1C-FFD6-4853-9EA5-096BD6DB6B4A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{DB33CF1C-FFD6-4853-9EA5-096BD6DB6B4A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{DB33CF1C-FFD6-4853-9EA5-096BD6DB6B4A}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -45,6 +51,7 @@ Global
 		{5617BFB2-986F-49E2-ADA5-629BF1C5FA00} = {BEBD8317-6A3F-4C0D-90F8-3EE1C8D6CB1C}
 		{8BD25A8C-5EFA-4214-B89E-20F4A5878687} = {A56EE6E7-3E83-45F2-BEB9-EB9D21E0EFE3}
 		{A3BD5E82-C41B-43D9-A4D4-1363A15D2610} = {A56EE6E7-3E83-45F2-BEB9-EB9D21E0EFE3}
+		{DB33CF1C-FFD6-4853-9EA5-096BD6DB6B4A} = {A56EE6E7-3E83-45F2-BEB9-EB9D21E0EFE3}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {2D992CC4-7837-4664-A260-F38CD8C93746}

@@ -8,12 +8,14 @@ using System;
 using System.Collections.Generic;
 using System.Configuration;
 using System.Data;
+using System.Globalization;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Windows;
 using Haley.WPF.Controls;
 using System.Windows.Media;
 using Haley.Services;
+using HaleyLR;
 
 namespace NotificationDemo
 {
@@ -24,11 +26,27 @@ namespace NotificationDemo
     {
         private void Application_Startup(object sender, StartupEventArgs e)
         {
-            ContainerRegistrations();
-
+            LanguageTest();
+            
+            //ContainerRegistrations();
             //directDialogServiceTest();
             //directNotificationTest
-            ClientTest();
+            //ClientTest();
+        }
+
+        string _translationCallBack(string key, string value, CultureInfo cultureInfo)
+        {
+            if (cultureInfo.Name == "zu-ZA") return "I don't have a chinese conversion yet.";
+            //Only when you need to manuall y override something.
+            return value;
+        }
+
+        void LanguageTest()
+        {
+            LangUtils.Register("NotificationDemo.Properties.Resources", _translationCallBack);
+            Entry.Initiate();
+            var _wndw = new GlobalizationWindow();
+            _wndw.ShowDialog();
         }
 
         private void ContainerRegistrations()

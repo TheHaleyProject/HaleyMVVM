@@ -118,6 +118,6 @@
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
   <data name="MainHello" xml:space="preserve">
-    <value>This is an english test</value>
+    <value>இது லோக்கல் மச்சி.</value>
   </data>
 </root>

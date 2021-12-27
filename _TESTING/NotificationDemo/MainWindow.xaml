@@ -79,7 +79,7 @@
                             <ColumnDefinition Width="Auto"/>
                             <ColumnDefinition/>
                         </Grid.ColumnDefinitions>
-                        <TextBlock Text="Radius " />
+                        <TextBlock Text="Radius" />
                         <TextBox x:Name="tbxGlowRadius" Grid.Column="1" hm:InputAP.AllowNegative="False" hm:InputAP.Constraint="Integer">
                             <beh:Interaction.Behaviors>
                                 <hm:NumericLimiter MaxValue="100" MinValue="1"/>
