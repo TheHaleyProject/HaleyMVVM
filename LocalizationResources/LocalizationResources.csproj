@@ -90,16 +90,26 @@
     </None>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\HaleyMVVM\HaleyMVVM.csproj">
-      <Project>{ca5cc295-589d-463d-8667-166f43c794af}</Project>
-      <Name>HaleyMVVM</Name>
-    </ProjectReference>
-  </ItemGroup>
-  <ItemGroup>
     <Page Include="TestControl.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+	<Import Project="$(SolutionDir)ProjectReferences_$(SolutionName).txt" Condition="Exists('$(SolutionDir)ProjectReferences_$(SolutionName).txt')" />
+	<Choose>
+		<When Condition="Exists($(HaleyMVVM))">
+			<ItemGroup>
+				<ProjectReference Include="$(HaleyMVVM)\HaleyMVVM.csproj">
+					<Name>HaleyMVVM</Name>
+					<Project>{ca5cc295-589d-463d-8667-166f43c794af}</Project>
+				</ProjectReference>
+			</ItemGroup>
+		</When>
+		<Otherwise>
+			<ItemGroup>
+				<PackageReference Include="Haley.MVVM" Version="6.0.8-development-1" />
+			</ItemGroup>
+		</Otherwise>
+	</Choose>
 </Project>
