@@ -38,6 +38,7 @@ namespace Haley.Utils
 
         public event EventHandler<CultureChangedEventArgs> CultureChanged; //Raise this event whenever a culture changes. The subscribing methods can perform their own operations.
 
+        private static Dictionary<string, CultureInfo> _allCultures = new Dictionary<string, CultureInfo>();
         private static List<ResourceProvider> _resourceProviders = new List<ResourceProvider>();
         public static CultureInfo CurrentCulture { get; private set; }
 
@@ -58,6 +59,24 @@ namespace Haley.Utils
                 _info = CultureInfo.CreateSpecificCulture(code);
             }
             ChangeCulture(_info);
+        }
+
+        public static Dictionary<string, CultureInfo> GetAllCultures()
+        {
+            if (_allCultures == null || _allCultures.Count < 1)
+            {
+                var _cultures = CultureInfo.GetCultures(CultureTypes.NeutralCultures)?.ToList();
+
+                foreach (var cultr in _cultures)
+                {
+                    if (!_allCultures.ContainsKey(cultr.Name))
+                    {
+                        _allCultures.Add(cultr.Name, cultr);
+                    }
+                }
+            }
+            
+            return _allCultures;
         }
 
         public ResourceProvider GetProvider(string provider_key)

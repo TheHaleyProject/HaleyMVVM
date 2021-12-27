@@ -43,6 +43,7 @@ namespace NotificationDemo
 
         void LanguageTest()
         {
+            LangUtils.GetAllCultures();
             LangUtils.Register("NotificationDemo.Properties.Resources", _translationCallBack);
             Entry.Initiate();
             var _wndw = new GlobalizationWindow();
