@@ -18,4 +18,5 @@
     <cnv:HalfValueConverter x:Key="HalfValue"/>
     <cnv:ScrollLimitConverter x:Key="ScrollLimit"/>
     <cnv:ColorToBrushConverter x:Key="ColorToBrush"/>
+    <cnv:NegateValueConverter x:Key="NegateValue"/>
 </ResourceDictionary>
