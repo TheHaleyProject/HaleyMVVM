@@ -29,9 +29,9 @@ namespace Haley.WPF.Controls
     public sealed class Notification : Window, INotification
     {
         #region Attributes
-        private static SolidColorBrush _baseAccent = (SolidColorBrush)new BrushConverter().ConvertFromString("#FF3A6974");
+        private static SolidColorBrush _baseAccent = (SolidColorBrush)new BrushConverter().ConvertFromString("#7F4F4949");
         private static SolidColorBrush _baseAccentForeground = new SolidColorBrush(Colors.White);
-        private static SolidColorBrush _baseToastAccent = (SolidColorBrush)new BrushConverter().ConvertFromString("#BF222832");
+        private static SolidColorBrush _baseToastAccent = (SolidColorBrush)new BrushConverter().ConvertFromString("#E5313132");
         private static SolidColorBrush _baseToastForeground = new SolidColorBrush(Colors.White);
 
         private int _displayDuration = 5;
@@ -45,8 +45,11 @@ namespace Haley.WPF.Controls
         static Notification()
         {
             DefaultStyleKeyProperty.OverrideMetadata(typeof(Notification), new FrameworkPropertyMetadata(typeof(Notification)));
+            ////OPTION 1 : Override the background propertychange here. (If you just wish to handle property change here.
+            //BackgroundProperty.OverrideMetadata(typeof(Notification), new FrameworkPropertyMetadata(propertyChangedCallback: OnBaseBackgroundChanged));
+            ////OPTION 2: Add a new owner (In case you wish to handle property changes in both base class and also here.
+            //BackgroundProperty.AddOwner(typeof(Notification), new FrameworkPropertyMetadata(propertyChangedCallback: OnBaseBackgroundChanged));
         }
-
         public Notification()
         {
             InitiateWindows();
@@ -77,10 +80,29 @@ namespace Haley.WPF.Controls
         public override void OnApplyTemplate()
         {
             base.OnApplyTemplate();
+            _setButtonBackground(AccentColor);
         }
+
         #endregion
 
         #region Public Methods
+        private void _setButtonBackground(Brush brush)
+        {
+            var _bg = (brush as SolidColorBrush)?.Color;
+            if (_bg.HasValue)
+            {
+                var _newbtnbg = ColorUtils.ColorToSolidColorBrush(_bg.Value, true);
+                //set the background color.
+                this.SetCurrentValue(ButtonBackgroundProperty, _newbtnbg);
+            }
+        }
+        static void OnBaseAccentPropertyChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+        {
+            if (d is Notification ntfctn && e.NewValue is Brush brush)
+            {
+                ntfctn._setButtonBackground(brush);
+            }
+        }
 
         private static void _showDialog(ref Notification input, bool blurWindows)
         {
@@ -139,6 +161,12 @@ namespace Haley.WPF.Controls
         public static bool SendToast(Notification input, int display_seconds = 7)
         {
             var _appTitle = AppDomain.CurrentDomain?.FriendlyName;
+            var _titleArray = _appTitle.Split('.');
+            if (_titleArray.Length > 1)
+            {
+                _titleArray = _titleArray.ToList().Take(_titleArray.Length - 1).ToArray();
+                _appTitle = string.Join(".", _titleArray);
+            }
             if (input.AppName == null) input.AppName = _appTitle;
             input.Type = DisplayType.ToastInfo; //Just to re-assure that the type is of toast 
             input.Opacity = 0; //First start with 0 opacity so it is not shown in screen
@@ -173,12 +201,23 @@ namespace Haley.WPF.Controls
         #endregion
 
         #region Common Properties
+        public DataTemplate CustomViewTemplate { get; set; }
         public object ContainerViewModel { get; set; }
         public UserControl ContainerView { get; set; }
         public string Id { get; private set; }
         #endregion
 
         #region Dependency Properties
+
+        internal SolidColorBrush ButtonBackground
+        {
+            get { return (SolidColorBrush)GetValue(ButtonBackgroundProperty); }
+            set { SetValue(ButtonBackgroundProperty, value); }
+        }
+
+        internal static readonly DependencyProperty ButtonBackgroundProperty =
+            DependencyProperty.Register(nameof(ButtonBackground), typeof(SolidColorBrush), typeof(Notification), new PropertyMetadata(new SolidColorBrush(Colors.Transparent)));
+
         public bool AutoClose
         {
             get { return (bool)GetValue(AutoCloseProperty); }
@@ -266,7 +305,7 @@ namespace Haley.WPF.Controls
         }
 
         public static readonly DependencyProperty AccentColorProperty =
-            DependencyProperty.Register(nameof(AccentColor), typeof(SolidColorBrush), typeof(Notification), new FrameworkPropertyMetadata(_baseAccent));
+            DependencyProperty.Register(nameof(AccentColor), typeof(SolidColorBrush), typeof(Notification), new FrameworkPropertyMetadata(_baseAccent,propertyChangedCallback:OnBaseAccentPropertyChanged));
 
         public SolidColorBrush AccentForeground
         {

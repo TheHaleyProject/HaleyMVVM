@@ -151,6 +151,32 @@ namespace Haley.Utils
             return new HSV(hue, saturation, value);
         }
 
+        public static SolidColorBrush RgbToSolidColorBrush(byte a, byte r, byte g, byte b)
+        {
+            var _color = Color.FromArgb(a, r, g, b);
+            var _scb = new SolidColorBrush(_color);
+            return _scb;
+        }
+
+        /// <summary>
+        /// Rgb to SCB (Transparency is 255)
+        /// </summary>
+        /// <param name="r"></param>
+        /// <param name="g"></param>
+        /// <param name="b"></param>
+        /// <returns></returns>
+        public static SolidColorBrush RgbToSolidColorBrush(byte r, byte g, byte b)
+        {
+            var _color = Color.FromArgb(255, r, g, b);
+            var _scb = new SolidColorBrush(_color);
+            return _scb;
+        }
+
+        public static SolidColorBrush ColorToSolidColorBrush(Color color,bool remove_transparency = false)
+        {
+            return (RgbToSolidColorBrush(remove_transparency? (byte)255.0: color.A, color.R, color.G, color.B));
+        }
+
         /// <summary>
         /// HSV To Color Converter
         /// </summary>

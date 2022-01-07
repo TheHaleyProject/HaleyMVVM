@@ -41,7 +41,7 @@ namespace NotificationDemo
             //SolidColorBrush _accnnew = (SolidColorBrush)new BrushConverter().ConvertFromString("#FFD7A26C");
             //SolidColorBrush _accnnewFg = (SolidColorBrush)new BrushConverter().ConvertFromString("blue");
             //_ds.ChangeAccentColors(_accnnew, _accnnewFg);
-            _ds.ChangeSettings(false, null, DialogStartupLocation.CenterScreen);
+            _ds.ChangeSettings(true, true, DialogStartupLocation.CenterParent);
             cbxGlowColor.ItemsSource = ColorUtils.GetSystemColors();
         }
 

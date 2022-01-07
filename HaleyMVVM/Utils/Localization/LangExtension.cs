@@ -49,11 +49,22 @@ namespace Haley.Utils
                 Uri callerUri = ((IUriContext)serviceProvider.GetService(typeof(IUriContext)))?.BaseUri;
                 if (callerUri != null)
                 {
-                    var _splitted = callerUri.AbsolutePath.Split(new string[] { ";component" }, StringSplitOptions.None); //It will be in FullPack URI format.
+                    //var _splitted = callerUri.AbsolutePath.Split(new string[] { ";component" }, StringSplitOptions.None); //It will be in FullPack URI format.
+                    //if (_splitted.Length > 1)
+                    //{
+                    //    //We need more than one
+                    //    var _asmName = _splitted[0].Substring(1, _splitted[0].Length - 1); //Remove the backslash.
+                    //    if (!string.IsNullOrWhiteSpace(_asmName))
+                    //    {
+                    //        provider_key = _asmName;
+                    //    }
+                    //}
+
+                    var _splitted = callerUri.Segments[1].Split(new string[] { ";component" }, StringSplitOptions.None); 
                     if (_splitted.Length > 1)
                     {
                         //We need more than one
-                        var _asmName = _splitted[0].Substring(1, _splitted[0].Length - 1); //Remove the backslash.
+                        var _asmName = _splitted[0]; //Remove the backslash.
                         if (!string.IsNullOrWhiteSpace(_asmName))
                         {
                             provider_key = _asmName;

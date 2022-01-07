@@ -18,6 +18,7 @@ namespace Haley.Services
         private SolidColorBrush _accentColor;
         private SolidColorBrush _accentForeground;
         private SolidColorBrush _toastForeground;
+        private SolidColorBrush _toastBorder = new SolidColorBrush(Colors.White);
         private Color _glowColor = Colors.Gray;
         private double _glowRadius = 3.0;
         private Brush _toastBackground;
@@ -71,6 +72,8 @@ namespace Haley.Services
             DisplayType _type = DisplayType.ToastInfo;
             var _wndw = _getNotificationWindow(title, message, icon, _type, hideIcon,false,true);
             _wndw.AutoClose = autoClose;
+            _wndw.BorderBrush = _toastBorder;
+            _wndw.BorderThickness = new Thickness(0.4);
             return Notification.SendToast(_wndw, display_seconds);
         }
        
@@ -94,6 +97,15 @@ namespace Haley.Services
             var _wndw = _getNotificationWindow(title, message, icon, _type, hideIcon);
 
             return Notification.ShowDialog(_wndw,blurWindows);
+        }
+
+        public INotification ShowCustomView(string title, DataTemplate template = null, bool blurWindows = false)
+        {
+            //First get the type of notification.
+         
+            if (template == null) return null;
+            var _wndw = _getNotificationWindow(title, template);
+            return Notification.ShowDialog(_wndw, blurWindows);
         }
 
         public INotification Info(string title, string message, DialogMode mode = DialogMode.Notification, bool blurWindows = false)
@@ -140,7 +152,7 @@ namespace Haley.Services
                 return Notification.ShowDialog(_infoWndw,blurWindows);
             }
 
-            var _wndw = _getNotificationWindow(title, _view, DisplayType.ContainerView);
+            var _wndw = _getNotificationWindow(title, _view);
             return Notification.ShowContainerView(_wndw,blurWindows); //notification will fetch the viewmodel and add it to INotification result.
         }
         public INotification ShowContainerView(string title, Enum @enum, object InputViewModel = null, ResolveMode mode = ResolveMode.AsRegistered, bool blurWindows = false)
@@ -197,9 +209,9 @@ namespace Haley.Services
             _newWindow.WindowStartupLocation = _startupLocation;
             return _newWindow;
         }
-        private Notification _getNotificationWindow(string title, UserControl container_view, DisplayType type, bool? showInTaskBar = null, bool? topMost = null)
+        private Notification _getNotificationWindow(string title, UserControl container_view, bool? showInTaskBar = null, bool? topMost = null)
         {
-            var _newWindow = _getNotificationBaseWindow(title, type,showInTaskBar,topMost );
+            var _newWindow = _getNotificationBaseWindow(title, DisplayType.ContainerView,showInTaskBar,topMost );
             _newWindow.ContainerView = container_view;
             return _newWindow;
         }
@@ -212,8 +224,13 @@ namespace Haley.Services
             _newWindow.ShowNotificationIcon = !hideIcon;
             return _newWindow;
         }
+        private Notification _getNotificationWindow(string title, DataTemplate template, bool? showInTaskBar = null, bool? topMost = null)
+        {
+            var _newWindow = _getNotificationBaseWindow(title, DisplayType.CustomView, showInTaskBar, topMost);
+            _newWindow.CustomViewTemplate = template;
+            return _newWindow;
+        }
 
-        
         #endregion
     }
 }

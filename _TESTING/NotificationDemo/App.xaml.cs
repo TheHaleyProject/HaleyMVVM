@@ -26,12 +26,12 @@ namespace NotificationDemo
     {
         private void Application_Startup(object sender, StartupEventArgs e)
         {
-            LanguageTest();
-            
-            //ContainerRegistrations();
+            //LanguageTest();
+
+            ContainerRegistrations();
             //directDialogServiceTest();
             //directNotificationTest
-            //ClientTest();
+            ClientTest();
         }
 
         string _translationCallBack(string key, string value, CultureInfo cultureInfo)

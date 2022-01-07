@@ -7,6 +7,7 @@ using System.ComponentModel;
 using Haley.Enums;
 using System.Windows.Media;
 using System.Windows.Controls;
+using System.Windows;
 
 namespace Haley.Abstractions
 {
@@ -35,5 +36,7 @@ namespace Haley.Abstractions
         INotification ShowContainerView(string title, Enum key, object InputViewModel = null, ResolveMode mode = ResolveMode.AsRegistered, bool blurWindows = false);
         INotification ShowContainerView<ViewType>(string title, object InputViewModel = null, ResolveMode mode = ResolveMode.AsRegistered, bool blurWindows = false) where ViewType : UserControl;
         INotification ShowContainerView<VMType>(string title, VMType InputViewModel = null, ResolveMode mode = ResolveMode.AsRegistered, bool blurWindows = false) where VMType : class, IHaleyVM;
+
+        INotification ShowCustomView(string title, DataTemplate template = null, bool blurWindows = false);
     }
 }
