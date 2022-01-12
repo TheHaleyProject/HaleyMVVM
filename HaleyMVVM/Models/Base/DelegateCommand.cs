@@ -55,5 +55,10 @@ namespace Haley.Models
             _action = ActionMethod;
             _validation = null;
         }
+
+        public void RaiseCanExecuteChanged()
+        {
+            CommandManager.InvalidateRequerySuggested();
+        }
     }
 }
