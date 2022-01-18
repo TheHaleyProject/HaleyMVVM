@@ -14,19 +14,33 @@ namespace Haley.MVVM.Converters
     {
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
         {
-            if (parameter == null || value == null) return false;
-            string inputparameter = parameter.asString(); // Parameter is always going to be string.
-            return value.asString() == inputparameter;
+            try
+            {
+                if (parameter == null || value == null) return false;
+                string inputparameter = parameter.AsString(); // Parameter is always going to be string.
+                return value.AsString() == inputparameter;
+            }
+            catch (Exception)
+            {
+                return false;
+            }
         }
 
         public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
         {
-            bool ActualResult = (bool)value; //If actual result is true, then return the parameter, else, return null.
+            try
+            {
+                bool ActualResult = (bool)value; //If actual result is true, then return the parameter, else, return null.
 
-            if (ActualResult == true) return parameter.changeType(targetType); //Idea that the bounded source value is checked against the parameter. We try to send the parameter back as integer.
-            if (targetType.IsValueType) return Activator.CreateInstance(targetType); //Which means that the target type is a nonnullable one (it has a default value)
-            if (targetType == typeof(string)) return "Error";
-            return null;
+                if (ActualResult == true) return parameter.ChangeType(targetType); //Idea that the bounded source value is checked against the parameter. We try to send the parameter back as integer.
+                if (targetType.IsValueType) return Activator.CreateInstance(targetType); //Which means that the target type is a nonnullable one (it has a default value)
+                if (targetType == typeof(string)) return parameter.AsString();
+                return null;
+            }
+            catch (Exception)
+            {
+                return null;
+            }
         }
     }
 }

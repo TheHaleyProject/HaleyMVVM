@@ -157,7 +157,7 @@ namespace Haley.Services
         }
         public INotification ShowContainerView(string title, Enum @enum, object InputViewModel = null, ResolveMode mode = ResolveMode.AsRegistered, bool blurWindows = false)
         {
-            string _key = @enum.getKey();
+            string _key = @enum.GetKey();
             return ShowContainerView(title, _key, InputViewModel, mode, blurWindows);
         }
         public INotification ShowContainerView<ViewType>(string title, object InputViewModel = null, ResolveMode mode = ResolveMode.AsRegistered, bool blurWindows = false) where ViewType : UserControl

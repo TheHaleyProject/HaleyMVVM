@@ -131,7 +131,7 @@ namespace Haley.Models
                 var _enum = key_obj as Enum;
                 if (_enum != null)
                 {
-                    _key = _enum.getKey();
+                    _key = _enum.GetKey();
                 }
             }
                        

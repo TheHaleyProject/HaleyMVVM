@@ -18,7 +18,7 @@ namespace Haley.MVVM.Converters
             List<string> result = new List<string>();
             foreach (Enum e in input)
             {
-                result.Add(e.getDescription());
+                result.Add(e.GetDescription());
             }
             return result;
         }

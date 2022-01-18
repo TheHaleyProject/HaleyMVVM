@@ -28,7 +28,7 @@ namespace Haley.MVVM.Converters
 
             foreach (Enum @enum in Enum.GetValues(_type))
             {
-                result.Add(@enum.getDescription());
+                result.Add(@enum.GetDescription());
             }
             return result;
         }

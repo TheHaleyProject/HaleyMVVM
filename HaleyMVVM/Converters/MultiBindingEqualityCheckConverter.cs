@@ -27,8 +27,8 @@ namespace Haley.MVVM.Converters
                 var next_obj = values[next];
                 if (current_obj == null || next_obj == null || current_obj == DependencyProperty.UnsetValue || next_obj == DependencyProperty.UnsetValue) return false;
                 //The object cannot be null or unset.
-                var current_string = values[current].asString();
-                var next_string = values[next].asString();
+                var current_string = values[current].AsString();
+                var next_string = values[next].AsString();
                 if (!current_string.Equals(next_string)) return false;
             }
             return true;

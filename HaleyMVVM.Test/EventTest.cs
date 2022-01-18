@@ -17,10 +17,10 @@ namespace HaleyMVVM.Test
         public void InvokeandReceiveEvent(object new_message)
         {
             //Arrange
-            EventStore.Singleton.GetEvent<MessageEvent>().subscribe(_handleMessage,true);
+            EventStore.Singleton.GetEvent<MessageEvent>().Subscribe(_handleMessage,true);
 
             //Act
-            EventStore.Singleton.GetEvent<MessageEvent>().publish(new_message);
+            EventStore.Singleton.GetEvent<MessageEvent>().Publish(new_message);
 
             //Assert
             Assert.Equal(new_message, _message);

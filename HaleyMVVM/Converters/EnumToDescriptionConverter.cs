@@ -17,7 +17,7 @@ namespace Haley.MVVM.Converters
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
         {
             if (value.GetType().BaseType != typeof(Enum)) return null;
-            return ((Enum)value).getDescription();
+            return ((Enum)value).GetDescription();
         }
 
         public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)

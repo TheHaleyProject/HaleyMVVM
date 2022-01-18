@@ -22,7 +22,7 @@ namespace Haley.IOC
         #region ShowDialog Methods
         public bool? ShowDialog(Enum key, object InputViewModel = null, ResolveMode resolve_mode = ResolveMode.AsRegistered)
         {
-            string _key = key.getKey();
+            string _key = key.GetKey();
             return ShowDialog(_key, InputViewModel, resolve_mode);
         }
         public bool? ShowDialog<ViewModelType>(ViewModelType InputViewModel = null, ResolveMode resolve_mode = ResolveMode.AsRegistered) where ViewModelType : class, IHaleyVM
@@ -54,7 +54,7 @@ namespace Haley.IOC
         }
         public void Show(Enum key, object InputViewModel = null, ResolveMode resolve_mode = ResolveMode.AsRegistered)
         {
-            string _key = key.getKey();
+            string _key = key.GetKey();
             Show(_key, InputViewModel, resolve_mode);
         }
         public void Show(string key, object InputViewModel = null, ResolveMode resolve_mode = ResolveMode.AsRegistered)
