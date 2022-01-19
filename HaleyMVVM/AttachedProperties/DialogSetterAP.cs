@@ -23,6 +23,17 @@ namespace Haley.Models
     public static class DialogSetterAP
     {
         private static IDialogService ds;
+        public static IServiceProvider GetServiceProvider(DependencyObject obj)
+        {
+            return (IServiceProvider)obj.GetValue(ServiceProviderProperty);
+        }
+        public static void SetServiceProvider(DependencyObject obj, IServiceProvider value)
+        {
+            obj.SetValue(ServiceProviderProperty, value);
+        }
+
+        public static readonly DependencyProperty ServiceProviderProperty =
+            DependencyProperty.RegisterAttached("ServiceProvider", typeof(IServiceProvider), typeof(DialogSetterAP), new PropertyMetadata(null));
 
         public static bool GetBlurWindows(DependencyObject obj)
         {
@@ -84,15 +95,26 @@ namespace Haley.Models
                 if (_content != null)
                 {
                     //use this datatemplate or usercontrol and display on a notification dialog
-                    var _ds = getDS();
+                    var _ds = getDS(sender as DependencyObject);
                     if (_ds == null) return;
                     _ds.ShowCustomView(_title, _content, _blur);
                 }
             }
         }
 
-        private static IDialogService getDS()
+        private static IDialogService getDS(DependencyObject obj)
         {
+            if (obj != null)
+            {
+                //See if the user has provided a dialogservice 
+                var _provider = GetServiceProvider(obj);
+                if (_provider != null)
+                {
+                    var _userDs = _provider.GetService(typeof(IDialogService)) as IDialogService;
+                    if (_userDs != null) return _userDs;
+                }
+            }
+
             if (ds == null)
             {
                 ds = ContainerStore.Singleton.DI.Resolve<IDialogService>();

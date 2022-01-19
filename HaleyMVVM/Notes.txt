@@ -1,10 +1,12 @@
 ﻿
-### 1 --- ADDING CONVERTER
-******CODE******
+### 1 --- ADDING CONVERTERS
+
+############ ONLY CONVERTERS FROM HALEY.MVVM ############
   <ResourceDictionary.MergedDictionaries>
         <ResourceDictionary Source="pack://application:,,,/Haley.MVVM;component/Dictionaries/haleyConverters.xaml"/>
   </ResourceDictionary.MergedDictionaries>
 
+############# ALL UI RESOURCES FROM HALEY.WPF ############
 FOR USING HALEY.WPF RESOURCES: When using Haley.WPF, please add the below resource dictionary directly. In that case, adding converter is not required as it is already added to haley RD.
 
   <ResourceDictionary.MergedDictionaries>
@@ -22,6 +24,8 @@ FOR USING HALEY.WPF RESOURCES: When using Haley.WPF, please add the below resour
 3. NotifiableCollection - For Using an observable collection to notify changes inside the properties of the elements.
 
 4. IocAP - For Haley Attached properties (to be used in conjunction with HaleyContainers). To use in xaml.
+
+5. BaseVM  - Use this base clss (which extends ChangeNotifier)
 
 #### 3 ---- CONTAINERS:
 

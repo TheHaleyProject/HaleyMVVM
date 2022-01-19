@@ -17,7 +17,7 @@ namespace Haley.Models
 {
     public static class ControlRetrieverAP
     {
-        private static bool holdProcessing = false;
+        private static bool holdProcessing = false; //SOON REPLACE THIS WITH LOCK/MONITOR OR SEMAPHORE
 
         #region Key_String
 

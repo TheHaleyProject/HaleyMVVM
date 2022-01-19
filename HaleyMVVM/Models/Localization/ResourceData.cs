@@ -60,7 +60,7 @@ namespace Haley.Models
 
         private void OnLanguageChanged(object sender, EventArgs e)
         {
-            onPropertyChanged("Value");
+            OnPropertyChanged("Value");
         }
     }
 }

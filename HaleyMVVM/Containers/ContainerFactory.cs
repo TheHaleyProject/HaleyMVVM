@@ -32,12 +32,16 @@ namespace Haley.IOC
         {
             if (Services is IBaseContainer)
             {
+                //Because we know that in our ContainerFactory, the Iconrol,Iwindow,Iservice provider concrete implementations.
+                //Forced singleton means that irrespective of how the resolve call is made (ResolveAsTransient, ResolveAsSingleton), we always resolve as singleton. That's what ForcedSingleton means.
                 var DI = GetDI();
                 DI.Register<IControlContainer, ControlContainer>((ControlContainer)Controls, true);
                 DI.Register<IWindowContainer, WindowContainer>((WindowContainer)Windows, true);
                 DI.Register<IContainerFactory, ContainerFactory>((ContainerFactory)this, true);
+                DI.Register<IServiceProvider, DIContainer>((DIContainer)Services, true);
                 return true;
             }
+
             return false;
         }
 

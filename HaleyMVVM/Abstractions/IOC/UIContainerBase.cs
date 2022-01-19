@@ -22,10 +22,13 @@ namespace Haley.Abstractions
         {
             Id = Guid.NewGuid().ToString();
             main_mapping = new ConcurrentDictionary<string, (Type VMtype, Type ViewType, RegisterMode mode)>();
-            if (_serviceProvider != null)
+
+            if (_serviceProvider == null)
             {
-                service_provider= _serviceProvider;
+                throw new ArgumentException("Service provide cannot be empty while initiating UIContainerBase");
             }
+           
+            service_provider= _serviceProvider;
         }
 
         #endregion

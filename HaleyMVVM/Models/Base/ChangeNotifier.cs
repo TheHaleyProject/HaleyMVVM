@@ -13,7 +13,7 @@ namespace Haley.Models
     public abstract class ChangeNotifier: INotifyPropertyChanged
     {
         public event PropertyChangedEventHandler PropertyChanged;
-        public void onPropertyChanged([CallerMemberName] string propname = null)
+        public void OnPropertyChanged([CallerMemberName] string propname = null)
         {
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propname));
         }
@@ -23,7 +23,7 @@ namespace Haley.Models
             if (EqualityComparer<T>.Default.Equals(_attribute, _value)) return false; //If both are equal don't proceed.
 
             _attribute = _value;
-            onPropertyChanged(propname);
+            OnPropertyChanged(propname);
             return true;
         }
 

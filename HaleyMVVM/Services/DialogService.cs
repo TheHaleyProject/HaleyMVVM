@@ -50,7 +50,6 @@ namespace Haley.Services
             _toastForeground = ToastForeground;
             _toastBackground = ToastBackground;
         }
-
         public void ChangeSettings(bool? topMost = null, bool? showInTaskBar = null, DialogStartupLocation startupLocation = DialogStartupLocation.CenterParent)
         {
             if (topMost != null) _topMost = topMost.Value;
@@ -66,7 +65,6 @@ namespace Haley.Services
                     break;
             }
         }
-
         public bool SendToast(string title, string message, NotificationIcon icon = NotificationIcon.Info, bool hideIcon = false, bool autoClose = true, int display_seconds = 7)
         {
             DisplayType _type = DisplayType.ToastInfo;
@@ -76,7 +74,6 @@ namespace Haley.Services
             _wndw.BorderThickness = new Thickness(0.4);
             return Notification.SendToast(_wndw, display_seconds);
         }
-       
         public INotification ShowDialog(string title, string message, NotificationIcon icon = NotificationIcon.Info, DialogMode mode = DialogMode.Notification, bool hideIcon = false, bool blurWindows = false)
         {
             //First get the type of notification.
@@ -98,31 +95,25 @@ namespace Haley.Services
 
             return Notification.ShowDialog(_wndw,blurWindows);
         }
-
         public INotification ShowCustomView(string title, DataTemplate template = null, bool blurWindows = false)
         {
             //First get the type of notification.
-         
             if (template == null) return null;
             var _wndw = _getNotificationWindow(title, template);
             return Notification.ShowDialog(_wndw, blurWindows);
         }
-
         public INotification Info(string title, string message, DialogMode mode = DialogMode.Notification, bool blurWindows = false)
         {
             return ShowDialog(title, message, NotificationIcon.Info,mode, blurWindows: blurWindows);
         }
-
         public INotification Warning(string title, string message, DialogMode mode = DialogMode.Notification, bool blurWindows = false)
         {
             return ShowDialog(title, message, NotificationIcon.Warning,mode, blurWindows: blurWindows);
         }
-
         public INotification Error(string title, string message, DialogMode mode = DialogMode.Notification, bool blurWindows = false)
         {
             return ShowDialog(title, message, NotificationIcon.Error,mode, blurWindows: blurWindows);
         }
-
         public INotification Success(string title, string message, DialogMode mode = DialogMode.Notification, bool blurWindows = false)
         {
             return ShowDialog(title, message, NotificationIcon.Success,mode, blurWindows: blurWindows);
@@ -130,13 +121,23 @@ namespace Haley.Services
         #endregion
 
         #region Container Methods
-        public INotification ShowContainerView(string title, string key, object InputViewModel = null, ResolveMode mode = ResolveMode.AsRegistered, bool blurWindows = false)
+        public INotification ShowContainerView(string title, string key, object InputViewModel = null, ResolveMode mode = ResolveMode.AsRegistered, bool blurWindows = false, IControlContainer container = null)
         {
             UserControl _view = null;
             try
             {
-                //Containerstore resolve the controls to get the control
-                _view = (UserControl)ContainerStore.Singleton.Controls.GenerateView(key, InputViewModel, mode);
+               if (container != null)
+                {
+                    //No fall back. If container doesn't have the control with key, DO NOT FALL BACK TO DEFAULT CONTAINER.
+                    //Containerstore resolve the controls to get the control
+                    _view = container.GenerateView(key, InputViewModel, mode);
+                }
+                else
+                {
+                    //Containerstore resolve the controls to get the control
+                    _view = ContainerStore.Singleton.Controls.GenerateView(key, InputViewModel, mode);
+                }
+               
             }
             catch (Exception ex)
             {
@@ -155,20 +156,20 @@ namespace Haley.Services
             var _wndw = _getNotificationWindow(title, _view);
             return Notification.ShowContainerView(_wndw,blurWindows); //notification will fetch the viewmodel and add it to INotification result.
         }
-        public INotification ShowContainerView(string title, Enum @enum, object InputViewModel = null, ResolveMode mode = ResolveMode.AsRegistered, bool blurWindows = false)
+        public INotification ShowContainerView(string title, Enum @enum, object InputViewModel = null, ResolveMode mode = ResolveMode.AsRegistered, bool blurWindows = false, IControlContainer container = null)
         {
             string _key = @enum.GetKey();
-            return ShowContainerView(title, _key, InputViewModel, mode, blurWindows);
+            return ShowContainerView(title, _key, InputViewModel, mode, blurWindows, container);
         }
-        public INotification ShowContainerView<ViewType>(string title, object InputViewModel = null, ResolveMode mode = ResolveMode.AsRegistered, bool blurWindows = false) where ViewType : UserControl
+        public INotification ShowContainerView<ViewType>(string title, object InputViewModel = null, ResolveMode mode = ResolveMode.AsRegistered, bool blurWindows = false, IControlContainer container = null) where ViewType : UserControl
         {
             string _key = typeof(ViewType).ToString();
-            return ShowContainerView(title, _key, InputViewModel, mode, blurWindows);
+            return ShowContainerView(title, _key, InputViewModel, mode, blurWindows, container);
         }
-        public INotification ShowContainerView<VMType>(string title, VMType InputViewModel = null, ResolveMode mode = ResolveMode.AsRegistered, bool blurWindows = false) where VMType : class, IHaleyVM
+        public INotification ShowContainerView<VMType>(string title, VMType InputViewModel = null, ResolveMode mode = ResolveMode.AsRegistered, bool blurWindows = false, IControlContainer container = null) where VMType : class, IHaleyVM
         {
             string _key = typeof(VMType).ToString();
-            return ShowContainerView(title, _key, InputViewModel, mode, blurWindows);
+            return ShowContainerView(title, _key, InputViewModel, mode, blurWindows,container);
         }
 
         #endregion
