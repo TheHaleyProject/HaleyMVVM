@@ -27,6 +27,24 @@ namespace Haley.Models
             return true;
         }
 
+        protected virtual bool SetProp<T>(ref T _attribute, T _value, [CallerMemberName] string propname = null,Func<T,T,bool> validation_callback = null)
+        {
+            if (EqualityComparer<T>.Default.Equals(_attribute, _value))
+            {
+                return false; //If both are equal don't proceed.
+            }
+
+            //Sometimes, there is a possibility that value has changed but we don't want to invoke the property change. So, call the validation.
+
+            if (validation_callback != null && !validation_callback.Invoke(_attribute,_value))
+            {
+                return false;
+            }
+            _attribute = _value;
+            OnPropertyChanged(propname);
+            return true;
+        }
+
         public ChangeNotifier() { }
     }
    

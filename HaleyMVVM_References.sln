@@ -17,6 +17,10 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "UITest", "UITest", "{A56EE6
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LocalizationResources", "LocalizationResources\LocalizationResources.csproj", "{DB33CF1C-FFD6-4853-9EA5-096BD6DB6B4A}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HaleyIOC", "..\HaleyIOC\HaleyIOC\HaleyIOC.csproj", "{188856B6-1B92-4FEF-A62E-8D648353518D}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HaleyExtensions", "..\HaleyExtensions\HaleyExtensions\HaleyExtensions.csproj", "{688D47CA-E1BE-4504-BB0A-89BF8D72515A}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -43,6 +47,14 @@ Global
 		{DB33CF1C-FFD6-4853-9EA5-096BD6DB6B4A}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{DB33CF1C-FFD6-4853-9EA5-096BD6DB6B4A}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{DB33CF1C-FFD6-4853-9EA5-096BD6DB6B4A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{188856B6-1B92-4FEF-A62E-8D648353518D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{188856B6-1B92-4FEF-A62E-8D648353518D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{188856B6-1B92-4FEF-A62E-8D648353518D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{188856B6-1B92-4FEF-A62E-8D648353518D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{688D47CA-E1BE-4504-BB0A-89BF8D72515A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{688D47CA-E1BE-4504-BB0A-89BF8D72515A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{688D47CA-E1BE-4504-BB0A-89BF8D72515A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{688D47CA-E1BE-4504-BB0A-89BF8D72515A}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

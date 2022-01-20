@@ -4,7 +4,7 @@
     <UseWPF>true</UseWPF>
     <AssemblyName>Haley.MVVM</AssemblyName>
     <RootNamespace>Haley.MVVM</RootNamespace>
-    <Version>6.1.2</Version>
+    <Version>6.1.4</Version>
     <Authors>The Haley Project</Authors>
     <Product>Haley MVVM Core</Product>
     <Company>TheHaleyProject</Company>
@@ -14,7 +14,7 @@
     <RepositoryType>git</RepositoryType>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <Copyright>Haley @ 2020</Copyright>
-    <PackageReleaseNotes>Added RaiseCanExecuteChanged method to delegate command.</PackageReleaseNotes>
+    <PackageReleaseNotes>Added RaiseCanExecuteChanged method to delegate command. Updated latest Haley.Extensions references.</PackageReleaseNotes>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <AssemblyVersion>4.0.2.0</AssemblyVersion>
     <FileVersion>4.0.2.0</FileVersion>
