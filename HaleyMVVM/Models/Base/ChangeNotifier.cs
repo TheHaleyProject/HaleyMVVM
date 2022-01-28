@@ -27,7 +27,7 @@ namespace Haley.Models
             return true;
         }
 
-        protected virtual bool SetProp<T>(ref T _attribute, T _value, [CallerMemberName] string propname = null,Func<T,T,bool> validation_callback = null)
+        protected virtual bool SetProp<T>(ref T _attribute, T _value, Func<T, T, bool> validation_callback,[CallerMemberName] string propname = null)
         {
             if (EqualityComparer<T>.Default.Equals(_attribute, _value))
             {

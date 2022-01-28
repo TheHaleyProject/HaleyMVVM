@@ -31,7 +31,7 @@ namespace Haley.WPF.Controls
         #region Attributes
         private static SolidColorBrush _baseAccent = (SolidColorBrush)new BrushConverter().ConvertFromString("#7F4F4949");
         private static SolidColorBrush _baseAccentForeground = new SolidColorBrush(Colors.White);
-        private static SolidColorBrush _baseToastAccent = (SolidColorBrush)new BrushConverter().ConvertFromString("#E5313132");
+        private static SolidColorBrush _baseToastAccent = (SolidColorBrush)new BrushConverter().ConvertFromString("#7F09090C");
         private static SolidColorBrush _baseToastForeground = new SolidColorBrush(Colors.White);
 
         private int _displayDuration = 5;
@@ -104,7 +104,7 @@ namespace Haley.WPF.Controls
             }
         }
 
-        private static void _showDialog(ref Notification input, bool blurWindows)
+        private static void _showDialog(ref Notification input, bool blurOtherWindows)
         {
             var _wndw = input as Window;
             if (_wndw != null && _wndw?.WindowStartupLocation == WindowStartupLocation.CenterOwner)
@@ -128,29 +128,29 @@ namespace Haley.WPF.Controls
                     }
                 }
             }
-            if (blurWindows) input.BlurWindows(true); //Show blur
+            if (blurOtherWindows) input.blurOtherWindows(true); //Show blur
             var result = input.ShowDialog();
-            if (blurWindows) input.BlurWindows(false); //Deactiavate blur after dialog is closed.
+            if (blurOtherWindows) input.blurOtherWindows(false); //Deactiavate blur after dialog is closed.
         }
 
-        public static INotification ShowDialog(Notification input,bool blurWindows = false)
+        public static INotification ShowDialog(Notification input,bool blurOtherWindows = false)
         {
             if (input.Type == DisplayType.ToastInfo || input.Type == DisplayType.ContainerView)
             {
                 // We should not have toast info type. If by some mistake, it was set, it has to be changed to notification.
                 input.Type = DisplayType.ShowInfo;
             }
-            _showDialog(ref input, blurWindows);
+            _showDialog(ref input, blurOtherWindows);
             return (INotification)input;
         }
 
-        public static INotification ShowContainerView(Notification input,bool blurWindows = false)
+        public static INotification ShowContainerView(Notification input,bool blurOtherWindows = false)
         {
             if (input.ContainerView?.DataContext is IHaleyVM _dc)
             {
                 _dc.ViewModelClosed += (o, e) => { input.Close(); };
             }
-            _showDialog(ref input, blurWindows);
+            _showDialog(ref input, blurOtherWindows);
                                                        
             //Now get the viewmodel of the container view and add it to result.
             var _vm = input.ContainerView.DataContext;
@@ -175,8 +175,9 @@ namespace Haley.WPF.Controls
             //var desktopArea = SystemParameters.WorkArea;
             //var leftStart = desktopArea.Width - input.ActualWidth;
             //var topStart = desktopArea.Height - input.ActualHeight;
-            var leftStart = SystemParameters.PrimaryScreenWidth - input.ActualWidth;
-            var topStart = SystemParameters.PrimaryScreenHeight - input.ActualHeight;
+            //Values goes x towards right direction, y downwards.
+            var leftStart = SystemParameters.PrimaryScreenWidth - input.ActualWidth-8.0;
+            var topStart = SystemParameters.PrimaryScreenHeight - input.ActualHeight-8.0;
 
             input.Left = leftStart;
             input.Top = SystemParameters.PrimaryScreenHeight; //If we directly set the top start value, then it will just appear. So we start with the border value
@@ -345,7 +346,7 @@ namespace Haley.WPF.Controls
         #endregion
 
         #region Private Methods
-        private void BlurWindows(bool activate)
+        private void blurOtherWindows(bool activate)
         {
             try
             {

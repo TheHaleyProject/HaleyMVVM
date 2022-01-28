@@ -230,7 +230,7 @@
     </ControlTemplate>
 
     <ControlTemplate x:Key="internal_notification_toast" TargetType="{x:Type bc:Notification}">
-        <Border Margin="3" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" MaxWidth="400" MaxHeight="300">
+        <Border MaxWidth="420" MaxHeight="370">
             <Grid>
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto"/>

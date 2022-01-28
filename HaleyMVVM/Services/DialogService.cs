@@ -7,6 +7,7 @@ using Haley.Enums;
 using Haley.WPF.Controls;
 using Haley.Utils;
 using System.Windows;
+using Haley.Models;
 using System.Windows.Controls;
 using Haley.MVVM;
 
@@ -17,13 +18,17 @@ namespace Haley.Services
         #region Attributes
         private SolidColorBrush _accentColor;
         private SolidColorBrush _accentForeground;
+
+        private Brush _toastBackground;
         private SolidColorBrush _toastForeground;
         private SolidColorBrush _toastBorder = new SolidColorBrush(Colors.White);
+
         private Color _glowColor = Colors.Gray;
         private double _glowRadius = 3.0;
-        private Brush _toastBackground;
+
         private bool _topMost = true;
         private bool _showInTaskBar = false;
+        private bool _windowBackgroundBlur = false;
         private WindowStartupLocation _startupLocation = WindowStartupLocation.CenterOwner;
         #endregion
 
@@ -43,12 +48,21 @@ namespace Haley.Services
             _glowRadius = glowRadius;
 
         }
-        public void ChangeAccentColors(SolidColorBrush AccentColor = null, SolidColorBrush AccentForeground = null, Brush ToastBackground = null, SolidColorBrush ToastForeground = null)
+        public void ChangeAccentColors(SolidColorBrush AccentColor = null, SolidColorBrush AccentForeground = null)
         {
             _accentColor = AccentColor;
             _accentForeground = AccentForeground;
+        }
+
+        public void ChangeToastColors(Brush ToastBackground = null, SolidColorBrush ToastForeground = null)
+        {
             _toastForeground = ToastForeground;
             _toastBackground = ToastBackground;
+        }
+
+        private void EnableBackgroundBlur(bool setblur = false)
+        {
+            _windowBackgroundBlur = setblur;
         }
         public void ChangeSettings(bool? topMost = null, bool? showInTaskBar = null, DialogStartupLocation startupLocation = DialogStartupLocation.CenterParent)
         {
@@ -69,12 +83,14 @@ namespace Haley.Services
         {
             DisplayType _type = DisplayType.ToastInfo;
             var _wndw = _getNotificationWindow(title, message, icon, _type, hideIcon,false,true);
+
+            _wndw.SetCurrentValue(WindowBlurAP.IsEnabledProperty, true); //For toast we use blur.
             _wndw.AutoClose = autoClose;
             _wndw.BorderBrush = _toastBorder;
             _wndw.BorderThickness = new Thickness(0.4);
             return Notification.SendToast(_wndw, display_seconds);
         }
-        public INotification ShowDialog(string title, string message, NotificationIcon icon = NotificationIcon.Info, DialogMode mode = DialogMode.Notification, bool hideIcon = false, bool blurWindows = false)
+        public INotification ShowDialog(string title, string message, NotificationIcon icon = NotificationIcon.Info, DialogMode mode = DialogMode.Notification, bool hideIcon = false, bool blurOtherWindows = false)
         {
             //First get the type of notification.
             DisplayType _type = DisplayType.ShowInfo;
@@ -93,35 +109,35 @@ namespace Haley.Services
 
             var _wndw = _getNotificationWindow(title, message, icon, _type, hideIcon);
 
-            return Notification.ShowDialog(_wndw,blurWindows);
+            return Notification.ShowDialog(_wndw,blurOtherWindows);
         }
-        public INotification ShowCustomView(string title, DataTemplate template = null, bool blurWindows = false)
+        public INotification ShowCustomView(string title, DataTemplate template = null, bool blurOtherWindows = false)
         {
             //First get the type of notification.
             if (template == null) return null;
             var _wndw = _getNotificationWindow(title, template);
-            return Notification.ShowDialog(_wndw, blurWindows);
+            return Notification.ShowDialog(_wndw, blurOtherWindows);
         }
-        public INotification Info(string title, string message, DialogMode mode = DialogMode.Notification, bool blurWindows = false)
+        public INotification Info(string title, string message, DialogMode mode = DialogMode.Notification, bool blurOtherWindows = false)
         {
-            return ShowDialog(title, message, NotificationIcon.Info,mode, blurWindows: blurWindows);
+            return ShowDialog(title, message, NotificationIcon.Info,mode, blurOtherWindows: blurOtherWindows);
         }
-        public INotification Warning(string title, string message, DialogMode mode = DialogMode.Notification, bool blurWindows = false)
+        public INotification Warning(string title, string message, DialogMode mode = DialogMode.Notification, bool blurOtherWindows = false)
         {
-            return ShowDialog(title, message, NotificationIcon.Warning,mode, blurWindows: blurWindows);
+            return ShowDialog(title, message, NotificationIcon.Warning,mode, blurOtherWindows: blurOtherWindows);
         }
-        public INotification Error(string title, string message, DialogMode mode = DialogMode.Notification, bool blurWindows = false)
+        public INotification Error(string title, string message, DialogMode mode = DialogMode.Notification, bool blurOtherWindows = false)
         {
-            return ShowDialog(title, message, NotificationIcon.Error,mode, blurWindows: blurWindows);
+            return ShowDialog(title, message, NotificationIcon.Error,mode, blurOtherWindows: blurOtherWindows);
         }
-        public INotification Success(string title, string message, DialogMode mode = DialogMode.Notification, bool blurWindows = false)
+        public INotification Success(string title, string message, DialogMode mode = DialogMode.Notification, bool blurOtherWindows = false)
         {
-            return ShowDialog(title, message, NotificationIcon.Success,mode, blurWindows: blurWindows);
+            return ShowDialog(title, message, NotificationIcon.Success,mode, blurOtherWindows: blurOtherWindows);
         }
         #endregion
 
         #region Container Methods
-        public INotification ShowContainerView(string title, string key, object InputViewModel = null, ResolveMode mode = ResolveMode.AsRegistered, bool blurWindows = false, IControlContainer container = null)
+        public INotification ShowContainerView(string title, string key, object InputViewModel = null, ResolveMode mode = ResolveMode.AsRegistered, bool blurOtherWindows = false, IControlContainer container = null)
         {
             UserControl _view = null;
             try
@@ -143,33 +159,33 @@ namespace Haley.Services
             {
                 string _msg = $@"No UserControl is associated with the key - {key}" + Environment.NewLine + ex.ToString();
                 var _infoWndw = _getNotificationWindow(title, _msg, NotificationIcon.Error, DisplayType.ShowInfo, false);
-                return Notification.ShowDialog(_infoWndw,blurWindows);
+                return Notification.ShowDialog(_infoWndw,blurOtherWindows);
             }
 
             if (_view == null)
             {
                 string _msg = $@"No UserControl is associated with the key - {key}";
                 var _infoWndw = _getNotificationWindow(title, _msg, NotificationIcon.Error, DisplayType.ShowInfo, false);
-                return Notification.ShowDialog(_infoWndw,blurWindows);
+                return Notification.ShowDialog(_infoWndw,blurOtherWindows);
             }
 
             var _wndw = _getNotificationWindow(title, _view);
-            return Notification.ShowContainerView(_wndw,blurWindows); //notification will fetch the viewmodel and add it to INotification result.
+            return Notification.ShowContainerView(_wndw,blurOtherWindows); //notification will fetch the viewmodel and add it to INotification result.
         }
-        public INotification ShowContainerView(string title, Enum @enum, object InputViewModel = null, ResolveMode mode = ResolveMode.AsRegistered, bool blurWindows = false, IControlContainer container = null)
+        public INotification ShowContainerView(string title, Enum @enum, object InputViewModel = null, ResolveMode mode = ResolveMode.AsRegistered, bool blurOtherWindows = false, IControlContainer container = null)
         {
             string _key = @enum.GetKey();
-            return ShowContainerView(title, _key, InputViewModel, mode, blurWindows, container);
+            return ShowContainerView(title, _key, InputViewModel, mode, blurOtherWindows, container);
         }
-        public INotification ShowContainerView<ViewType>(string title, object InputViewModel = null, ResolveMode mode = ResolveMode.AsRegistered, bool blurWindows = false, IControlContainer container = null) where ViewType : UserControl
+        public INotification ShowContainerView<ViewType>(string title, object InputViewModel = null, ResolveMode mode = ResolveMode.AsRegistered, bool blurOtherWindows = false, IControlContainer container = null) where ViewType : UserControl
         {
             string _key = typeof(ViewType).ToString();
-            return ShowContainerView(title, _key, InputViewModel, mode, blurWindows, container);
+            return ShowContainerView(title, _key, InputViewModel, mode, blurOtherWindows, container);
         }
-        public INotification ShowContainerView<VMType>(string title, VMType InputViewModel = null, ResolveMode mode = ResolveMode.AsRegistered, bool blurWindows = false, IControlContainer container = null) where VMType : class, IHaleyVM
+        public INotification ShowContainerView<VMType>(string title, VMType InputViewModel = null, ResolveMode mode = ResolveMode.AsRegistered, bool blurOtherWindows = false, IControlContainer container = null) where VMType : class, IHaleyVM
         {
             string _key = typeof(VMType).ToString();
-            return ShowContainerView(title, _key, InputViewModel, mode, blurWindows,container);
+            return ShowContainerView(title, _key, InputViewModel, mode, blurOtherWindows,container);
         }
 
         #endregion
@@ -208,6 +224,13 @@ namespace Haley.Services
             _newWindow.ShowInTaskbar = showInTaskBar == null ? _showInTaskBar : showInTaskBar.Value;
             _newWindow.Topmost = topMost == null? _topMost : topMost.Value;
             _newWindow.WindowStartupLocation = _startupLocation;
+
+            ////If we try to set the background blur as dependency property, then even for disabled status, the window background blur will be set. So only call when necessary.
+            //if (_windowBackgroundBlur)
+            //{
+            //    //Set attached property.
+            //    _newWindow.SetCurrentValue(WindowBlurAP.IsEnabledProperty, true);//We will not use the same window (as it will get disposed). Also, we will not change during run time.
+            //}
             return _newWindow;
         }
         private Notification _getNotificationWindow(string title, UserControl container_view, bool? showInTaskBar = null, bool? topMost = null)

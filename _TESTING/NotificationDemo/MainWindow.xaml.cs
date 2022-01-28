@@ -61,7 +61,7 @@ namespace NotificationDemo
                     if (rbtnTypeContainerView.IsChecked.HasValue && rbtnTypeContainerView.IsChecked.Value)
                     {
                         var _blur = cbxBlur.IsChecked.Value;
-                        var rest = _ds.ShowContainerView<InputTest01>(tbxTitle.Text, blurWindows: _blur);
+                        var rest = _ds.ShowContainerView<InputTest01>(tbxTitle.Text, blurOtherWindows: _blur);
                         var _vm = (DialogVM)rest.ContainerViewModel;
                     }
                     else
@@ -117,7 +117,7 @@ namespace NotificationDemo
             if (rbtnModeNotify.IsChecked.Value)
             {
                 var _blur = cbxBlur.IsChecked.Value;
-                var result = _ds.ShowDialog(tbxTitle.Text, tbxMessage.Text, _image, dialogMode, blurWindows: _blur);
+                var result = _ds.ShowDialog(tbxTitle.Text, tbxMessage.Text, _image, dialogMode, blurOtherWindows: _blur);
                 var dresult = result.DialogResult;
                 tblckDialogResult.Text = dresult.ToString();
                 var uinput = result.UserInput;
