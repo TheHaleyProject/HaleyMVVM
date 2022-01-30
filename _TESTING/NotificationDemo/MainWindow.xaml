@@ -43,7 +43,7 @@
                 <ColumnDefinition Width="150"/>
             </Grid.ColumnDefinitions>
             
-            <StackPanel Background="White" >
+            <StackPanel >
                 <TextBlock Text="Title"/>
                 <TextBlock Text="Message"/>
                 <TextBlock Text="Dialog Result"/>

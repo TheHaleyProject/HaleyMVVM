@@ -244,9 +244,21 @@ namespace Haley.Abstractions
             return _kvp.Key;
         }
 
-        public bool ContainsKey(String key)
+        public bool? ContainsKey(object key)
         {
-            return main_mapping.ContainsKey(key);
+            string _key = string.Empty;
+            if (key is Enum @enum)
+            {
+                //It should be Enum or String.
+                _key = @enum.GetKey();
+            }
+            else
+            {
+                if (key.GetType() != typeof(string)) return null;
+                _key = key as string;
+            }
+
+            return main_mapping.ContainsKey(_key);
         }
 
         #endregion

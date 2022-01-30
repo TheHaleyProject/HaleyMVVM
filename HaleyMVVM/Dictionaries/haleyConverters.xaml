@@ -4,7 +4,6 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
     <cnv:BoolToVisibilityConverter x:Key="BooltoVisibiliy"/>
     <cnv:EnumToDescriptionConverter x:Key="EnumtoDescription"/>
-    <cnv:EnumToControlConverter x:Key="EnumToControl"/>
     <cnv:EnumListToDescriptionListConverter x:Key="EnumListtoStringList"/>
     <cnv:EqualityCheckConverter x:Key="EqualityCheck"/>
     <cnv:EqualityCheckToVisibilityConverter x:Key="EqualityToVisibility"/>

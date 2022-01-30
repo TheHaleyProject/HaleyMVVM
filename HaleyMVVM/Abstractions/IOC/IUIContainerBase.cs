@@ -33,7 +33,13 @@ namespace Haley.Abstractions
         (Type viewmodel_type, Type view_type, RegisterMode registered_mode) GetMappingValue(Enum @enum);
         (Type viewmodel_type, Type view_type, RegisterMode registered_mode) GetMappingValue(string key);
         string FindKey(Type target_type);
-        bool ContainsKey(string key);
+
+        /// <summary>
+        /// Check if this key is already registered.
+        /// </summary>
+        /// <param name="key">Should either be string or Enum</param>
+        /// <returns></returns>
+        bool? ContainsKey(object key);
         #endregion
     }
 }
