@@ -17,22 +17,24 @@ namespace Haley.IOC
     {
         public ControlContainer(IServiceProvider _injection_container):base(_injection_container) { }
 
-        public override UserControl GenerateView(string key, object InputViewModel = null, ResolveMode mode = ResolveMode.AsRegistered)
+        public override UserControl GenerateViewFromKey(object key, object InputViewModel = null, ResolveMode mode = ResolveMode.AsRegistered)
         {
             try
             {
+                if (!getKey(key, out var _key)) return null;
+
                 //If input view model is not null, then don't try to generate viewmodel.
                 UserControl _view = null;
                 IHaleyVM _vm = null;
                 if (InputViewModel != null)
                 {
-                    var _mapping_value = GetMappingValue(key);
+                    var _mapping_value = GetMappingValue(_key);
                     _view = _generateView(_mapping_value.view_type,mode);
                     _vm = (IHaleyVM)InputViewModel;
                 }
                 else
                 {
-                    var _kvp = _generateValuePair(key, mode);
+                    var _kvp = _generateValuePair(_key, mode);
                     _view = _kvp.view;
                     _vm = _kvp.view_model;
                 }

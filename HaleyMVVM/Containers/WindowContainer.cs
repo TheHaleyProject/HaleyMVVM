@@ -65,34 +65,35 @@ namespace Haley.IOC
         #endregion
 
         #region Overridden Methods
-        public override Window GenerateView(string key, object InputViewModel = null, ResolveMode mode = ResolveMode.AsRegistered)
+        public override Window GenerateViewFromKey(object key, object InputViewModel = null, ResolveMode mode = ResolveMode.AsRegistered)
         {
             try
             {
+                if (!getKey(key, out var _key)) return null;
                 //If input view model is not null, then don't try to generate viewmodel.
                 Window _view = null;
                 IHaleyVM _vm = null;
                 if (InputViewModel != null)
                 {
-                    var _mapping_value = GetMappingValue(key);
+                    var _mapping_value = GetMappingValue(_key);
                     _view = _generateView(_mapping_value.view_type,mode);
                     _vm =  (IHaleyVM) InputViewModel;
                 }
                 else
                 {
-                    var _kvp = _generateValuePair(key, mode);
+                    var _kvp = _generateValuePair(_key, mode);
                     _view = _kvp.view;
                     _vm = _kvp.view_model;
                 }
+                if (_view == null) return null;
                 _view.DataContext = _vm;
-
                 //Enable Haleyobserver so that when view closes, viewmodel event is triggered.
                 WindowObserver CustomOP = new WindowObserver(_view, _vm);
                 return _view;
             }
             catch (Exception ex)
             {
-                throw ex;
+                return null;
             }
         }
         #endregion
@@ -107,7 +108,7 @@ namespace Haley.IOC
             {
                 Thread new_ui_thread = new Thread(() =>
                 {
-                    Window _hwindow = GenerateView(key, InputViewModel, resolve_mode);
+                    Window _hwindow = GenerateViewFromKey(key, InputViewModel, resolve_mode);
                     _result = _displayWindow(_hwindow, is_modeless);
                 });
                 new_ui_thread.SetApartmentState(ApartmentState.STA);
@@ -116,7 +117,7 @@ namespace Haley.IOC
             }
             else
             {
-                Window _hwindow = GenerateView(key, InputViewModel, resolve_mode);
+                Window _hwindow = GenerateViewFromKey(key, InputViewModel, resolve_mode);
                 _result = _displayWindow(_hwindow, is_modeless);
             }
 

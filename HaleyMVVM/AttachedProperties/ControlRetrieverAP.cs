@@ -148,7 +148,7 @@ namespace Haley.Models
 
                 if (key != null)
                 {
-                    _targetControl = _container.GenerateView(key,datacontext, mode: _resolve_mode);
+                    _targetControl = _container.GenerateViewFromKey(key,datacontext, mode: _resolve_mode);
                 }
 
                 //Sometimes the datacontext can be empty.

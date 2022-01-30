@@ -178,20 +178,14 @@ namespace Haley.Abstractions
         public BaseViewType GenerateView<viewmodelType>(viewmodelType InputViewModel = null, ResolveMode mode = ResolveMode.AsRegistered) where viewmodelType : class, BaseViewModelType
         {
             string _key = typeof(viewmodelType).ToString();
-            return GenerateView(_key, InputViewModel, mode);
+            return GenerateViewFromKey(_key, InputViewModel, mode);
         }
         public BaseViewType GenerateView<viewType>(object InputViewModel = null, ResolveMode mode = ResolveMode.AsRegistered) where viewType : class, BaseViewType
         {
             string _key = typeof(viewType).ToString();
-            return GenerateView(_key, InputViewModel, mode);
+            return GenerateViewFromKey(_key, InputViewModel, mode);
         }
-        public BaseViewType GenerateView(Enum @enum, object InputViewModel = null, ResolveMode mode = ResolveMode.AsRegistered)
-        {
-            //Get the enum value and its type name to prepare a string
-            string _key = @enum.GetKey();
-            return GenerateView(_key, InputViewModel, mode);
-        }
-        public abstract BaseViewType GenerateView(string key, object InputViewModel = null, ResolveMode mode = ResolveMode.AsRegistered);
+        public abstract BaseViewType GenerateViewFromKey(object key, object InputViewModel = null, ResolveMode mode = ResolveMode.AsRegistered);
         
         #endregion
 
@@ -223,16 +217,10 @@ namespace Haley.Abstractions
 
             return _registered_tuple;
         }
-        public BaseViewModelType GenerateViewModel(Enum @enum, ResolveMode mode = ResolveMode.AsRegistered)
+        public BaseViewModelType GenerateViewModelFromKey(object key, ResolveMode mode = ResolveMode.AsRegistered) //If required we can even return the actural viewmodel concrete type as well.
         {
-            //Get the enum value and its type name to prepare a string
-            string _key = @enum.GetKey();
-            BaseViewModelType _result = GenerateViewModel(_key, mode);
-            return _result;
-        }
-        public BaseViewModelType GenerateViewModel(string key, ResolveMode mode = ResolveMode.AsRegistered) //If required we can even return the actural viewmodel concrete type as well.
-        {
-            var _mapping_value = GetMappingValue(key);
+            if (!getKey(key, out var _key)) return default(BaseViewModelType);
+            var _mapping_value = GetMappingValue(_key);
             return _generateViewModel(_mapping_value.viewmodel_type, mode);
         }
 
@@ -246,22 +234,26 @@ namespace Haley.Abstractions
 
         public bool? ContainsKey(object key)
         {
-            string _key = string.Empty;
-            if (key is Enum @enum)
-            {
-                //It should be Enum or String.
-                _key = @enum.GetKey();
-            }
-            else
-            {
-                if (key.GetType() != typeof(string)) return null;
-                _key = key as string;
-            }
-
+            if (!getKey(key, out var _key)) return null;
             return main_mapping.ContainsKey(_key);
         }
 
         #endregion
+
+        protected bool getKey(object key,out string processed_key)
+        {
+            processed_key = string.Empty;
+            if (key is Enum @enum)
+            {
+                processed_key = @enum.GetKey();
+            }
+            else if(key.GetType() == typeof(string))
+            {
+                processed_key = key as string;
+            }
+            if (!string.IsNullOrWhiteSpace(processed_key)) return true;
+            return false;
+        }
     }
 }
 

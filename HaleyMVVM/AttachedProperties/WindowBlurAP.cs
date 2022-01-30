@@ -97,6 +97,7 @@ namespace Haley.Models
             {
                 AccentState = accentState,
                 AccentFlags = AccentFlags.DrawAllBorders,
+                //GradientColor = 
                 
             };
 

@@ -33,17 +33,7 @@ namespace Haley.MVVM.Converters
                         break;
                 }
 
-                if (value is Enum)
-                {
-                    //Generate view using Enum.
-                    return ContainerStore.Singleton.Controls.GenerateView((Enum)value, mode: _resolve_mode);
-                }
-                else
-                {
-                    //Validate if it is string
-                    if (!(value.GetType() == typeof(string))) return null;
-                    return ContainerStore.Singleton.Controls.GenerateView((string)value, mode: _resolve_mode);
-                }
+                return ContainerStore.Singleton.Controls.GenerateViewFromKey(value, mode: _resolve_mode);
             }
             catch (Exception)
             {

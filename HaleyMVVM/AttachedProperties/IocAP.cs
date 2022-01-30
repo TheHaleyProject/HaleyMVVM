@@ -94,7 +94,7 @@ namespace Haley.Models
                     //TODO: ADD IMPLEMENTATIONS TO INCLUDE CUSTOM CONTROLCONTAINER & WINDOW CONTAINER
                     if (d is UserControl)
                     {
-                        var _vm = ContainerStore.Singleton.Controls.GenerateViewModel(_key, GetResolveMode(d));
+                        var _vm = ContainerStore.Singleton.Controls.GenerateViewModelFromKey(_key, GetResolveMode(d));
                         if (_vm != null) //Only if not null, assign it.
                         {
                             ((UserControl)d).DataContext = _vm;
@@ -102,7 +102,7 @@ namespace Haley.Models
                     }
                     else if (d is Window)
                     {
-                        var _vm = ContainerStore.Singleton.Windows.GenerateViewModel(_key, GetResolveMode(d));
+                        var _vm = ContainerStore.Singleton.Windows.GenerateViewModelFromKey(_key, GetResolveMode(d));
                         if (_vm != null) //Only if not null, assign it.
                         {
                             ((Window)d).DataContext = _vm;
