@@ -22,7 +22,7 @@ namespace Haley.Models
         {
             return SetPropInternal(ref _attribute, _value, null, propname, false);
         }
-        protected virtual bool SetProp<T>(ref T _attribute, T _value, bool override_equalitycheck = false, [CallerMemberName] string propname = null)
+        protected virtual bool SetProp<T>(ref T _attribute, T _value, bool override_equalitycheck, [CallerMemberName] string propname = null)
         {
             return SetPropInternal(ref _attribute, _value, null, propname, override_equalitycheck);
         }
@@ -31,7 +31,7 @@ namespace Haley.Models
         {
             return SetPropInternal(ref _attribute, _value, validation_callback, propname,false);
         }
-        protected virtual bool SetProp<T>(ref T _attribute, T _value, Func<T, T, bool> validation_callback,bool override_equalitycheck = false, [CallerMemberName] string propname = null)
+        protected virtual bool SetProp<T>(ref T _attribute, T _value, Func<T, T, bool> validation_callback,bool override_equalitycheck, [CallerMemberName] string propname = null)
         {
             return SetPropInternal(ref _attribute, _value, validation_callback, propname, override_equalitycheck);
         }
