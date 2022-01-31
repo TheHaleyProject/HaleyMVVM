@@ -146,12 +146,12 @@ namespace Haley.Services
                 {
                     //No fall back. If container doesn't have the control with key, DO NOT FALL BACK TO DEFAULT CONTAINER.
                     //Containerstore resolve the controls to get the control
-                    _view = container.GenerateView(key, InputViewModel, mode);
+                    _view = container.GenerateViewFromKey(key, InputViewModel, mode);
                 }
                 else
                 {
                     //Containerstore resolve the controls to get the control
-                    _view = ContainerStore.Singleton.Controls.GenerateView(key, InputViewModel, mode);
+                    _view = ContainerStore.Singleton.Controls.GenerateViewFromKey(key, InputViewModel, mode);
                 }
                
             }
