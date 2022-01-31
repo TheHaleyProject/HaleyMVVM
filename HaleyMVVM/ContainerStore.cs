@@ -26,6 +26,11 @@ namespace Haley.MVVM
         public IControlContainer Controls => _factory.Controls;
         public string Id { get; private set; }
 
+        public IContainerFactory GetFactory()
+        {
+            return _factory;
+        }
+
         private IBaseContainer _getDI()
         {
             if (_factory.Services is IBaseContainer)
