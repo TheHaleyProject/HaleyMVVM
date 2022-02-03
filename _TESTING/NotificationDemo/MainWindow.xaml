@@ -7,7 +7,7 @@
         xmlns:beh="http://schemas.microsoft.com/xaml/behaviors"
         xmlns:local="clr-namespace:NotificationDemo"
         mc:Ignorable="d"
-        Title="MainWindow" Height="590" Width="550">
+        Title="MainWindow" Height="700" Width="550" WindowStartupLocation="CenterScreen" >
 
     <Window.Resources>
         <Style TargetType="{x:Type TextBlock}">
@@ -118,7 +118,10 @@
                     <RadioButton x:Name="rbtnHaleyNotify" Content="Haley" IsChecked="True"/>
                     <RadioButton x:Name="rbtndefaultNotify" Content="Default"/>
                 </StackPanel>
-                <CheckBox VerticalAlignment="Center" Content="Blur" x:Name="cbxBlur" Margin="15"/>
+                <StackPanel Margin="15,0">
+                    <CheckBox Content="Blur Other Windows" x:Name="cbxBlur" Margin="5"/>
+                    <CheckBox Content="Blur Background" x:Name="cbxBlurBackground" Margin="5"/>
+                </StackPanel>
             </StackPanel>
 
             <StackPanel HorizontalAlignment="Right" Orientation="Horizontal">

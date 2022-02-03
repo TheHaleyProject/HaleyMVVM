@@ -41,7 +41,11 @@ namespace NotificationDemo
             //SolidColorBrush _accnnew = (SolidColorBrush)new BrushConverter().ConvertFromString("#FFD7A26C");
             //SolidColorBrush _accnnewFg = (SolidColorBrush)new BrushConverter().ConvertFromString("blue");
             //_ds.ChangeAccentColors(_accnnew, _accnnewFg);
-            _ds.ChangeSettings(true, true, DialogStartupLocation.CenterParent);
+            _ds.StartupLocation = WindowStartupLocation.CenterOwner;
+            _ds.TopMost = true;
+            _ds.ShowInTaskBar = true;
+            //_ds.Background = (SolidColorBrush)new BrushConverter().ConvertFromString("#661C4476");
+            //_ds.Foreground = Brushes.White;
             cbxGlowColor.ItemsSource = ColorUtils.GetSystemColors();
         }
 
@@ -54,6 +58,11 @@ namespace NotificationDemo
                 if (rbtndefaultNotify.IsChecked.HasValue && rbtndefaultNotify.IsChecked.Value)
                 {
                     defaultNotificaton();
+                }
+
+                if (cbxBlurBackground.IsChecked.HasValue)
+                {
+                    _ds.EnableBackgroundBlur = cbxBlurBackground.IsChecked.Value;
                 }
 
                 if (rbtnHaleyNotify.IsChecked.HasValue && rbtnHaleyNotify.IsChecked.Value)
@@ -111,7 +120,8 @@ namespace NotificationDemo
             if (cbxGlowColor.SelectedItem != null && cbxGlowColor.SelectedItem is KeyValuePair<string, Color> kvp)
             {
                 double.TryParse(tbxGlowRadius.Text, out double _gr);
-                _ds.SetGlow(kvp.Value, _gr);
+                _ds.GlowColor = kvp.Value;
+                _ds.GlowRadius = _gr;
             }
 
             if (rbtnModeNotify.IsChecked.Value)

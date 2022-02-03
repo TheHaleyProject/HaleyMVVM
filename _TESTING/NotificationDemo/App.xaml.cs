@@ -75,7 +75,6 @@ namespace NotificationDemo
         private void directDialogServiceTest()
         {
             var _ds = new DialogService();
-            _ds.SetGlow(Colors.White, 3.0);
             _ds.ShowDialog("Confirmation Error", "What are you trying to do bugga?",mode:DialogMode.Confirmation);
         }
     }

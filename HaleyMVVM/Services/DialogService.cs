@@ -18,73 +18,102 @@ namespace Haley.Services
         #region Attributes
         private SolidColorBrush _accentColor;
         private SolidColorBrush _accentForeground;
-
         private Brush _toastBackground;
         private SolidColorBrush _toastForeground;
         private SolidColorBrush _toastBorder = new SolidColorBrush(Colors.White);
-
-        private Color _glowColor = Colors.Gray;
+        private Brush _background;
+        private Color? _glowColor = null;
         private double _glowRadius = 3.0;
-
         private bool _topMost = true;
         private bool _showInTaskBar = false;
         private bool _windowBackgroundBlur = false;
+        private Brush _foreground;
+        private Brush _contentBackground;
         private WindowStartupLocation _startupLocation = WindowStartupLocation.CenterOwner;
         #endregion
 
+        #region Properties
+        public SolidColorBrush AccentColor
+        {
+            get { return _accentColor; }
+            set { _accentColor = value; }
+        }
+        public SolidColorBrush AccentForeground
+        {
+            get { return _accentForeground; }
+            set { _accentForeground = value; }
+        }
+        public Brush ToastBackground
+        {
+            get { return _toastBackground; }
+            set { _toastBackground = value; }
+        }
+        public Brush Foreground
+        {
+            get { return _foreground; }
+            set { _foreground = value; }
+        }
+        public Brush Background
+        {
+            get { return _background; }
+            set { _background = value; }
+        }
+        public bool EnableBackgroundBlur
+        {
+            get { return _windowBackgroundBlur; }
+            set { _windowBackgroundBlur = value; }
+        }
+        public SolidColorBrush ToastForeground
+        {
+            get { return _toastForeground; }
+            set { _toastForeground = value; }
+        }
+        public Color? GlowColor
+        {
+            get { return _glowColor; }
+            set { _glowColor = value; }
+        }
+        public double GlowRadius
+        {
+            get { return _glowRadius; }
+            set { _glowRadius = value; }
+        }
+        public Brush ContentBackground
+        {
+            get { return _contentBackground; }
+            set { _contentBackground = value; }
+        }
+        public bool TopMost
+        {
+            get { return _topMost; }
+            set { _topMost = value; }
+        }
+
+        public bool ShowInTaskBar
+        {
+            get { return _showInTaskBar; }
+            set { _showInTaskBar = value; }
+        }
+
+        public WindowStartupLocation StartupLocation
+        {
+            get { return _startupLocation; }
+            set { _startupLocation = value; }
+        }
+
+        #endregion
+
         #region Public Methods
-
-        /// <summary>
-        /// Set glow and its radius.
-        /// </summary>
-        /// <param name="glowColor">null, if no change is required.</param>
-        /// <param name="glowRadius"></param>
-        public void SetGlow(Color? glowColor, double glowRadius = 3.0)
-        {
-            if (glowColor.HasValue)
-            {
-                _glowColor = glowColor.Value;
-            }
-            _glowRadius = glowRadius;
-
-        }
-        public void ChangeAccentColors(SolidColorBrush AccentColor = null, SolidColorBrush AccentForeground = null)
-        {
-            _accentColor = AccentColor;
-            _accentForeground = AccentForeground;
-        }
-
-        public void ChangeToastColors(Brush ToastBackground = null, SolidColorBrush ToastForeground = null)
-        {
-            _toastForeground = ToastForeground;
-            _toastBackground = ToastBackground;
-        }
-
-        private void EnableBackgroundBlur(bool setblur = false)
-        {
-            _windowBackgroundBlur = setblur;
-        }
-        public void ChangeSettings(bool? topMost = null, bool? showInTaskBar = null, DialogStartupLocation startupLocation = DialogStartupLocation.CenterParent)
-        {
-            if (topMost != null) _topMost = topMost.Value;
-            if (showInTaskBar != null) _showInTaskBar = showInTaskBar.Value;
-
-            switch (startupLocation)
-            {
-                case DialogStartupLocation.CenterParent:
-                    _startupLocation = WindowStartupLocation.CenterOwner;
-                    break;
-                case DialogStartupLocation.CenterScreen:
-                    _startupLocation = WindowStartupLocation.CenterScreen;
-                    break;
-            }
-        }
         public bool SendToast(string title, string message, NotificationIcon icon = NotificationIcon.Info, bool hideIcon = false, bool autoClose = true, int display_seconds = 7)
         {
             DisplayType _type = DisplayType.ToastInfo;
             var _wndw = _getNotificationWindow(title, message, icon, _type, hideIcon,false,true);
 
-            _wndw.SetCurrentValue(WindowBlurAP.IsEnabledProperty, true); //For toast we use blur.
+            if (!_windowBackgroundBlur)
+            {
+                //If windowbackgroundblur is true, then it would already been set in getnotificationwindow method.
+                _wndw.SetCurrentValue(WindowBlurAP.IsEnabledProperty, true); //For toast we use blur.
+            }
             _wndw.AutoClose = autoClose;
             _wndw.BorderBrush = _toastBorder;
             _wndw.BorderThickness = new Thickness(0.4);
@@ -216,21 +245,49 @@ namespace Haley.Services
                 _newWindow.ToastForeground = _toastForeground;
             }
 
-            _newWindow.GlowColor = _glowColor;
+            if (_background != null)
+            {
+                _newWindow.Background = _background; //Else it would be default white.
+            }
+
+            if (_foreground != null)
+            {
+                _newWindow.Foreground = _foreground;
+            }
+
+            if (_contentBackground != null)
+            {
+                _newWindow.ContentBackground = _contentBackground;
+            }
+
+            //If we try to set the background blur as dependency property, then even for disabled status, the window background blur will be set. So only call when necessary.
+            if (_windowBackgroundBlur)
+            {
+                //Set attached property.
+                _newWindow.SetCurrentValue(WindowBlurAP.IsEnabledProperty, true);//We will not use the same window (as it will get disposed). Also, we will not change during run time.
+            }
+            else
+            {
+                if (type != DisplayType.ToastInfo)
+                {
+                    _newWindow.Margin = new Thickness(20.0);
+                    _newWindow.BorderThickness = new Thickness(0.5);
+                    _newWindow.BorderBrush = Brushes.Gray;
+                    if (_glowColor.HasValue)
+                    {
+                        _newWindow.BorderBrush = new SolidColorBrush(_glowColor.Value);
+                    }
+                }
+            }
+
+            _newWindow.GlowColor = _glowColor ?? Colors.Gray;
             _newWindow.GlowRadius = _glowRadius;
 
             _newWindow.Title = title;
             _newWindow.Type = type;
             _newWindow.ShowInTaskbar = showInTaskBar == null ? _showInTaskBar : showInTaskBar.Value;
-            _newWindow.Topmost = topMost == null? _topMost : topMost.Value;
+            _newWindow.Topmost = topMost == null ? _topMost : topMost.Value;
             _newWindow.WindowStartupLocation = _startupLocation;
-
-            ////If we try to set the background blur as dependency property, then even for disabled status, the window background blur will be set. So only call when necessary.
-            //if (_windowBackgroundBlur)
-            //{
-            //    //Set attached property.
-            //    _newWindow.SetCurrentValue(WindowBlurAP.IsEnabledProperty, true);//We will not use the same window (as it will get disposed). Also, we will not change during run time.
-            //}
             return _newWindow;
         }
         private Notification _getNotificationWindow(string title, UserControl container_view, bool? showInTaskBar = null, bool? topMost = null)

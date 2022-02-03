@@ -13,20 +13,21 @@ namespace Haley.Abstractions
 {
     public interface IDialogService
     {
-       /// <summary>
-       /// To Enable user to change color as and when required.
-       /// </summary>
-       /// <param name="AccentColor"></param>
-       /// <param name="AccentForeground"></param>
-       /// <param name="ToastBackground"></param>
-       /// <param name="ToastForeground"></param>
-        void ChangeAccentColors(SolidColorBrush AccentColor = null, SolidColorBrush AccentForeground = null);
-        void ChangeToastColors(Brush ToastBackground = null, SolidColorBrush ToastForeground = null);
-        void SetGlow(Color? glowColor, double glowRadius = 3);
-        //void EnableBackgroundBlur(bool setblur = false);
-        void ChangeSettings(bool? topMost = null, bool? showInTaskBar = null, DialogStartupLocation startupLocation = DialogStartupLocation.CenterParent);
-        INotification ShowDialog(string title, string message, NotificationIcon icon = NotificationIcon.Info, DialogMode mode = DialogMode.Notification, bool hideIcon = false,bool blurOtherWindows = false);
+        SolidColorBrush AccentColor { get; set; }
+        SolidColorBrush AccentForeground { get; set; }
+        Brush ToastBackground { get; set; }
+        Brush Foreground { get; set; }
+        SolidColorBrush ToastForeground { get; set; }
+        bool EnableBackgroundBlur { get; set; }
+        Brush Background { get; set; }
+        Brush ContentBackground { get; set; }
+        Color? GlowColor { get; set; }
+        double GlowRadius { get; set; }
+        bool TopMost { get; set; }
+        bool ShowInTaskBar { get; set; }
+        WindowStartupLocation StartupLocation { get; set; }
 
+        INotification ShowDialog(string title, string message, NotificationIcon icon = NotificationIcon.Info, DialogMode mode = DialogMode.Notification, bool hideIcon = false,bool blurOtherWindows = false);
         INotification Info(string title, string message, DialogMode mode = DialogMode.Notification, bool blurOtherWindows = false);
         INotification Warning(string title, string message, DialogMode mode = DialogMode.Notification, bool blurOtherWindows = false);
         INotification Error(string title, string message, DialogMode mode = DialogMode.Notification, bool blurOtherWindows = false);

@@ -21,10 +21,11 @@
         <Setter Property="BorderBrush" Value="Transparent"/>
         <Setter Property="BorderThickness" Value="0"/>
         <Setter Property="Background" Value="Transparent"/>
+        <Setter Property="SnapsToDevicePixels" Value="True"/>
         <Setter Property="Template">
             <Setter.Value>
                     <ControlTemplate TargetType="{x:Type Button}">
-                    <Border Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}">
+                    <Border Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" SnapsToDevicePixels="True">
                         <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
                     </Border>
                     </ControlTemplate>
@@ -34,6 +35,7 @@
 
     <Style x:Key="internal_notify_flexi_button" TargetType="{x:Type Button}" BasedOn="{StaticResource internal_notify_flexi_button_base}">
         <Setter Property="Background" Value="#FFF1F1F1"/>
+        <Setter Property="Foreground" Value="Black"/>
         <Setter Property="Width" Value="90"/>
         <Setter Property="Template">
             <Setter.Value>
@@ -50,7 +52,7 @@
                         <Trigger Property="IsMouseOver" Value="True">
                             <Setter Property="Effect" TargetName="brderButton">
                                 <Setter.Value>
-                                    <DropShadowEffect Color="#FF22C3D3" ShadowDepth="0" BlurRadius="4" />
+                                    <DropShadowEffect Color="#FFAE3B3B" ShadowDepth="0" BlurRadius="4" />
                                 </Setter.Value>
                             </Setter>
                         </Trigger>
@@ -67,15 +69,14 @@
                     <ColumnDefinition Width="*"/>
                     <ColumnDefinition Width="35"/>
                 </Grid.ColumnDefinitions>
-                <Grid Grid.Column="0" x:Name="PART_header" Background="Transparent" IsHitTestVisible="True">
+                <Grid Grid.Column="0" x:Name="PART_header" Background="#02FFFFFF" IsHitTestVisible="True">
                     <beh:Interaction.Triggers>
                         <beh:EventTrigger EventName="MouseLeftButtonDown" >
                             <beh:InvokeCommandAction Command="{x:Static ComponentCommands.MoveDown}"/>
                         </beh:EventTrigger>
                     </beh:Interaction.Triggers>
-                    <TextBlock  Text="{Binding Title,RelativeSource={RelativeSource AncestorType={x:Type bc:Notification}}}" Foreground="{Binding AccentForeground,RelativeSource={RelativeSource AncestorType={x:Type bc:Notification}}}" HorizontalAlignment="Left" VerticalAlignment="Center"  FontSize="12" FontFamily="Century Gothic" Margin="10,0"/>
+                    <TextBlock Text="{Binding Title,RelativeSource={RelativeSource AncestorType={x:Type bc:Notification}}}" Foreground="{Binding Foreground,RelativeSource={RelativeSource AncestorType={x:Type bc:Notification}}}" HorizontalAlignment="Left" VerticalAlignment="Center"  FontSize="12" FontFamily="Century Gothic" Margin="10,0"/>
                 </Grid>
-                <!--<Button Grid.Column="1" Style="{StaticResource internal_notify_flexi_button_base}" Content="X" FontSize="15" FontStretch="ExtraExpanded" FontWeight="Bold" Foreground="{Binding AccentForeground,RelativeSource={RelativeSource AncestorType={x:Type bc:Notification}}}" Width="{Binding ElementName=grdHeader, Path=ActualHeight}" CommandParameter="{StaticResource False}" Command="{x:Static ApplicationCommands.Close}" />-->
                 <Button Grid.Column="1" Style="{StaticResource internal_notify_flexi_button_base}"  Width="{Binding ElementName=grdHeader, Path=ActualHeight}" CommandParameter="{StaticResource False}" Command="{x:Static ApplicationCommands.Close}" IsHitTestVisible="True">
                     <Viewbox Margin="4" IsHitTestVisible="False">
                         <Ellipse Height="10" Width="10" Fill="#FFAE3636" Stroke="White" StrokeThickness="0.5"/>
@@ -129,8 +130,8 @@
 
     <DataTemplate x:Key="internal_notification_controlbox">
         <StackPanel Orientation="Horizontal" Grid.Row="1" HorizontalAlignment="Right" Margin="0,2">
-            <Button Style="{StaticResource internal_notify_flexi_button}"  Margin="4,1" Content="Cancel" CommandParameter="{StaticResource False}" Command="{x:Static ApplicationCommands.Close}"/>
-            <Button Style="{StaticResource internal_notify_flexi_button}"  Margin="4,1" Background="{Binding ButtonBackground,RelativeSource={RelativeSource AncestorType={x:Type bc:Notification}}}" Foreground="{Binding AccentForeground,RelativeSource={RelativeSource AncestorType={x:Type bc:Notification}}}" Content="ACCEPT" CommandParameter="{StaticResource True}" Command="{x:Static ApplicationCommands.Close}" />
+            <Button Style="{StaticResource internal_notify_flexi_button}"  Margin="4,1" Content="Cancel" CommandParameter="{StaticResource False}" Command="{x:Static ApplicationCommands.Close}" SnapsToDevicePixels="True"/>
+            <Button Style="{StaticResource internal_notify_flexi_button}"  Margin="4,1" Background="{Binding AccentColor,RelativeSource={RelativeSource AncestorType={x:Type bc:Notification}}}" Foreground="{Binding AccentForeground,RelativeSource={RelativeSource AncestorType={x:Type bc:Notification}}}" Content="ACCEPT" CommandParameter="{StaticResource True}" Command="{x:Static ApplicationCommands.Close}" SnapsToDevicePixels="True"/>
         </StackPanel>
     </DataTemplate>
 
@@ -176,52 +177,50 @@
     </DataTemplate>
 
     <ControlTemplate x:Key="internal_notification_dialog" TargetType="{x:Type bc:Notification}">
-        <Grid Background="{x:Null}" Margin="10">
-            <Grid.RowDefinitions>
-                <RowDefinition Height="27"/>
-                <RowDefinition Height="Auto"/>
-            </Grid.RowDefinitions>
-            <!--HEADER-->
-            <Border x:Name="brdrHeader" Grid.Row="0" CornerRadius="10,10,0,0"  Height="Auto"  Background="{TemplateBinding AccentColor}" BorderThickness="0" Panel.ZIndex="99" Margin="-1">
-                <ContentControl ContentTemplate="{StaticResource internal_notify_header_template}" />
-            </Border>
-            <Border x:Name="brdrMain" Grid.Row="1" CornerRadius="0,0,10,10"  Height="Auto" BorderBrush="{TemplateBinding BorderBrush}" Background="{TemplateBinding Background}" BorderThickness="{TemplateBinding BorderThickness}" MinHeight="100" Panel.ZIndex="0" >
+        <Grid Background="{x:Null}" Margin="{TemplateBinding Margin}">
+            <Border MinHeight="100" CornerRadius="0" Background="#02FFFFFF" BorderThickness="{TemplateBinding BorderThickness}" BorderBrush="{TemplateBinding BorderBrush}">
                 <Border.Effect>
                     <DropShadowEffect ShadowDepth="0" BlurRadius="{Binding GlowRadius,RelativeSource={RelativeSource AncestorType={x:Type bc:Notification}}}" Color="{Binding GlowColor,RelativeSource={RelativeSource AncestorType={x:Type bc:Notification}}}"/>
                 </Border.Effect>
-                    <!--ACTUAL CONTENT-->
-                      <Grid>
-                            <Grid.RowDefinitions>
-                                <RowDefinition Height="Auto" MinHeight="100"/>
-                                <RowDefinition Height="8"/>
-                            </Grid.RowDefinitions>
-                            <ContentControl Margin="5">
-                                <ContentControl.Style>
-                                    <Style TargetType="ContentControl">
-                                        <Style.Triggers>
-                                            <DataTrigger Binding="{Binding Type,RelativeSource={RelativeSource AncestorType={x:Type bc:Notification}}}" Value="{x:Static enums:DisplayType.ContainerView}">
-                                                <Setter Property="ContentTemplate" Value="{StaticResource internal_notification_containerView}"/>
-                                            </DataTrigger>
-                                            <DataTrigger Binding="{Binding Type,RelativeSource={RelativeSource AncestorType={x:Type bc:Notification}}}" Value="{x:Static enums:DisplayType.ShowInfo}">
-                                                <Setter Property="ContentTemplate" Value="{StaticResource internal_notification_showInfo}"/>
-                                            </DataTrigger>
+            </Border>
+            <Border x:Name="brdrMain" CornerRadius="0" Height="Auto" BorderThickness="{TemplateBinding BorderThickness}" BorderBrush="{TemplateBinding BorderBrush}"  Background="{TemplateBinding Background}"  MinHeight="100" >
+                <!--ACTUAL CONTENT-->
+                <Grid >
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="27"/>
+                        <RowDefinition Height="Auto" MinHeight="100"/>
+                        <RowDefinition Height="8"/>
+                    </Grid.RowDefinitions>
+                    <ContentControl ContentTemplate="{StaticResource internal_notify_header_template}" />
+                    <Grid Grid.Row="1" Background="{TemplateBinding ContentBackground}">
+                        <ContentControl  Margin="5">
+                            <ContentControl.Style>
+                                <Style TargetType="ContentControl">
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding Type,RelativeSource={RelativeSource AncestorType={x:Type bc:Notification}}}" Value="{x:Static enums:DisplayType.ContainerView}">
+                                            <Setter Property="ContentTemplate" Value="{StaticResource internal_notification_containerView}"/>
+                                        </DataTrigger>
+                                        <DataTrigger Binding="{Binding Type,RelativeSource={RelativeSource AncestorType={x:Type bc:Notification}}}" Value="{x:Static enums:DisplayType.ShowInfo}">
+                                            <Setter Property="ContentTemplate" Value="{StaticResource internal_notification_showInfo}"/>
+                                        </DataTrigger>
 
-                                            <DataTrigger Binding="{Binding Type,RelativeSource={RelativeSource AncestorType={x:Type bc:Notification}}}" Value="{x:Static enums:DisplayType.GetConfirmation}">
-                                                <Setter Property="ContentTemplate" Value="{StaticResource internal_notification_confirm}"/>
-                                            </DataTrigger>
+                                        <DataTrigger Binding="{Binding Type,RelativeSource={RelativeSource AncestorType={x:Type bc:Notification}}}" Value="{x:Static enums:DisplayType.GetConfirmation}">
+                                            <Setter Property="ContentTemplate" Value="{StaticResource internal_notification_confirm}"/>
+                                        </DataTrigger>
 
-                                            <DataTrigger Binding="{Binding Type,RelativeSource={RelativeSource AncestorType={x:Type bc:Notification}}}" Value="{x:Static enums:DisplayType.GetInput}">
-                                                <Setter Property="ContentTemplate" Value="{StaticResource internal_notification_getInfo}"/>
-                                            </DataTrigger>
+                                        <DataTrigger Binding="{Binding Type,RelativeSource={RelativeSource AncestorType={x:Type bc:Notification}}}" Value="{x:Static enums:DisplayType.GetInput}">
+                                            <Setter Property="ContentTemplate" Value="{StaticResource internal_notification_getInfo}"/>
+                                        </DataTrigger>
 
-                                    <DataTrigger Binding="{Binding Type,RelativeSource={RelativeSource AncestorType={x:Type bc:Notification}}}" Value="{x:Static enums:DisplayType.CustomView}">
-                                        <Setter Property="ContentTemplate" Value="{Binding CustomViewTemplate,RelativeSource={RelativeSource AncestorType={x:Type bc:Notification}}}"/>
-                                    </DataTrigger>
-                                </Style.Triggers>
-                                    </Style>
-                                </ContentControl.Style>
-                            </ContentControl>
-                        </Grid>
+                                        <DataTrigger Binding="{Binding Type,RelativeSource={RelativeSource AncestorType={x:Type bc:Notification}}}" Value="{x:Static enums:DisplayType.CustomView}">
+                                            <Setter Property="ContentTemplate" Value="{Binding CustomViewTemplate,RelativeSource={RelativeSource AncestorType={x:Type bc:Notification}}}"/>
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </ContentControl.Style>
+                        </ContentControl>
+                    </Grid>
+                </Grid>
             </Border>
         </Grid>
             
@@ -230,67 +229,57 @@
     </ControlTemplate>
 
     <ControlTemplate x:Key="internal_notification_toast" TargetType="{x:Type bc:Notification}">
-        <Border MaxWidth="420" MaxHeight="370">
-            <Grid>
+        <Border MaxWidth="450" MaxHeight="400" Background="{TemplateBinding ToastBackground}" SnapsToDevicePixels="True">
+            <Grid Margin="4,0" TextElement.Foreground="{TemplateBinding ToastForeground}">
                 <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
                     <RowDefinition Height="Auto"/>
                     <RowDefinition />
                 </Grid.RowDefinitions>
                 <!--HEADER-->
-                <Grid Background="{TemplateBinding AccentColor}">
+                <Grid Margin="4">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*"/>
                         <ColumnDefinition Width="25"/>
                     </Grid.ColumnDefinitions>
                     <!--Application Name-->
                     <Grid>
-                        <TextBlock Text="{TemplateBinding AppName}" Foreground="{TemplateBinding AccentForeground}" HorizontalAlignment="Left" VerticalAlignment="Center" FontSize="13" FontFamily="Century Gothic" Margin="15,0"/>
+                        <TextBlock Text="{TemplateBinding AppName}" HorizontalAlignment="Left" VerticalAlignment="Center" FontSize="13" FontFamily="Century Gothic" Margin="5,0"/>
                     </Grid>
                     <!--CLOSE BUTTON-->
-                    <Button Grid.Column="1" Style="{StaticResource internal_notify_flexi_button_base}"  Width="25" Height="25" CommandParameter="{StaticResource False}" Command="{x:Static ApplicationCommands.Close}" IsHitTestVisible="True">
-                        <Viewbox Margin="4" IsHitTestVisible="False">
+                    <Button Grid.Column="1" Style="{StaticResource internal_notify_flexi_button_base}"  Width="22" Height="22" CommandParameter="{StaticResource False}" Command="{x:Static ApplicationCommands.Close}" IsHitTestVisible="True" SnapsToDevicePixels="True">
+                        <Viewbox Margin="3" IsHitTestVisible="False">
                             <Ellipse Height="10" Width="10" Fill="#FFAE3636" Stroke="White" StrokeThickness="0.5"/>
                         </Viewbox>
                     </Button>
                 </Grid>
-                <!--Toast Background-->
-                <Border x:Name="brdrMain" Grid.Row="1" Background="{TemplateBinding ToastBackground}" BorderBrush="Transparent" BorderThickness="0">
-                    <Grid>
-                        <Grid.RowDefinitions>
-                            <RowDefinition Height="Auto" />
-                            <RowDefinition Height="Auto" MinHeight="100"/>
-                            <RowDefinition Height="25"/>
-                        </Grid.RowDefinitions>
 
-                        <!--Message Title-->
-                        <TextBlock Text="{TemplateBinding Title}" Foreground="{TemplateBinding ToastForeground}" HorizontalAlignment="Left" VerticalAlignment="Center"  FontSize="12" FontFamily="Century Gothic" Margin="5"/>
+                <StackPanel Grid.Row="1" Height="0.75" Margin="4,8">
+                    <Separator Style="{StaticResource {x:Static ToolBar.SeparatorStyleKey}}" Background="{Binding Path=ToastForeground, RelativeSource={RelativeSource TemplatedParent}}" Margin="0"/>
+                </StackPanel>
+                <!--Toast-->
+                <Grid Grid.Row="2" Margin="0,10,0,0">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" MinHeight="100"/>
+                        <RowDefinition Height="25"/>
+                    </Grid.RowDefinitions>
 
-                        <!--ACTUAL CONTENT-->
-                        <ContentControl Margin="5" Grid.Row="1" VerticalAlignment="Top" ContentTemplate="{StaticResource internal_notification_showInfo}"/>
+                    <!--Message Title-->
+                    <TextBlock Text="{TemplateBinding Title}" HorizontalAlignment="Left" VerticalAlignment="Center"  FontSize="12" FontFamily="Century Gothic" Margin="5"/>
 
+                    <!--ACTUAL CONTENT-->
+                    <ContentControl Margin="5" Grid.Row="1" VerticalAlignment="Top" ContentTemplate="{StaticResource internal_notification_showInfo}"/>
+                   
+                    <TextBlock Text="{Binding Path=CountDown, RelativeSource={RelativeSource TemplatedParent},NotifyOnSourceUpdated=True,UpdateSourceTrigger=PropertyChanged}" FontWeight="Bold" Grid.Row="2" VerticalAlignment="Bottom" HorizontalAlignment="Left" Margin="3" Visibility="{TemplateBinding AutoClose,Converter={StaticResource BooltoVisibiliy}}" FontSize="10" />
 
-                        <!--AutoClose-->
-                        <!--<WrapPanel Grid.Row="3" VerticalAlignment="Bottom" HorizontalAlignment="Left" Margin="3" Visibility="{TemplateBinding AutoClose,Converter={StaticResource BooltoVisibiliy}}">
-                    <WrapPanel.Resources>
-                        <Style TargetType="{x:Type TextBlock}">
-                            <Setter  Property="FontSize" Value="10"/>
-                            <Setter Property="Foreground" Value="{Binding Path=ToastForeground, RelativeSource={RelativeSource TemplatedParent}}"/>
-                        </Style>
-                    </WrapPanel.Resources>
-                    <TextBlock Text="Auto close in "/>
-                    <TextBlock Text="{Binding Path=CountDown, RelativeSource={RelativeSource TemplatedParent},NotifyOnSourceUpdated=True,UpdateSourceTrigger=PropertyChanged}" FontWeight="Bold" />
-                    <TextBlock Text=" sec."/>
-                </WrapPanel>-->
-                        <TextBlock Text="{Binding Path=CountDown, RelativeSource={RelativeSource TemplatedParent},NotifyOnSourceUpdated=True,UpdateSourceTrigger=PropertyChanged}" FontWeight="Bold" Grid.Row="2" VerticalAlignment="Bottom" HorizontalAlignment="Left" Margin="3" Visibility="{TemplateBinding AutoClose,Converter={StaticResource BooltoVisibiliy}}" FontSize="10" Foreground="{Binding Path=ToastForeground, RelativeSource={RelativeSource TemplatedParent}}"/>
-
-                        <!--Close All toasts-->
-                        <TextBlock Grid.Row="2" VerticalAlignment="Bottom" HorizontalAlignment="Right" Margin="3">           
-                    <Hyperlink CommandParameter="{StaticResource False}" Command="{x:Static SystemCommands.CloseWindowCommand}" Foreground="{TemplateBinding ToastForeground}" TextDecorations="Underline" FontSize="9">
+                    <!--Close All toasts-->
+                    <TextBlock Grid.Row="2" VerticalAlignment="Bottom" HorizontalAlignment="Right" Margin="3">           
+                    <Hyperlink CommandParameter="{StaticResource False}" Command="{x:Static SystemCommands.CloseWindowCommand}" TextDecorations="Underline" FontSize="9" Foreground="{TemplateBinding ToastForeground}">
                         Close All
                     </Hyperlink>
-                        </TextBlock>
-                    </Grid>
-                </Border>
+                    </TextBlock>
+                </Grid>
             </Grid>
         </Border>
              
@@ -300,7 +289,6 @@
         <Setter Property="SizeToContent" Value="WidthAndHeight"/>
         <Setter Property="ResizeMode" Value="NoResize"/>
         <Setter Property="Background" Value="#FFEEEEEE"/>
-        <Setter Property="BorderBrush" Value="#FF7E7777"/>
         <Setter Property="ShowActivated" Value="False"/>
         <Setter Property="ShowInTaskbar" Value="False"/>
         <Setter Property="Topmost" Value="True"/>

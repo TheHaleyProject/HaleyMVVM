@@ -12,7 +12,7 @@
             <Setter Property="Margin" Value="5"/>
         </Style>
     </UserControl.Resources>
-    <StackPanel Margin="2" >
+    <StackPanel Margin="2" Background="#7F1B477F" >
         <CheckBox Content="Supervisor" IsChecked="{Binding IsEmployee,NotifyOnSourceUpdated=True}"/>
         <CheckBox Content="Manager" IsChecked="{Binding IsManager,NotifyOnSourceUpdated=True}"/>
         <CheckBox Content="President" IsChecked="{Binding IsPresident,NotifyOnSourceUpdated=True}"/>
