@@ -76,15 +76,20 @@ namespace Haley.Abstractions
                 main_mapping.TryAdd(key, _tuple);
 
                 //If service provider is of type base provider then we can register it aswell (as it will have an implementation)
-                if (service_provider is IBaseContainer)
+                if (service_provider is IBaseContainer baseContainer)
                 {
-                    //Register this in the DI only if it is singleton
+                    //Register this in the DI only if it is singleton. For transient, we can always resolve new.
                     if (mode == RegisterMode.Singleton)
                     {
-                        var _status = ((IBaseContainer) service_provider).CheckIfRegistered(typeof(viewmodelType), null);
-                        if (!_status.status)
+                        var vm_status = baseContainer.CheckIfRegistered(typeof(viewmodelType), null);
+                        if (!vm_status.status)
                         {
-                            ((IBaseContainer)service_provider).Register<viewmodelType>(InputViewModel);
+                            baseContainer.Register<viewmodelType>(InputViewModel);
+                        }
+                        var view_status = baseContainer.CheckIfRegistered(typeof(viewType), null);
+                        if (!view_status.status)
+                        {
+                            baseContainer.Register<viewType>();
                         }
                     }
                 }
@@ -113,31 +118,38 @@ namespace Haley.Abstractions
 
         protected object _generateView(Type viewType, ResolveMode mode = ResolveMode.AsRegistered)
         {
-            //Even view should be resolved by _di instance. because sometimes, views can direclty expect some 
-            if (viewType == null) return null;
-            object resultcontrol;
-            object _baseView = null;
+            try
+            {
+                //Even view should be resolved by _di instance. because sometimes, views can direclty expect some 
+                if (viewType == null) return null;
+                object resultcontrol;
+                object _baseView = null;
 
-            if (service_provider is IBaseContainer)
-            {
-                _baseView = ((IBaseContainer)service_provider).Resolve(viewType, mode);
-            }
-            else
-            {
-                _baseView = service_provider.GetService(viewType);
-            }
+                if (service_provider is IBaseContainer baseContainer)
+                {
+                    _baseView = baseContainer.Resolve(viewType, mode);
+                }
+                else
+                {
+                    _baseView = service_provider.GetService(viewType);
+                }
 
-            if (_baseView != null)
-            {
-                resultcontrol = _baseView;
-            }
-            else
-            {
-                //Just to ensure that it is not null.
-                resultcontrol = Activator.CreateInstance(viewType);
-            }
+                if (_baseView != null)
+                {
+                    resultcontrol = _baseView;
+                }
+                else
+                {
+                    //Just to ensure that it is not null.
+                    resultcontrol = Activator.CreateInstance(viewType);
+                }
 
-            return resultcontrol;
+                return resultcontrol;
+            }
+            catch (Exception ex)
+            {
+                throw ex;
+            }
         }
 
         protected BaseViewModelType _generateViewModel(Type viewModelType, ResolveMode mode = ResolveMode.AsRegistered) //If required we can even return the actural viewmodel concrete type as well.

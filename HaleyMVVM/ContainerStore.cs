@@ -33,14 +33,7 @@ namespace Haley.MVVM
 
         private IBaseContainer _getDI()
         {
-            if (_factory.Services is IBaseContainer)
-            {
-                return (IBaseContainer)_factory.Services;
-            }
-            else
-            {
-                return null;
-            }
+            return _factory.GetDI();
         }
 
         private static ContainerStore getSingleton()
@@ -87,7 +80,7 @@ namespace Haley.MVVM
 
         private void _registerSelf()
         {
-            _factory.RegisterSelf();
+            _factory.Initiate();
         }
 
         private void _registerServices()

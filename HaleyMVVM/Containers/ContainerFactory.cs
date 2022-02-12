@@ -10,11 +10,11 @@ namespace Haley.IOC
 {
     public class ContainerFactory : IContainerFactory
     {
+        bool _initialized = false;
         public string Id { get; }
         public virtual IServiceProvider Services { get; }
         public IControlContainer Controls { get; }
         public IWindowContainer Windows { get; }
-
         public IBaseContainer GetDI()
         {
             if (Services is IBaseContainer)
@@ -24,11 +24,17 @@ namespace Haley.IOC
             return null;
         }
 
+        public bool Initiate()
+        {
+            if (!_initialized) return RegisterSelf();
+            return false;
+        }
+
         /// <summary>
         /// Will register only if the serviceprovider is of type BaseContainer.
         /// </summary>
         /// <returns></returns>
-        public virtual bool RegisterSelf()
+        bool RegisterSelf()
         {
             if (Services is IBaseContainer)
             {
@@ -39,6 +45,7 @@ namespace Haley.IOC
                 DI.Register<IWindowContainer, WindowContainer>((WindowContainer)Windows, true);
                 DI.Register<IContainerFactory, ContainerFactory>((ContainerFactory)this, true);
                 DI.Register<IServiceProvider, DIContainer>((DIContainer)Services, true);
+                DI.Register<IBaseContainer, DIContainer>((DIContainer)Services, true);
                 return true;
             }
 
