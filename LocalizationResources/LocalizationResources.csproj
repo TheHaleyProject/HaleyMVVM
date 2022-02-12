@@ -38,6 +38,9 @@
     <StartupObject />
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="Haley.Abstractions, Version=1.0.0.0, Culture=neutral, PublicKeyToken=9b5f4902d3fea17a, processorArchitecture=MSIL">
+      <HintPath>..\packages\Haley.Abstractions.1.0.0\lib\netstandard2.0\Haley.Abstractions.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Data" />
     <Reference Include="System.Xml" />
@@ -84,6 +87,7 @@
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Resources.de.Designer.cs</LastGenOutput>
     </EmbeddedResource>
+    <None Include="packages.config" />
     <None Include="Properties\Settings.settings">
       <Generator>SettingsSingleFileGenerator</Generator>
       <LastGenOutput>Settings.Designer.cs</LastGenOutput>
@@ -96,20 +100,20 @@
     </Page>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
-	<Import Project="$(SolutionDir)ProjectReferences_$(SolutionName).txt" Condition="Exists('$(SolutionDir)ProjectReferences_$(SolutionName).txt')" />
-	<Choose>
-		<When Condition="Exists($(HaleyMVVM))">
-			<ItemGroup>
-				<ProjectReference Include="$(HaleyMVVM)\HaleyMVVM.csproj">
-					<Name>HaleyMVVM</Name>
-					<Project>{ca5cc295-589d-463d-8667-166f43c794af}</Project>
-				</ProjectReference>
-			</ItemGroup>
-		</When>
-		<Otherwise>
-			<ItemGroup>
-				<PackageReference Include="Haley.MVVM" Version="6.0.8-development-1" />
-			</ItemGroup>
-		</Otherwise>
-	</Choose>
+  <Import Project="$(SolutionDir)ProjectReferences_$(SolutionName).txt" Condition="Exists('$(SolutionDir)ProjectReferences_$(SolutionName).txt')" />
+  <Choose>
+    <When Condition="Exists($(HaleyMVVM))">
+      <ItemGroup>
+        <ProjectReference Include="$(HaleyMVVM)\HaleyMVVM.csproj">
+          <Name>HaleyMVVM</Name>
+          <Project>{ca5cc295-589d-463d-8667-166f43c794af}</Project>
+        </ProjectReference>
+      </ItemGroup>
+    </When>
+    <Otherwise>
+      <ItemGroup>
+        <PackageReference Include="Haley.MVVM" Version="6.0.8-development-1" />
+      </ItemGroup>
+    </Otherwise>
+  </Choose>
 </Project>

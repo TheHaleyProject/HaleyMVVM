@@ -13,7 +13,7 @@ using Haley.MVVM;
 
 namespace Haley.Services
 {
-    public class DialogService : IDialogService
+    public class DialogService : IDialogServiceEx
     {
         #region Attributes
         private SolidColorBrush _accentColor;
@@ -175,12 +175,12 @@ namespace Haley.Services
                 {
                     //No fall back. If container doesn't have the control with key, DO NOT FALL BACK TO DEFAULT CONTAINER.
                     //Containerstore resolve the controls to get the control
-                    _view = container.GenerateViewFromKey(key, InputViewModel, mode);
+                    _view = container.GenerateViewFromKey(key, InputViewModel, mode) as UserControl;
                 }
                 else
                 {
                     //Containerstore resolve the controls to get the control
-                    _view = ContainerStore.Singleton.Controls.GenerateViewFromKey(key, InputViewModel, mode);
+                    _view = ContainerStore.Singleton.Controls.GenerateViewFromKey(key, InputViewModel, mode) as UserControl;
                 }
                
             }
@@ -206,8 +206,12 @@ namespace Haley.Services
             string _key = @enum.GetKey();
             return ShowContainerView(title, _key, InputViewModel, mode, blurOtherWindows, container);
         }
-        public INotification ShowContainerView<ViewType>(string title, object InputViewModel = null, ResolveMode mode = ResolveMode.AsRegistered, bool blurOtherWindows = false, IControlContainer container = null) where ViewType : UserControl
+        public INotification ShowContainerView<ViewType>(string title, object InputViewModel = null, ResolveMode mode = ResolveMode.AsRegistered, bool blurOtherWindows = false, IControlContainer container = null) where ViewType : class
         {
+            if (typeof(ViewType) != typeof(UserControl))
+            {
+                throw new ArgumentException("Container view excepts a type of usercontrol");
+            }
             string _key = typeof(ViewType).ToString();
             return ShowContainerView(title, _key, InputViewModel, mode, blurOtherWindows, container);
         }

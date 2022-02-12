@@ -14,7 +14,7 @@ using System.Windows.Media.Effects;
 namespace Haley.WPF.Controls
 {
     //Notification is not a control. It is a window that will be displayed to user as a separate dialog or as a toast in the desktop.
-    public sealed class Notification : Window, INotification
+    public sealed class Notification : Window, INotificationEx
     {
         #region Attributes
         private static SolidColorBrush _baseAccent = (SolidColorBrush)new BrushConverter().ConvertFromString("#FF1678A3");

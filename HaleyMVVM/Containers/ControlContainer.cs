@@ -13,11 +13,11 @@ using Haley.Models;
 
 namespace Haley.IOC
 {
-    public sealed class ControlContainer : UIContainerBase<IHaleyVM,UserControl>, IControlContainer 
+    public sealed class ControlContainer : UIContainerBase<IHaleyVM>, IControlContainer 
     {
         public ControlContainer(IServiceProvider _injection_container):base(_injection_container) { }
 
-        public override UserControl GenerateViewFromKey(object key, object InputViewModel = null, ResolveMode mode = ResolveMode.AsRegistered)
+        public override object GenerateViewFromKey(object key, object InputViewModel = null, ResolveMode mode = ResolveMode.AsRegistered)
         {
             try
             {
@@ -29,13 +29,13 @@ namespace Haley.IOC
                 if (InputViewModel != null)
                 {
                     var _mapping_value = GetMappingValue(_key);
-                    _view = _generateView(_mapping_value.view_type,mode);
+                    _view = _generateView(_mapping_value.view_type,mode) as UserControl;
                     _vm = (IHaleyVM)InputViewModel;
                 }
                 else
                 {
                     var _kvp = _generateValuePair(_key, mode);
-                    _view = _kvp.view;
+                    _view = _kvp.view as UserControl;
                     _vm = _kvp.view_model;
                 }
                 _view.DataContext = _vm;

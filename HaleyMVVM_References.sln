@@ -21,6 +21,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HaleyIOC", "..\HaleyIOC\Hal
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HaleyExtensions", "..\HaleyExtensions\HaleyExtensions\HaleyExtensions.csproj", "{688D47CA-E1BE-4504-BB0A-89BF8D72515A}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HaleyAbstractions", "..\HaleyAbstractions\HaleyAbstractions\HaleyAbstractions.csproj", "{ED1CF2C6-34EB-46FE-8443-D44C0271F41E}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -55,6 +57,10 @@ Global
 		{688D47CA-E1BE-4504-BB0A-89BF8D72515A}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{688D47CA-E1BE-4504-BB0A-89BF8D72515A}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{688D47CA-E1BE-4504-BB0A-89BF8D72515A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{ED1CF2C6-34EB-46FE-8443-D44C0271F41E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{ED1CF2C6-34EB-46FE-8443-D44C0271F41E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{ED1CF2C6-34EB-46FE-8443-D44C0271F41E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{ED1CF2C6-34EB-46FE-8443-D44C0271F41E}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

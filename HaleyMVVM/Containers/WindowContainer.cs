@@ -15,7 +15,7 @@ using System.Windows;
 
 namespace Haley.IOC
 {
-    public sealed class WindowContainer : UIContainerBase<IHaleyVM,Window>, IWindowContainer  //Implementation of the DialogService Interface.
+    public sealed class WindowContainer : UIContainerBase<IHaleyVM>, IWindowContainer  //Implementation of the DialogService Interface.
     {
         public WindowContainer(IServiceProvider _injection_container) : base(_injection_container) { }
 
@@ -30,8 +30,9 @@ namespace Haley.IOC
             string _key = typeof(ViewModelType).ToString();
             return ShowDialog(_key, InputViewModel, resolve_mode);
         }
-        public bool? ShowDialog<ViewType>(ResolveMode resolve_mode = ResolveMode.AsRegistered) where ViewType : Window
+        public bool? ShowDialog<ViewType>(ResolveMode resolve_mode = ResolveMode.AsRegistered) where ViewType : class
         {
+            if (typeof(ViewType) != typeof(Window)) return null;
             string _key = typeof(ViewType).ToString();
             return ShowDialog(_key, null, resolve_mode);
         }
@@ -47,8 +48,9 @@ namespace Haley.IOC
             string _key = typeof(ViewModelType).ToString();
             Show(_key, InputViewModel, resolve_mode);
         }
-        public void Show<ViewType>(ResolveMode resolve_mode = ResolveMode.AsRegistered) where ViewType : Window
+        public void Show<ViewType>(ResolveMode resolve_mode = ResolveMode.AsRegistered) where ViewType : class
         {
+            if (typeof(ViewType) != typeof(Window)) return;
             string _key = typeof(ViewType).ToString();
             Show(_key, null, resolve_mode);
         }
@@ -65,7 +67,7 @@ namespace Haley.IOC
         #endregion
 
         #region Overridden Methods
-        public override Window GenerateViewFromKey(object key, object InputViewModel = null, ResolveMode mode = ResolveMode.AsRegistered)
+        public override object GenerateViewFromKey(object key, object InputViewModel = null, ResolveMode mode = ResolveMode.AsRegistered)
         {
             try
             {
@@ -76,13 +78,13 @@ namespace Haley.IOC
                 if (InputViewModel != null)
                 {
                     var _mapping_value = GetMappingValue(_key);
-                    _view = _generateView(_mapping_value.view_type,mode);
+                    _view = _generateView(_mapping_value.view_type,mode) as Window;
                     _vm =  (IHaleyVM) InputViewModel;
                 }
                 else
                 {
                     var _kvp = _generateValuePair(_key, mode);
-                    _view = _kvp.view;
+                    _view = _kvp.view as Window;
                     _vm = _kvp.view_model;
                 }
                 if (_view == null) return null;
@@ -108,7 +110,7 @@ namespace Haley.IOC
             {
                 Thread new_ui_thread = new Thread(() =>
                 {
-                    Window _hwindow = GenerateViewFromKey(key, InputViewModel, resolve_mode);
+                    Window _hwindow = GenerateViewFromKey(key, InputViewModel, resolve_mode) as Window;
                     _result = _displayWindow(_hwindow, is_modeless);
                 });
                 new_ui_thread.SetApartmentState(ApartmentState.STA);
@@ -117,7 +119,7 @@ namespace Haley.IOC
             }
             else
             {
-                Window _hwindow = GenerateViewFromKey(key, InputViewModel, resolve_mode);
+                Window _hwindow = GenerateViewFromKey(key, InputViewModel, resolve_mode) as Window;
                 _result = _displayWindow(_hwindow, is_modeless);
             }
 

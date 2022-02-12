@@ -88,7 +88,6 @@ namespace Haley.Models
             //The content could be a user control or datatemplate
             if(sender is UIElement uie)
             {
-               
                 var _content = GetContent(uie);
                 var _title = GetTitle(uie) ?? "Dialog Window";
                 var _blur = GetBlurWindows(uie);
@@ -97,7 +96,10 @@ namespace Haley.Models
                     //use this datatemplate or usercontrol and display on a notification dialog
                     var _ds = getDS(sender as DependencyObject);
                     if (_ds == null) return;
-                    _ds.ShowCustomView(_title, _content, _blur);
+                    if (_ds is IDialogServiceEx _dsEx)
+                    {
+                        _dsEx.ShowCustomView(_title, _content, _blur);
+                    }
                 }
             }
         }

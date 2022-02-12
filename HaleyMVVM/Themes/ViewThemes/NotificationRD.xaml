@@ -3,7 +3,7 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:bc="clr-namespace:Haley.WPF.Controls"
     xmlns:beh="http://schemas.microsoft.com/xaml/behaviors"
-    xmlns:enums="clr-namespace:Haley.Enums"
+    xmlns:enums="clr-namespace:Haley.Enums;assembly=Haley.Abstractions"
     xmlns:sys="clr-namespace:System;assembly=mscorlib">
 
     <ResourceDictionary.MergedDictionaries>
