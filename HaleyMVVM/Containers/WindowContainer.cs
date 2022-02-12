@@ -32,7 +32,10 @@ namespace Haley.IOC
         }
         public bool? ShowDialog<ViewType>(ResolveMode resolve_mode = ResolveMode.AsRegistered) where ViewType : class
         {
-            if (typeof(ViewType) != typeof(Window)) return null;
+            if (!(typeof(ViewType).BaseType == typeof(Window) || typeof(ViewType) == typeof(Window)))
+            {
+                throw new ArgumentException("Works only for objects with base type Window");
+            }
             string _key = typeof(ViewType).ToString();
             return ShowDialog(_key, null, resolve_mode);
         }
@@ -50,7 +53,10 @@ namespace Haley.IOC
         }
         public void Show<ViewType>(ResolveMode resolve_mode = ResolveMode.AsRegistered) where ViewType : class
         {
-            if (typeof(ViewType) != typeof(Window)) return;
+            if (!(typeof(ViewType).BaseType == typeof(Window) || typeof(ViewType) == typeof(Window)))
+            {
+                throw new ArgumentException("Works only for objects with base type Window");
+            }
             string _key = typeof(ViewType).ToString();
             Show(_key, null, resolve_mode);
         }

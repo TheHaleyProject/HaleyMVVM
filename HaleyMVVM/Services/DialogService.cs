@@ -208,9 +208,10 @@ namespace Haley.Services
         }
         public INotification ShowContainerView<ViewType>(string title, object InputViewModel = null, ResolveMode mode = ResolveMode.AsRegistered, bool blurOtherWindows = false, IControlContainer container = null) where ViewType : class
         {
-            if (typeof(ViewType) != typeof(UserControl))
+            if (!(typeof(ViewType).BaseType == typeof(UserControl) || typeof(ViewType) == typeof(UserControl)))
             {
                 throw new ArgumentException("Container view excepts a type of usercontrol");
+
             }
             string _key = typeof(ViewType).ToString();
             return ShowContainerView(title, _key, InputViewModel, mode, blurOtherWindows, container);

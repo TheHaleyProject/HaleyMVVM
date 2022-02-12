@@ -30,11 +30,11 @@ namespace NotificationDemo
     public partial class MainWindow : Window
     {
 
-        private IDialogService _ds;
+        private IDialogServiceEx _ds;
         public MainWindow()
         {
             InitializeComponent();
-            _ds = ContainerStore.Singleton.DI.Resolve<IDialogService>();
+            _ds = ContainerStore.Singleton.DI.Resolve<IDialogServiceEx>();
             //_ds = new DialogService();
             tbxTitle.Text = "Demo";
             tbxMessage.Text = "Hello World!";
