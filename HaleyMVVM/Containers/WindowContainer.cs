@@ -30,7 +30,7 @@ namespace Haley.IOC
             string _key = typeof(ViewModelType).ToString();
             return ShowDialog(_key, InputViewModel, resolve_mode);
         }
-        public bool? ShowDialog<ViewType>(ResolveMode resolve_mode = ResolveMode.AsRegistered) where ViewType : class
+        public bool? ShowViewDialog<ViewType>(ResolveMode resolve_mode = ResolveMode.AsRegistered) where ViewType : class
         {
             if (!(typeof(ViewType).BaseType == typeof(Window) || typeof(ViewType) == typeof(Window)))
             {
@@ -51,7 +51,7 @@ namespace Haley.IOC
             string _key = typeof(ViewModelType).ToString();
             Show(_key, InputViewModel, resolve_mode);
         }
-        public void Show<ViewType>(ResolveMode resolve_mode = ResolveMode.AsRegistered) where ViewType : class
+        public void ShowView<ViewType>(ResolveMode resolve_mode = ResolveMode.AsRegistered) where ViewType : class
         {
             if (!(typeof(ViewType).BaseType == typeof(Window) || typeof(ViewType) == typeof(Window)))
             {
