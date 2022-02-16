@@ -11,37 +11,41 @@ using Haley.Abstractions;
 using Haley.Enums;
 using Haley.Utils;
 using System.Windows.Data;
-
+using System.Collections.Concurrent;
 
 namespace Haley.Utils
 {
     public class ThemeLoader :DependencyObject
     {
         #region Public Properties
-        public Theme old_theme { get; private set; }
-
-        public Theme active_theme
-        {
-            get { return (Theme)GetValue(active_themeProperty); }
-            //set { SetValue(active_themeProperty, value); }
-        }
-
-        public static readonly DependencyProperty active_themeProperty =
-            DependencyProperty.Register("active_theme", typeof(Theme), typeof(ThemeLoader), new PropertyMetadata(null));
-
-        public ThemeMode current_internal_mode { get; private set; }
+        public ThemeMode InternalTheme { get; private set; }
+        public event EventHandler<Theme> ActiveThemeChanged;
 
         #endregion
 
-
         #region ATTRIBUTES
+        internal Theme OldTheme { get; private set; }
+
+        private Theme activeTheme;
+
+        internal Theme ActiveTheme
+        {
+            get { return activeTheme; }
+            private set 
+            {
+                activeTheme = value;
+                ActiveThemeChanged?.Invoke(this, activeTheme);
+            }
+        }
+
         private bool _raise_notification;
         private SearchPriority _priority;
-        private Theme _newtheme;
+        private Theme _source_theme;
         private DependencyObject _sender;
         private IDialogService _ds = new DialogService();
         private bool _includeHaley;
-       
+        private ConcurrentDictionary<string, Theme> _themeDic = new ConcurrentDictionary<string, Theme>();
+
         private const string _hw_absolute = "pack://application:,,,/Haley.WPF;component/";
         private const string _hm_absolute = "pack://application:,,,/Haley.MVVM;component/";
         private const string _hw_relative = "Haley.WPF;component/";
@@ -68,30 +72,91 @@ namespace Haley.Utils
         private ThemeLoader() { _getCurrentInternalTheme(); }
         #endregion
 
-        public bool changeTheme(Theme newtheme)
+        public bool ChangeTheme(Theme newtheme,bool showNotifications = false)
         {
-            return changeTheme(null, newtheme, SearchPriority.Application);
+            return ChangeTheme(null, newtheme, SearchPriority.Application,raise_notification:showNotifications);
         }
 
-        public bool changeTheme(DependencyObject sender, Theme newtheme, SearchPriority priority = SearchPriority.Application, bool compare_with_active_theme=true,bool raise_notification =false)
+        public bool ChangeTheme(DependencyObject sender, Theme newtheme, SearchPriority priority = SearchPriority.Application, bool compare_with_active_theme=true,bool raise_notification =false)
         {
             return _changeTheme(sender, newtheme, priority, compare_with_active_theme, raise_notification);
         }
-        public bool changeInternalTheme(ThemeMode mode)
+        public bool ChangeInternalTheme(ThemeMode mode, bool showNotifications = false)
         {
-            if (current_internal_mode == mode) return false; //We already are at same mode.
+            if (InternalTheme == mode)
+            {
+                if (showNotifications)
+                {
+                    _ds.SendToast("Same Internal Mode", $@"There is no change in mode. Current mode is {mode.ToString()}");
+                }
+                return false; //We already are at same mode.
+            }
+
             var _new_uri = _getInternalURI(mode);
-            var _old_uri = _getInternalURI(current_internal_mode);
+            var _old_uri = _getInternalURI(InternalTheme);
 
             if (_new_uri == null || _old_uri== null) return false; //Don't proceed if internal uri is not fetchables.
 
             Theme internal_new_theme = new Theme(_new_uri,_old_uri,_hw_RD) {};
-            if ( _changeTheme(null, internal_new_theme, SearchPriority.Application, false, false, true,true))
+            if ( _changeTheme(null, internal_new_theme, SearchPriority.Application, false, false, true,is_internal_call:true))
             {
-                current_internal_mode = mode;
+                InternalTheme = mode;
                 return true;
             }
             return false;
+        }
+
+        public Theme RegisterThemeURI(string key,Uri theme_uri)
+        {
+            if (string.IsNullOrWhiteSpace(key)) throw new ArgumentException("Key cannot be empty");
+            if (!_themeDic.ContainsKey(key))
+            {
+                _themeDic.TryAdd(key, new Theme(theme_uri, null));
+            }
+            _themeDic.TryGetValue(key, out var _reslt);
+            return _reslt;
+        }
+
+        public bool IsThemeRegistered(string key)
+        {
+            if (string.IsNullOrWhiteSpace(key)) throw new ArgumentException("Key cannot be empty");
+            return _themeDic.ContainsKey(key);
+        }
+
+        public Theme GetTheme(string key)
+        {
+            if (string.IsNullOrWhiteSpace(key)) return null;
+            _themeDic.TryGetValue(key, out var _reslt);
+            return _reslt;
+        }
+
+        public bool ChangeThemeByKey(string source_key, string target_key = null,bool showNotifications = false)
+        {
+            if (string.IsNullOrWhiteSpace(source_key)) return false;
+            if (!_themeDic.ContainsKey(source_key)) return false;
+            Theme new_theme = null;
+            _themeDic.TryGetValue(source_key, out new_theme);
+            if (new_theme == null) return false;
+
+            if (!string.IsNullOrWhiteSpace(target_key))
+            {
+                if (!_themeDic.ContainsKey(target_key)) return false;
+                _themeDic.TryGetValue(target_key, out var target_theme);
+
+                new_theme.PreviousThemePath = target_theme.Path;
+            }
+            return ChangeTheme(new_theme,showNotifications);
+        }
+
+        public bool SetStartupTheme(string source_key)
+        {
+            if (string.IsNullOrWhiteSpace(source_key)) return false;
+            if (!_themeDic.ContainsKey(source_key)) return false;
+            if (ActiveTheme != null) return false;
+            _themeDic.TryGetValue(source_key, out var new_theme);
+            ActiveTheme = new_theme; //This will not contain any previouspath (as it is registered using the URI only). So, this will not trigger the ThemeAP prop change.
+            return true;
+
         }
 
         #region Helpers
@@ -110,38 +175,53 @@ namespace Haley.Utils
                     ThemeMode _theme = (ThemeMode)item;
                     if (name_plain.Equals(_theme.ToString()))
                     {
-                        current_internal_mode = _theme;
+                        InternalTheme = _theme;
                         return;
                     }
                 }
-                current_internal_mode = ThemeMode.Normal;
+                InternalTheme = ThemeMode.Normal;
             }
             catch (Exception)
             {
-                current_internal_mode = ThemeMode.Normal;
+                InternalTheme = ThemeMode.Normal;
             }
         }
-        private bool _changeTheme(DependencyObject sender, Theme newtheme, SearchPriority priority, bool compare_with_active_theme,bool raise_notification,bool include_haley_dictionaries = false, bool is_internal_cal = false)
+        private bool _changeTheme(DependencyObject sender, Theme newtheme, SearchPriority priority, bool compare_with_active_theme,bool raise_notification,bool include_haley_dictionaries = false, bool is_internal_call = false)
         {
-            //Priliminary verifications
-            if (newtheme == null || newtheme?.new_theme_uri == null || newtheme?.old_theme_uri == null)
+            //Preliminary verifications
+            if (newtheme == null || newtheme?.Path == null)
             {
                 if (raise_notification)
                 {
-                    _ds.Warning("Error", $@"The theme URIs cannot be empty. Please fill both new and old theme values.");
+                    _ds.SendToast("Error", $@"The URI path for locating the theme  Dictionary is required.", NotificationIcon.Warning);
                 }
                 return false;
             }
-            //COMPARE WITH ACTUAL OLD THEME
-            if (active_theme != null && compare_with_active_theme)
+
+            if (newtheme.PreviousThemePath == null)
             {
-                //Basically, old theme's new uri is the actual value. So, actual value and newtheme's new value should not be equal.
-                //If we try to set the same theme again, do not respond.
-                if (active_theme.new_theme_uri == newtheme.new_theme_uri)
+                //if active theme path is null, try to get it from the active theme property.
+                if (ActiveTheme == null)
                 {
                     if (raise_notification)
                     {
-                        _ds.Warning("Conflict", $@"The theme ""{newtheme.new_theme_uri}"" is the current theme. Nothing to change. Please check");
+                        _ds.SendToast("Error", $@"Active theme is null. Please set StartupTheme or provide PreviousThemePath value to replace.", NotificationIcon.Warning);
+                    }
+                    return false;
+                }
+
+                newtheme.PreviousThemePath = ActiveTheme.Path;
+            }
+            //COMPARE WITH ACTUAL OLD THEME
+            if (ActiveTheme != null && compare_with_active_theme)
+            {
+                //Basically, old theme's new uri is the actual value. So, actual value and newtheme's new value should not be equal.
+                //If we try to set the same theme again, do not respond.
+                if (ActiveTheme.Path == newtheme.Path)
+                {
+                    if (raise_notification)
+                    {
+                        _ds.SendToast("Conflict", $@"The theme ""{newtheme.Path}"" is the current theme. Nothing to change. Please check", NotificationIcon.Warning);
                     }
                     return false;
                 }
@@ -149,11 +229,11 @@ namespace Haley.Utils
 
             //COMPARE WITH USER PROVIDED REPLACE THEME
             //if old and new theme are same, don't do anything.
-            if (newtheme.new_theme_uri.Equals(newtheme.old_theme_uri))
+            if (newtheme.Path.Equals(newtheme.PreviousThemePath))
             {
                 if (raise_notification)
                 {
-                    _ds.Warning("Conflict", $@"The theme ""{newtheme.new_theme_uri}"" is the current theme. Nothing to change. Please check");
+                    _ds.Warning("Conflict", $@"The both ActiveThemePath and New Theme path are same. Nothing to change. Please check");
                 }
                 return false;
             }
@@ -161,23 +241,27 @@ namespace Haley.Utils
             //SET ATTRIBUTES ONLY AFTER ABOVE VALIDATIONS.
             _raise_notification = raise_notification; //May change each time.
             _priority = priority;
-            _newtheme = newtheme;
+            _source_theme = newtheme;
             _sender = sender;
             _includeHaley = include_haley_dictionaries;
 
             if (_changeTheme())
             {
                 //If we are changing for Haley Internal, we do not change other values
-                if (!is_internal_cal)
+                if (!is_internal_call)
                 {
-                    if (active_theme != null)
+                    if (ActiveTheme != null)
                     {
-                        old_theme = new Theme(active_theme.new_theme_uri, active_theme.old_theme_uri, active_theme.base_dictionary_uri);
+                        OldTheme = new Theme(ActiveTheme.Path, ActiveTheme.PreviousThemePath, ActiveTheme.BaseDictionaryPath);
                     }
 
-                    var modified_theme = new Theme(newtheme.new_theme_uri, newtheme.old_theme_uri, newtheme.base_dictionary_uri) { };
-                    //SetProp(ref _active_theme, modified_theme); //Set prop to trigger property changed.
-                    SetValue(active_themeProperty, modified_theme);
+                    var modified_theme = new Theme(newtheme.Path, newtheme.PreviousThemePath, newtheme.BaseDictionaryPath) { };
+
+                    if (ActiveTheme.Path != modified_theme.Path && ActiveTheme.PreviousThemePath != modified_theme.PreviousThemePath)
+                    {
+                        ActiveTheme = modified_theme;
+                       //This will trigger the change and then the controls subscribed to this will also change their theme. But we will not set again.
+                    }
                 }
                 return true;
             }
@@ -223,20 +307,15 @@ namespace Haley.Utils
                 {
                     case SearchPriority.FrameworkElement:
                         //First we check the framework element  resources. If we are not able to locate the resource, we move to application level element
-                        if (_elementResources != null)
-                        {
-                            _resources.Add(_elementResources);
-                        }
-                        _resources.Add(_applicationResources);
+                        _resources.Add(_elementResources); //First Prio
+                        _resources.Add(_applicationResources); //Second Prio
                         break;
                     case SearchPriority.Application:
                     default:
                         //First we check the application resources. If we are not able to locate the resource, we move to framework element level resources
-                        _resources.Add(_applicationResources);
-                        if (_elementResources != null)
-                        {
-                            _resources.Add(_elementResources);
-                        }
+                        _resources.Add(_applicationResources); //First Prio
+                        _resources.Add(_elementResources); //Second Prio
+
                         break;
                 }
 
@@ -251,7 +330,7 @@ namespace Haley.Utils
                     }
                     if (_findAndReplace(_res))
                     {
-                        if (_priority == SearchPriority.Both)
+                        if (_priority == SearchPriority.All)
                         {
                             _flag = true; //Reason why we set flag for searchpriority both is that, when we find and replace value in one type (say Application) but we do not find in another (say Framework element), still the end result is positive because we have already replaced in one level.
                             continue;
@@ -282,7 +361,7 @@ namespace Haley.Utils
 
             List<ResourceDictionary> merged_dictionaries = new List<ResourceDictionary>();
             //If we have a specific base dictionary, then it is easy for us. We directly try to find that dictionary. If not, we search all dictionaries.
-            if (_newtheme.base_dictionary_uri != null)
+            if (_source_theme.BaseDictionaryPath != null)
             {
                 var base_res = _getBaseDictionary(parent_resource);
                 if (base_res != null)
@@ -335,13 +414,6 @@ namespace Haley.Utils
                 {
                     resource = Application.Current?.Resources;
                 }
-                else
-                {
-                    if (_sender != null)
-                    {
-                        resource = ((FrameworkElement)_sender).Resources;
-                    }
-                }
             }
 
             return resource;
@@ -350,21 +422,32 @@ namespace Haley.Utils
         {
             ResourceDictionary base_dic = null;
             //We should first validate that basedictionary uri is not empty already before calling this method. However, for safer side, checking again
-            if (_newtheme.base_dictionary_uri == null) return null;
+            if (_source_theme.BaseDictionaryPath == null) return null;
             #region BestOptimum Code
             //Base dictionary processing
             base_dic = parent_resource.MergedDictionaries
-                ?.Where(p => p.Source == _newtheme.base_dictionary_uri)?.FirstOrDefault();
+                ?.Where(p => p.Source == _source_theme.BaseDictionaryPath)?.FirstOrDefault();
 
             return base_dic;
             #endregion
         }
         private bool _changeTheme(ResourceDictionary parent_resource, ResourceDictionary base_dictionary)
         {
-            //Loop through all the dictionaries of the resources to find out if it has the particular theme
-            var tracker = _getOldTheme(base_dictionary);
+            RDTracker tracker = null;
 
+            var _toplevel_target = parent_resource.MergedDictionaries?.Where(p => p.Source == _source_theme.PreviousThemePath)?.FirstOrDefault(); //Trying to find if theme exists in the parent level itself
 
+            if (_toplevel_target != null)
+            {
+                tracker = new RDTracker(parent_resource, new RDTracker(_toplevel_target, null,true), true);
+            }
+
+            if (tracker == null)
+            {
+                //Loop through all the dictionaries of the resources to find out if it has the particular theme
+                tracker = _getOldTheme(base_dictionary);
+            }
+            
             if (tracker == null)
             {
                 //Should we throw error if we are unable to find old theme????
@@ -373,6 +456,8 @@ namespace Haley.Utils
             }
 
             _replaceTheme(ref tracker);
+
+            if (_toplevel_target != null) return true; //We do not need to change merged dictionaries.
 
             parent_resource.MergedDictionaries.Insert(0, tracker.resource); //We are adding it first because, next time when we search for themes, it wil be easy for the algorithm to locate theme at first
             //Remove the base and add it again
@@ -385,7 +470,7 @@ namespace Haley.Utils
             RDTracker tracker = null;
             ResourceDictionary res = null;
 
-            res = target_resource.MergedDictionaries?.Where(p => p.Source == _newtheme.old_theme_uri)?.FirstOrDefault(); //Trying to find if old theme exists.
+            res = target_resource.MergedDictionaries?.Where(p => p.Source == _source_theme.PreviousThemePath)?.FirstOrDefault(); //Trying to find if old theme exists.
 
             if (res != null)
             {
@@ -423,7 +508,7 @@ namespace Haley.Utils
             //When you reach the last value, replace it.
             tracker.resource.MergedDictionaries.Remove(tracker.child.resource); //Remove old dictionary
             tracker.resource.MergedDictionaries
-                .Add(new ResourceDictionary() { Source = _newtheme.new_theme_uri });
+                .Insert(0,new ResourceDictionary() { Source = _source_theme.Path });
         }
         #endregion
     }

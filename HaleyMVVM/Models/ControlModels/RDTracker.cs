@@ -14,10 +14,10 @@ namespace Haley.Models
         public ResourceDictionary resource { get; set; }
         public RDTracker child { get; set; }
         public bool is_last { get; set; }
-        public RDTracker(ResourceDictionary parent, RDTracker child, bool is_last)
+        public RDTracker(ResourceDictionary resource, RDTracker child, bool is_last)
         {
             id = Guid.NewGuid().ToString();
-            this.resource = parent;
+            this.resource = resource;
             this.child = child;
             this.is_last = is_last;
         }

@@ -7,6 +7,6 @@ namespace Haley.Enums
     {
         Application,
         FrameworkElement,
-        Both
+        All
     }
 }

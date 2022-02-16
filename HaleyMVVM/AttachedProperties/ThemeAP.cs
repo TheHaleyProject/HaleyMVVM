@@ -2,75 +2,57 @@
 using Haley.Enums;
 using Haley.Utils;
 using System.Windows.Data;
+using System;
 
 namespace Haley.Models
 {
     public static class ThemeAP
     {
-        public static SearchPriority GetPriority(DependencyObject obj)
+        private static EventHandler<Theme> GetChangeHandler(DependencyObject obj)
         {
-            return (SearchPriority)obj.GetValue(PriorityProperty);
+            return (EventHandler<Theme>)obj.GetValue(ChangeHandlerProperty);
         }
 
-        public static void SetPriority(DependencyObject obj, SearchPriority value)
+        private static readonly DependencyProperty ChangeHandlerProperty =
+            DependencyProperty.RegisterAttached("ChangeHandler", typeof(EventHandler<Theme>), typeof(ThemeAP), new PropertyMetadata(null));
+
+        public static bool GetMonitorChange(DependencyObject obj)
         {
-            obj.SetValue(PriorityProperty, value);
+            return (bool)obj.GetValue(MonitorChangeProperty);
         }
 
-        public static readonly DependencyProperty PriorityProperty =
-            DependencyProperty.RegisterAttached("Priority", typeof(SearchPriority), typeof(ThemeAP), new PropertyMetadata(SearchPriority.FrameworkElement));
-
-        //If users wants to set the active theme from control side 
-        public static Theme GetNewTheme(DependencyObject obj)
+        public static void SetMonitorChange(DependencyObject obj, bool value)
         {
-            return (Theme)obj.GetValue(NewThemeProperty);
+            obj.SetValue(MonitorChangeProperty, value);
         }
 
-        public static void SetNewTheme(DependencyObject obj, Theme value)
+        public static readonly DependencyProperty MonitorChangeProperty =
+            DependencyProperty.RegisterAttached("MonitorChange", typeof(bool), typeof(ThemeAP), new PropertyMetadata(false,MonitorChangePropertyChanged));
+        static void MonitorChangePropertyChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
         {
-            obj.SetValue(NewThemeProperty, value);
-        }
-
-        public static readonly DependencyProperty NewThemeProperty =
-            DependencyProperty.RegisterAttached("NewTheme", typeof(Theme), typeof(ThemeAP), new PropertyMetadata(null,NewThemePropertyChanged));
-
-        private static void NewThemePropertyChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
-        {
-            if (d == null || e.NewValue == null) return;
-            Theme active = e.NewValue as Theme;
-            if (active == null || active.new_theme_uri == null || active.old_theme_uri == null) return;
-
-            var _priority = GetPriority(d);
-            var _compareWithActiveTheme = _priority == SearchPriority.Application; //Only in case of application level resources, we need to compare with old theme because it is changed for all. Else, we do not compare
-           
-            ThemeLoader.Singleton.changeTheme(d,active,_priority, _compareWithActiveTheme,false);
-        }
-
-        public static bool GetTriggerChange(DependencyObject obj)
-        {
-            return (bool)obj.GetValue(TriggerChangeProperty);
-        }
-
-        public static void SetTriggerChange(DependencyObject obj, bool value)
-        {
-            obj.SetValue(TriggerChangeProperty, value);
-        }
-
-        public static readonly DependencyProperty TriggerChangeProperty =
-            DependencyProperty.RegisterAttached("TriggerChange", typeof(bool), typeof(ThemeAP), new PropertyMetadata(false,TriggerChangePropertyChanged));
-        static void TriggerChangePropertyChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
-        {
-            if (d == null || !((bool) e.NewValue)) return; //Theme hasn't changed.
-
-            //d.SetCurrentValue(NewThemeProperty, ThemeLoader.Singleton.active_theme);
-            //Bind with themeloader's active theme
-            var binding = new Binding
+            if (d == null) return; //Theme hasn't changed.
+            var _themeChangeHandler = GetChangeHandler(d);
+            if (_themeChangeHandler == null)
             {
-                Path = new PropertyPath(ThemeLoader.active_themeProperty),
-                Source = ThemeLoader.Singleton
-            };
+                EventHandler<Theme> handler = (sender, theme) => { ThemeChangeHandler(sender, theme, d); };
+                d.SetCurrentValue(ChangeHandlerProperty, handler);
+                _themeChangeHandler = handler;
+            }
+            ThemeLoader.Singleton.ActiveThemeChanged -= _themeChangeHandler;
 
-            BindingOperations.SetBinding(d, NewThemeProperty, binding);
+            if (GetMonitorChange(d))
+            {
+                ThemeLoader.Singleton.ActiveThemeChanged += _themeChangeHandler;
+            }
+        }
+
+        private static void ThemeChangeHandler(object sender, Theme e,DependencyObject d)
+        {
+            Theme active = e;
+            if (active == null || active.Path == null || active.PreviousThemePath == null) return; //On first setup, previous theme path will be null. so, we don't have to worry about startup settings.
+            if (!GetMonitorChange(d)) return; //We are not monitoring
+            var _priority = SearchPriority.FrameworkElement; //We will replace the framework element theme.
+            ThemeLoader.Singleton.ChangeTheme(d, active, _priority, false, false);
         }
     }
 }
