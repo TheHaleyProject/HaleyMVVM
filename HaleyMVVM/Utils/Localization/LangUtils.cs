@@ -16,6 +16,7 @@ using Haley.Models;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using Haley.Events;
+using System.Collections.Concurrent;
 
 namespace Haley.Utils
 {
@@ -39,16 +40,18 @@ namespace Haley.Utils
         public event EventHandler<CultureChangedEventArgs> CultureChanged; //Raise this event whenever a culture changes. The subscribing methods can perform their own operations.
 
         private static Dictionary<string, CultureInfo> _allCultures = new Dictionary<string, CultureInfo>();
-        private static List<ResourceProvider> _resourceProviders = new List<ResourceProvider>();
+        private static ConcurrentDictionary<string, ResourceProvider> _resourceProviders = new ConcurrentDictionary<string, ResourceProvider>();
         public static CultureInfo CurrentCulture { get; private set; }
-
+        private static object ChangeLock = new object();
         public static void ChangeCulture(CultureInfo culture)
         {
-            CurrentCulture = culture;
-            System.Threading.Thread.CurrentThread.CurrentUICulture = culture;
-            System.Threading.Thread.CurrentThread.CurrentCulture = culture;
-
-            Singleton.CultureChanged?.Invoke(null, new CultureChangedEventArgs(culture));
+            lock (ChangeLock)
+            {
+                CurrentCulture = culture;
+                System.Threading.Thread.CurrentThread.CurrentUICulture = culture;
+                System.Threading.Thread.CurrentThread.CurrentCulture = culture;
+                Singleton.CultureChanged?.Invoke(null, new CultureChangedEventArgs(culture));
+            }
         }
 
         public static void ChangeCulture(string code)
@@ -65,25 +68,30 @@ namespace Haley.Utils
         {
             if (_allCultures == null || _allCultures.Count < 1)
             {
-                var _cultures = CultureInfo.GetCultures(CultureTypes.NeutralCultures)?.ToList();
-
-                foreach (var cultr in _cultures)
+                lock (_allCultures)
                 {
-                    if (!_allCultures.ContainsKey(cultr.Name))
+                    if (_allCultures.Count > 0) return _allCultures; //Because the waiting threads may again try to initiate it.
+                    var _cultures = CultureInfo.GetCultures(CultureTypes.NeutralCultures)?.ToList();
+                    foreach (var cultr in _cultures)
                     {
-                        _allCultures.Add(cultr.Name, cultr);
+                        if (!_allCultures.ContainsKey(cultr.Name))
+                        {
+                            _allCultures.Add(cultr.Name, cultr);
+                        }
                     }
                 }
             }
-            
+
             return _allCultures;
+
         }
 
         public ResourceProvider GetProvider(string provider_key)
         {
             if (string.IsNullOrWhiteSpace(provider_key)) return null;
             //for the given key try to get the provider.
-           return _resourceProviders.FirstOrDefault(p => p.Key == provider_key); //Could also be null.
+            _resourceProviders.TryGetValue(provider_key, out var result);
+            return result;//Could also be null.
         }
         public static string Translate(string resource_key)
         {
@@ -97,7 +105,7 @@ namespace Haley.Utils
             //if (CurrentCulture == null) CurrentCulture = CultureInfo.CreateSpecificCulture("en");
             if (CurrentCulture == null) CurrentCulture = CultureInfo.InvariantCulture;
             //Get the provider.
-            var _provider = _resourceProviders.FirstOrDefault(p => p.Key == provider_key);
+            _resourceProviders.TryGetValue(provider_key, out var _provider);
             if (_provider == null) return resource_key; //Just return the key.
             try
             {
@@ -138,8 +146,15 @@ namespace Haley.Utils
             if (assembly != null)
             {
                 var _name = assembly.GetName().Name;
-                var _existingProvider = _resourceProviders.FirstOrDefault(p => p.Source == assembly && p.Key == _name);
-                if (_existingProvider != null && _existingProvider.Manager != null) return _existingProvider;
+                _resourceProviders.TryGetValue(_name, out var _existingProvider);
+                if (_existingProvider != null && _existingProvider.Manager != null)
+                {
+                    if (_existingProvider.Source != assembly)
+                    {
+                        throw new ArgumentException($@"The key {_name} is already registered with {_existingProvider.Source.ToString()}");
+                    }
+                        return _existingProvider;
+                }
 
                 if (string.IsNullOrWhiteSpace(fully_qualified_resourceFileName))
                 {
@@ -148,7 +163,7 @@ namespace Haley.Utils
                 //At present the resource handling is only dealing with Strings. New features might be added later.
                 ResourceManager resourceManager = new ResourceManager(fully_qualified_resourceFileName, assembly);
                 _newProvider = new ResourceProvider(assembly, resourceManager, TranslationOverride) { Key = _name};
-                _resourceProviders.Add(_newProvider);
+                _resourceProviders.TryAdd(_name, _newProvider);
             }
             return _newProvider;
         }
@@ -160,17 +175,18 @@ namespace Haley.Utils
             UnRegister(assembly);
         }
 
-        public static void UnRegister(Assembly assembly)
+        public static bool UnRegister(Assembly assembly)
         {
             if (assembly != null)
             {
                 var _name = assembly.GetName().Name;
-                var _existingProvider = _resourceProviders.FirstOrDefault(p => p.Source == assembly && p.Key == _name);
-                if (_existingProvider != null)
+                _resourceProviders.TryGetValue(_name, out var _existingProvider);
+                if (_existingProvider != null && _existingProvider.Source == assembly)
                 {
-                    _resourceProviders.Remove(_existingProvider);
+                    return _resourceProviders.TryRemove(_name,out var _removedProvider);
                 }
             }
+            return false;
         }
     }
 }
