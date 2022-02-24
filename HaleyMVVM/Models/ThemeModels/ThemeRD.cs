@@ -5,12 +5,12 @@ using System.Windows;
 
 namespace Haley.Models
 {
-    public class Theme
+    public class ThemeRD
     {
         public Uri Path { get; set; }
         public Uri PreviousThemePath { get; set; }
         public Uri BaseDictionaryPath { get; set; }
-        public Theme(Uri path, Uri previous_path,Uri base_dictionary = null) 
+        public ThemeRD(Uri path, Uri previous_path,Uri base_dictionary = null) 
         {
             Path = path; 
             PreviousThemePath = previous_path;

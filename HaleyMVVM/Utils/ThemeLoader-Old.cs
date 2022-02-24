@@ -12,51 +12,49 @@
 //using Haley.Utils;
 //using System.Windows.Data;
 //using System.Collections.Concurrent;
-//using System.Reflection;
 
 //namespace Haley.Utils
 //{
-//    public class ThemeLoader 
+//    public class ThemeLoader : DependencyObject
 //    {
 //        #region Public Properties
-//        public InternalThemeMode InternalTheme { get; private set; }
-//        public event EventHandler<object> ThemeChanged;
-//        private object _currentTheme;
-//        public object CurrentTheme
-//        {
-//            get { return _currentTheme; }
-//            set 
-//            { 
-//                _currentTheme = value;
-//                ThemeChanged?.Invoke(this, _currentTheme);
-//            }
-//        }
+//        public ThemeMode InternalTheme { get; private set; }
+//        public event EventHandler<Theme> ActiveThemeChanged;
 
 //        #endregion
-//        internal ThemeRD OldTheme { get; private set; }
-//        private ThemeRD activeTheme;
-//        internal ThemeRD ActiveTheme
+
+//        #region ATTRIBUTES
+//        internal Theme OldTheme { get; private set; }
+
+//        private Theme activeTheme;
+
+//        internal Theme ActiveTheme
 //        {
 //            get { return activeTheme; }
 //            private set
 //            {
 //                activeTheme = value;
+//                ActiveThemeChanged?.Invoke(this, activeTheme);
 //            }
 //        }
-//        #region ATTRIBUTES
+
+//        private bool _raise_notification;
+//        private SearchPriority _priority;
+//        private Theme _source_theme;
+//        private DependencyObject _sender;
 //        private IDialogService _ds = new DialogService();
+//        private bool _includeHaley;
+//        private ConcurrentDictionary<string, Theme> _themeDic = new ConcurrentDictionary<string, Theme>();
+
 //        private const string _hw_absolute = "pack://application:,,,/Haley.WPF;component/";
 //        private const string _hm_absolute = "pack://application:,,,/Haley.MVVM;component/";
 //        private const string _hw_relative = "Haley.WPF;component/";
 //        private const string _hm_relative = "Haley.MVVM;component/";
 //        private const string _hw_theme_start = "pack://application:,,,/Haley.WPF;component/Dictionaries/ThemeColors/Theme";
-//        private ConcurrentDictionary<object, List<ThemeInfoWrapper>> _themeDic = new ConcurrentDictionary<object, List<ThemeInfoWrapper>>();
-//        private ConcurrentDictionary<object, InternalThemeMode> _internalThemeDic = new ConcurrentDictionary<object, InternalThemeMode>();
-        
 //        #endregion
 
 //        #region HaleyThemes
-//        private static Uri _hw_RD = new Uri("pack://application:,,,/Haley.WPF;component/Dictionaries/haleyRD.xaml",UriKind.RelativeOrAbsolute);
+//        private static Uri _hw_RD = new Uri("pack://application:,,,/Haley.WPF;component/Dictionaries/haleyRD.xaml", UriKind.RelativeOrAbsolute);
 //        private static Uri _hw_base = new Uri("pack://application:,,,/Haley.WPF;component/Dictionaries/haleyBase.xaml", UriKind.RelativeOrAbsolute);
 //        #endregion
 
@@ -74,16 +72,16 @@
 //        private ThemeLoader() { _getCurrentInternalTheme(); }
 //        #endregion
 
-//        public bool ChangeTheme(ThemeRD newtheme,bool showNotifications = false)
+//        public bool ChangeTheme(Theme newtheme, bool showNotifications = false)
 //        {
-//            return ChangeTheme(null, newtheme, SearchPriority.Application,raise_notification:showNotifications);
+//            return ChangeTheme(null, newtheme, SearchPriority.Application, raise_notification: showNotifications);
 //        }
 
-//        public bool ChangeTheme(DependencyObject sender, ThemeRD newtheme, SearchPriority priority = SearchPriority.Application, bool compare_with_active_theme=true,bool raise_notification =false)
+//        public bool ChangeTheme(DependencyObject sender, Theme newtheme, SearchPriority priority = SearchPriority.Application, bool compare_with_active_theme = true, bool raise_notification = false)
 //        {
 //            return _changeTheme(sender, newtheme, priority, compare_with_active_theme, raise_notification);
 //        }
-//        public bool ChangeInternalTheme(InternalThemeMode mode, bool showNotifications = false)
+//        public bool ChangeInternalTheme(ThemeMode mode, bool showNotifications = false)
 //        {
 //            if (InternalTheme == mode)
 //            {
@@ -97,10 +95,10 @@
 //            var _new_uri = _getInternalURI(mode);
 //            var _old_uri = _getInternalURI(InternalTheme);
 
-//            if (_new_uri == null || _old_uri== null) return false; //Don't proceed if internal uri is not fetchables.
+//            if (_new_uri == null || _old_uri == null) return false; //Don't proceed if internal uri is not fetchables.
 
-//            ThemeRD internal_new_theme = new ThemeRD(_new_uri,_old_uri,_hw_RD) {};
-//            if ( _changeTheme(null, internal_new_theme, SearchPriority.Application, false, false, true,is_internal_call:true))
+//            Theme internal_new_theme = new Theme(_new_uri, _old_uri, _hw_RD) { };
+//            if (_changeTheme(null, internal_new_theme, SearchPriority.Application, false, false, true, is_internal_call: true))
 //            {
 //                InternalTheme = mode;
 //                return true;
@@ -108,12 +106,12 @@
 //            return false;
 //        }
 
-//        public ThemeRD RegisterThemeURI(string key,Uri theme_uri)
+//        public Theme RegisterThemeURI(string key, Uri theme_uri)
 //        {
 //            if (string.IsNullOrWhiteSpace(key)) throw new ArgumentException("Key cannot be empty");
 //            if (!_themeDic.ContainsKey(key))
 //            {
-//                _themeDic.TryAdd(key, new ThemeRD(theme_uri, null));
+//                _themeDic.TryAdd(key, new Theme(theme_uri, null));
 //            }
 //            _themeDic.TryGetValue(key, out var _reslt);
 //            return _reslt;
@@ -125,18 +123,18 @@
 //            return _themeDic.ContainsKey(key);
 //        }
 
-//        public ThemeRD GetTheme(string key)
+//        public Theme GetTheme(string key)
 //        {
 //            if (string.IsNullOrWhiteSpace(key)) return null;
 //            _themeDic.TryGetValue(key, out var _reslt);
 //            return _reslt;
 //        }
 
-//        public bool ChangeThemeByKey(string source_key, string target_key = null,bool showNotifications = false)
+//        public bool ChangeThemeByKey(string source_key, string target_key = null, bool showNotifications = false)
 //        {
 //            if (string.IsNullOrWhiteSpace(source_key)) return false;
 //            if (!_themeDic.ContainsKey(source_key)) return false;
-//            ThemeRD new_theme = null;
+//            Theme new_theme = null;
 //            _themeDic.TryGetValue(source_key, out new_theme);
 //            if (new_theme == null) return false;
 
@@ -147,7 +145,7 @@
 
 //                new_theme.PreviousThemePath = target_theme.Path;
 //            }
-//            return ChangeTheme(new_theme,showNotifications);
+//            return ChangeTheme(new_theme, showNotifications);
 //        }
 
 //        public bool SetStartupTheme(string source_key)
@@ -172,23 +170,23 @@
 //                var theme_URI = _base?.MergedDictionaries?.FirstOrDefault(_md => (_md.Source?.OriginalString.StartsWith(_hw_theme_start)).Value).Source?.OriginalString;
 //                var name_with_ex = theme_URI.Substring(_hw_theme_start.Length);
 //                var name_plain = name_with_ex.Substring(0, name_with_ex.Length - 5);
-//                foreach (var item in Enum.GetValues(typeof(InternalThemeMode)))
+//                foreach (var item in Enum.GetValues(typeof(ThemeMode)))
 //                {
-//                    InternalThemeMode _theme = (InternalThemeMode)item;
+//                    ThemeMode _theme = (ThemeMode)item;
 //                    if (name_plain.Equals(_theme.ToString()))
 //                    {
 //                        InternalTheme = _theme;
 //                        return;
 //                    }
 //                }
-//                InternalTheme = InternalThemeMode.Normal;
+//                InternalTheme = ThemeMode.Normal;
 //            }
 //            catch (Exception)
 //            {
-//                InternalTheme = InternalThemeMode.Normal;
+//                InternalTheme = ThemeMode.Normal;
 //            }
 //        }
-//        private bool _changeTheme(DependencyObject sender, ThemeRD newtheme, SearchPriority priority, bool compare_with_active_theme,bool raise_notification,bool include_haley_dictionaries = false, bool is_internal_call = false)
+//        private bool _changeTheme(DependencyObject sender, Theme newtheme, SearchPriority priority, bool compare_with_active_theme, bool raise_notification, bool include_haley_dictionaries = false, bool is_internal_call = false)
 //        {
 //            //Preliminary verifications
 //            if (newtheme == null || newtheme?.Path == null)
@@ -254,35 +252,35 @@
 //                {
 //                    if (ActiveTheme != null)
 //                    {
-//                        OldTheme = new ThemeRD(ActiveTheme.Path, ActiveTheme.PreviousThemePath, ActiveTheme.BaseDictionaryPath);
+//                        OldTheme = new Theme(ActiveTheme.Path, ActiveTheme.PreviousThemePath, ActiveTheme.BaseDictionaryPath);
 //                    }
 
-//                    var modified_theme = new ThemeRD(newtheme.Path, newtheme.PreviousThemePath, newtheme.BaseDictionaryPath) { };
+//                    var modified_theme = new Theme(newtheme.Path, newtheme.PreviousThemePath, newtheme.BaseDictionaryPath) { };
 
 //                    if (ActiveTheme.Path != modified_theme.Path && ActiveTheme.PreviousThemePath != modified_theme.PreviousThemePath)
 //                    {
 //                        ActiveTheme = modified_theme;
-//                       //This will trigger the change and then the controls subscribed to this will also change their theme. But we will not set again.
+//                        //This will trigger the change and then the controls subscribed to this will also change their theme. But we will not set again.
 //                    }
 //                }
 //                return true;
 //            }
 //            return false;
 //        }
-//        private Uri _getInternalURI(InternalThemeMode mode)
+//        private Uri _getInternalURI(ThemeMode mode)
 //        {
 //            Uri actual = new Uri($@"{_hw_theme_start}{mode.ToString()}.xaml", UriKind.RelativeOrAbsolute);
 //            return actual;
 //        }
-       
+
 //        private bool _isHaleyDictionary(Uri _tocheck)
 //        {
 //            if (_tocheck == null) return false;
 //            if (
 //                 _tocheck.OriginalString.ToLower().StartsWith(_hw_absolute.ToLower()) ||
 //                 _tocheck.OriginalString.ToLower().StartsWith(_hw_relative.ToLower()) ||
-//                 _tocheck.OriginalString.ToLower().StartsWith(_hm_absolute.ToLower())||
-//                 _tocheck.OriginalString.ToLower().StartsWith(_hm_relative.ToLower()) 
+//                 _tocheck.OriginalString.ToLower().StartsWith(_hm_absolute.ToLower()) ||
+//                 _tocheck.OriginalString.ToLower().StartsWith(_hm_relative.ToLower())
 //                )
 //            {
 //                return true;
@@ -435,13 +433,13 @@
 //        }
 //        private bool _changeTheme(ResourceDictionary parent_resource, ResourceDictionary base_dictionary)
 //        {
-//            ThemeTracker tracker = null;
+//            RDTracker tracker = null;
 
 //            var _toplevel_target = parent_resource.MergedDictionaries?.Where(p => p.Source == _source_theme.PreviousThemePath)?.FirstOrDefault(); //Trying to find if theme exists in the parent level itself
 
 //            if (_toplevel_target != null)
 //            {
-//                tracker = new ThemeTracker(parent_resource, new RDTracker(_toplevel_target, null,true), true);
+//                tracker = new RDTracker(parent_resource, new RDTracker(_toplevel_target, null, true), true);
 //            }
 
 //            if (tracker == null)
@@ -449,7 +447,7 @@
 //                //Loop through all the dictionaries of the resources to find out if it has the particular theme
 //                tracker = _getOldTheme(base_dictionary);
 //            }
-            
+
 //            if (tracker == null)
 //            {
 //                //Should we throw error if we are unable to find old theme????
@@ -461,22 +459,22 @@
 
 //            if (_toplevel_target != null) return true; //We do not need to change merged dictionaries.
 
-//            parent_resource.MergedDictionaries.Insert(0, tracker.Resource); //We are adding it first because, next time when we search for themes, it wil be easy for the algorithm to locate theme at first
+//            parent_resource.MergedDictionaries.Insert(0, tracker.resource); //We are adding it first because, next time when we search for themes, it wil be easy for the algorithm to locate theme at first
 //            //Remove the base and add it again
 //            parent_resource.MergedDictionaries.Remove(base_dictionary); //Which is basically the parent of the tracker
 //            return true;
 //        }
-//        private ThemeTracker _getOldTheme(ResourceDictionary target_resource)
+//        private RDTracker _getOldTheme(ResourceDictionary target_resource)
 //        {
 //            //THIS IS BASICALLY A COMPOSITE LEAF OBJECT
-//            ThemeTracker tracker = null;
+//            RDTracker tracker = null;
 //            ResourceDictionary res = null;
 
 //            res = target_resource.MergedDictionaries?.Where(p => p.Source == _source_theme.PreviousThemePath)?.FirstOrDefault(); //Trying to find if old theme exists.
 
 //            if (res != null)
 //            {
-//                tracker = new ThemeTracker(target_resource, new ThemeTracker(res, null, false), true);
+//                tracker = new RDTracker(target_resource, new RDTracker(res, null, false), true);
 //                return tracker;
 //            }
 
@@ -492,85 +490,25 @@
 //                if (_childtracker != null)
 //                {
 //                    //got the first found dictionary.
-//                    tracker = new ThemeTracker(target_resource, _childtracker, false);
+//                    tracker = new RDTracker(target_resource, _childtracker, false);
 //                    //The child of "rd" is the final target. So, this rd is the parent of child tracker.
 //                    return tracker;
 //                }
 //            }
 //            return tracker; //This could even be null.
 //        }
-//        private void _replaceTheme(ref ThemeTracker tracker)
+//        private void _replaceTheme(ref RDTracker tracker)
 //        {
 //            if (!tracker.is_last)
 //            {
-//                var _child = tracker.Child;
+//                var _child = tracker.child;
 //                _replaceTheme(ref _child);
 //            }
 
 //            //When you reach the last value, replace it.
-//            tracker.Resource.MergedDictionaries.Remove(tracker.Child.Resource); //Remove old dictionary
-//            tracker.Resource.MergedDictionaries
-//                .Insert(0,new ResourceDictionary() { Source = _source_theme.Path });
-//        }
-
-//        public bool Register(object key, ThemeInfo value)
-//        {
-//            throw new NotImplementedException();
-//        }
-
-//        public bool Register(object key, ThemeInfo value, Assembly targetAssembly)
-//        {
-//            throw new NotImplementedException();
-//        }
-
-//        public void AttachCallBack(ThemeChangeHandler ChangeCallBack)
-//        {
-//            throw new NotImplementedException();
-//        }
-
-//        public void AttachCallBack(ThemeChangeHandler ChangeCallBack, Assembly targetAssembly)
-//        {
-//            throw new NotImplementedException();
-//        }
-
-//        public bool ChangeTheme(object key, bool showNotifications = false)
-//        {
-//            throw new NotImplementedException();
-//        }
-
-//        public bool ChangeTheme(object sender, object key, SearchPriority priority = default, bool compare_with_active_theme = true, bool showNotifications = false)
-//        {
-//            throw new NotImplementedException();
-//        }
-
-//        public bool IsThemeKeyRegistered(object key)
-//        {
-//            throw new NotImplementedException();
-//        }
-
-//        public List<ThemeInfo> GetThemeInfos(object key)
-//        {
-//            throw new NotImplementedException();
-//        }
-
-//        public bool Initiate(object startup_key)
-//        {
-//            throw new NotImplementedException();
-//        }
-
-//        public void AttachCallBack(ThemeChangeHandler ChangeCallBack, bool callBeforeChange = false)
-//        {
-//            throw new NotImplementedException();
-//        }
-
-//        public void AttachCallBack(ThemeChangeHandler ChangeCallBack, Assembly targetAssembly, bool callBeforeChange = false)
-//        {
-//            throw new NotImplementedException();
-//        }
-
-//        public bool AttachInternalTheme(object key, InternalThemeMode theme)
-//        {
-//            throw new NotImplementedException();
+//            tracker.resource.MergedDictionaries.Remove(tracker.child.resource); //Remove old dictionary
+//            tracker.resource.MergedDictionaries
+//                .Insert(0, new ResourceDictionary() { Source = _source_theme.Path });
 //        }
 //        #endregion
 //    }

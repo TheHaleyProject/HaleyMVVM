@@ -48,4 +48,8 @@ FOR USING HALEY.WPF RESOURCES: When using Haley.WPF, please add the below resour
 A fully functional image utility is added and can be accessed by the static class "ImageUtils". It is helpful for converting images, reducing pixels and size etc.
 
 
+#### Theme Details #####
+
+
+
 
