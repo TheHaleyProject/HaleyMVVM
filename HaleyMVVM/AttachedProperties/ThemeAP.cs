@@ -4,6 +4,7 @@ using Haley.Utils;
 using System.Windows.Data;
 using Haley.Services;
 using System;
+using System.Reflection;
 
 namespace Haley.Models
 {
@@ -33,6 +34,8 @@ namespace Haley.Models
         {
             if (d == null) return; 
             var _themeChangeHandler = GetChangeHandler(d);
+            var _dassembly = d.GetType().Assembly;
+            var _cassembly = Assembly.GetCallingAssembly();
             if (_themeChangeHandler == null)
             {
                 EventHandler<object> handler = (sender, theme) => { ThemeChangeHandler(sender, theme, d); };
@@ -50,6 +53,7 @@ namespace Haley.Models
 
         private static void ThemeChangeHandler(object sender, object e,DependencyObject d)
         {
+            //Sender will be themeservice. (who raises the event).
             object theme = e;
             if (e == null) return; //On first setup, previous theme path will be null. so, we don't have to worry about startup settings.
             if (!GetMonitorChange(d)) return; //We are not monitoring
