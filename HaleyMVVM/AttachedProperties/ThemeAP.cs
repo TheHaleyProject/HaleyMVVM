@@ -57,7 +57,7 @@ namespace Haley.Models
             object theme = e;
             if (e == null) return; //On first setup, previous theme path will be null. so, we don't have to worry about startup settings.
             if (!GetMonitorChange(d)) return; //We are not monitoring
-            var _priority = SearchPriority.FrameworkElement; //We will replace the framework element theme.
+            var _priority = ThemeSearchMode.FrameworkElement; //We will replace the framework element theme.
             ThemeService.Singleton.ChangeTheme(d, e, _priority, false, false);
         }
     }

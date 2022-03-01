@@ -6,12 +6,12 @@ using System.Windows;
 
 namespace Haley.Models
 {
-    public class ExternalThemeInfo :ThemeInfo
+    public class ThemeInfo :ThemeInfoBase
     {
         public Assembly Source { get; set; }
         public ThemeTracker Tracker { get; set; }
         public bool IsTracked { get; set; }
-        public ExternalThemeInfo(string name, Uri path) :base(name,path)
+        public ThemeInfo(string name, Uri path) :base(name,path)
         {
             IsTracked = false;
             Tracker = null;
