@@ -40,21 +40,10 @@ namespace Haley.Services
         #region Attributes
         private object _activeTheme;
         private IDialogService _ds = new DialogService();
-        //private const string _hm_absolute = "pack://application:,,,/Haley.MVVM;component/";
-        //private const string _hm_relative = "Haley.MVVM;component/";
-
-        #region InternalThemeLocations
-        //private const string _hw_absolute = "pack://application:,,,/Haley.WPF;component/";
-        //private const string _hw_relative = "Haley.WPF;component/";
-        //private const string _hw_themePrefix = "pack://application:,,,/Haley.WPF;component/Dictionaries/ThemeColors/Theme";
-        //private static Uri _hw_themeRoot = new Uri("pack://application:,,,/Haley.WPF;component/Dictionaries/haleyRD.xaml", UriKind.RelativeOrAbsolute);
-        //private static Uri _hw_themeParent = new Uri("pack://application:,,,/Haley.WPF;component/Dictionaries/haleyBase.xaml", UriKind.RelativeOrAbsolute);
-        #endregion
 
         #region Dictionaries
-        private ConcurrentDictionary<string, List<ThemeInfo>> _externalThemes = new ConcurrentDictionary<string, List<ThemeInfo>>();
-        private ConcurrentDictionary<Assembly, (ThemeChangeHandler handler, bool beforeChange)> _changeHandlers = new ConcurrentDictionary<Assembly, (ThemeChangeHandler handler, bool beforeChange)>();
-        private ConcurrentDictionary<string, ThemeInfoBase> _globalThemes = new ConcurrentDictionary<string, ThemeInfoBase>();
+        private ConcurrentDictionary<object, List<ThemeInfo>> _externalThemes = new ConcurrentDictionary<object, List<ThemeInfo>>();
+        private ConcurrentDictionary<object, ThemeInfoBase> _globalThemes = new ConcurrentDictionary<object, ThemeInfoBase>();
         #endregion
 
         #endregion
@@ -66,10 +55,6 @@ namespace Haley.Services
             if (Singleton == null) Singleton = new ThemeService();
             return Singleton;
         }
-        public static void Clear()
-        {
-            Singleton = new ThemeService();
-        }
         private ThemeService() 
         { 
             ThrowExceptionsOnFailure = true;
@@ -79,25 +64,6 @@ namespace Haley.Services
         #endregion
 
         #region Registrations
-        public bool AttachCallBack(ThemeChangeHandler ChangeCallBack, bool callBeforeChange = false)
-        {
-            var asmbly = Assembly.GetCallingAssembly();
-            return AttachCallBack(ChangeCallBack, asmbly, callBeforeChange);
-        }
-        public bool AttachCallBack(ThemeChangeHandler ChangeCallBack, Assembly targetAssembly, bool callBeforeChange = false)
-        {
-            if (targetAssembly == null)
-            {
-                throw new ArgumentNullException(nameof(targetAssembly));
-            }
-            if (_changeHandlers.ContainsKey(targetAssembly))
-            {
-                var _msg = $@"Call back for the assembly {targetAssembly.GetName().Name} is already registered. An assembly can have only one call back.";
-                HandleException(_msg);
-                return false;
-            }
-            return _changeHandlers.TryAdd(targetAssembly, (ChangeCallBack, callBeforeChange));
-        }
         public bool AttachInternalTheme(InternalThemeData internal_themedata)
         {
             if (InternalThemes != null)
@@ -119,16 +85,36 @@ namespace Haley.Services
             InternalThemes = internal_themedata;
             return true;
         }
-        public List<ThemeInfoBase> GetThemeInfos(object key)
+        public List<ThemeInfoBase> GetThemeInfos(object key, ThemeDictionary dicType)
         {
             try
             {
-                if (!getKey(key, out var _key)) return null;
+                if (!IsKeyValid(key)) return null;
 
-                if(_externalThemes.ContainsKey(_key))
+                switch (dicType)
                 {
-                    _externalThemes.TryGetValue(_key, out var themeData);
-                    return themeData?.Cast<ThemeInfoBase>()?.ToList();
+                    case ThemeDictionary.Global:
+                        if (_globalThemes.ContainsKey(key))
+                        {
+                            _globalThemes.TryGetValue(key, out var globalThemedata);
+                            return new List<ThemeInfoBase>() { globalThemedata };
+                        }
+                        break;
+                    case ThemeDictionary.External:
+                        if (_externalThemes.ContainsKey(key))
+                        {
+                            _externalThemes.TryGetValue(key, out var themeData);
+                            return themeData?.Cast<ThemeInfoBase>()?.ToList();
+                        }
+                        break;
+                    case ThemeDictionary.Internal:
+                        if (InternalThemes != null && InternalThemes.Themes.ContainsKey(key))
+                        {
+                            InternalThemes.Themes.TryGetValue(key, out var _internalMode);
+                            InternalThemes.InfoDic.TryGetValue(_internalMode, out var internalThemeData);
+                            return new List<ThemeInfoBase>() { internalThemeData };
+                        }
+                        break;
                 }
                 return null;
             }
@@ -137,11 +123,24 @@ namespace Haley.Services
                 return null;
             }
         }
-        public List<string> GetThemes()
+        public List<object> GetThemes(ThemeDictionary dicType)
         {
             try
             {
-               return _externalThemes?.Keys.ToList();
+                switch (dicType)
+                {
+                    case ThemeDictionary.Global:
+                        return _globalThemes?.Keys.ToList();
+                    case ThemeDictionary.External:
+                        return _externalThemes?.Keys.ToList();
+                    case ThemeDictionary.Internal:
+                        if (InternalThemes != null)
+                        {
+                            return InternalThemes?.Themes.Keys.ToList();
+                        }
+                        break;
+                }
+                return null;
             }
             catch (Exception ex)
             {
@@ -163,7 +162,7 @@ namespace Haley.Services
         {
             try
             {
-                if (!getKey(key, out var _key)) return false;
+                if (!IsKeyValid(key)) return false;
                 //The key should be present in any one of the dictionary.
                 bool registered = false;
                 registered = IsThemeKeyRegistered(key, ThemeDictionary.Global);
@@ -180,38 +179,36 @@ namespace Haley.Services
         }
         public bool IsThemeKeyRegistered(object key,ThemeDictionary dicType)
         {
-            if (!getKey(key, out var _key)) return false;
+            if (!IsKeyValid(key)) return false;
             switch (dicType)
             {
                 case ThemeDictionary.Global:
-                    return (_globalThemes.ContainsKey(_key));
+                    return (_globalThemes.ContainsKey(key));
                 case ThemeDictionary.External:
-                    return (_externalThemes.ContainsKey(_key));
+                    return (_externalThemes.ContainsKey(key));
                 case ThemeDictionary.Internal:
                     if (InternalThemes == null || InternalThemes.Themes == null) return false;
                     return (InternalThemes.Themes.ContainsKey(key));
             }
             return false;
         }
-
         public bool RegisterGlobal(object key, ThemeInfoBase value)
         {
-            if (!getKey(key, out var _key)) return false;
+            if (!IsKeyValid(key)) return false;
             if (value == null || !IsThemeInfoValid(value))
             {
                 HandleException("ThemeInfo cannot be null. Path of themeinfo needs a proper value.", nameof(value));
                 return false;
             }
-            if (_globalThemes.ContainsKey(_key))
+            if (_globalThemes.ContainsKey(key))
             {
-                var _msg = $@"A theme is already registered for the key {_key}. Please provide unique values.";
+                var _msg = $@"A theme is already registered for the key {GetKeyString(key)}. Please provide unique values.";
                 HandleException(_msg);
                 return false;
             }
 
-            return _globalThemes.TryAdd(_key, value);
+            return _globalThemes.TryAdd(key, value);
         }
-
         public bool Register(object key, ThemeInfoBase value)
         {
             var asmbly = Assembly.GetCallingAssembly();
@@ -219,7 +216,7 @@ namespace Haley.Services
         }
         public bool Register(object key, ThemeInfoBase value, Assembly targetAssembly)
         {
-            if (!getKey(key, out var _key)) return false;
+            if (!IsKeyValid(key)) return false;
             if (value == null || !IsThemeInfoValid(value))
             {
                 HandleException("ThemeInfo cannot be null. Path of themeinfo needs a proper value.",nameof(value));
@@ -230,12 +227,12 @@ namespace Haley.Services
                 HandleException("targetAssembly cannot be null.", nameof(targetAssembly));
                 return false;
             }
-            if (!_externalThemes.ContainsKey(_key))
+            if (!_externalThemes.ContainsKey(key))
             {
-                _externalThemes.TryAdd(_key, new List<ThemeInfo>());
+                _externalThemes.TryAdd(key, new List<ThemeInfo>());
             }
 
-            _externalThemes.TryGetValue(_key, out var themeData);
+            _externalThemes.TryGetValue(key, out var themeData);
 
             if (themeData == null)
             {
@@ -244,7 +241,7 @@ namespace Haley.Services
 
             if (themeData.Any(p => p.Source == targetAssembly))
             {
-                var _msg = $@"A theme is already registered for the assembly {targetAssembly.GetName().Name} against key {_key}. An assembly should have unique themes for each key.";
+                var _msg = $@"A theme is already registered for the assembly {targetAssembly.GetName().Name} against key {GetKeyString(key)}. An assembly should have unique themes for each key.";
                 HandleException(_msg);
                 return false;
             }
@@ -265,10 +262,10 @@ namespace Haley.Services
         public bool ChangeTheme(object newThemeKey, bool showNotifications = false)
         {
             //This will only change the application level theme change which will also raise the theme changed event at last, which will be consumed by the controls (if they have subscribed to it).
-
+            object oldthemekey = ActiveTheme ?? StartupTheme; //Startup theme is the fall back. If nothing is present, we consider startup theme.
             string _msg = null;
             //Check current theme
-            if (_activeTheme == null)
+            if (oldthemekey == null)
             {
                 _msg = "Startuptheme is null. Use SetStartupTheme method to set the initial starting theme. Based on the startup theme, the new themes can be changed and applied.";
                 HandleException(_msg, "StartupTheme");
@@ -276,34 +273,19 @@ namespace Haley.Services
             }
 
             //Does current theme have a registered info value? (in any dictionary)
-            if (!IsThemeKeyRegistered(_activeTheme))
+            if (!IsThemeKeyRegistered(oldthemekey))
             {
-                _msg = $@"Startuptheme has to be a valid registered key. Current startup theme {_activeTheme.AsString()} is not a valid key value. Please register the themeinfos using this key or provide a valid startup key.";
+                _msg = $@"Startuptheme has to be a valid registered key. Current startup theme {GetKeyString(oldthemekey)} is not a valid key value. Please register the themeinfos using this key or provide a valid startup key.";
                 HandleException(_msg);
                 return false;
             }
             //The sender can never be null. Do remember to send the assembly as the sender.
             var _caller = Assembly.GetCallingAssembly();
-            return ChangeTheme(newThemeKey,ActiveTheme, null,_caller, showNotifications: showNotifications);
+            return ChangeTheme(newThemeKey,oldthemekey, null,_caller, showNotifications: showNotifications);
         }
         public bool ChangeTheme(object newThemeKey, object oldThemeKey, object frameworkElement, Assembly targetAssembly, ThemeSearchMode priority = ThemeSearchMode.Application, bool raiseChangeEvents = true, bool showNotifications = false)
         {
             string _msg = null;
-            //Check current theme
-            if (oldThemeKey == null)
-            {
-                _msg = "Oldtheme key cannot be null. To change a theme, both new and old key values are required.";
-                HandleException(_msg, "OldThemeKey");
-                return false;
-            }
-
-            //Does current theme have a registered info value? (any dictionary)
-            if (!IsThemeKeyRegistered(oldThemeKey))
-            {
-                _msg = $@"OldThemeKey is not valid. It doesn't have any registered value. Key: {oldThemeKey.AsString()} ";
-                HandleException(_msg);
-                return false;
-            }
 
             if (targetAssembly == null)
             {
@@ -312,11 +294,20 @@ namespace Haley.Services
                 return false;
             }
 
-            if (!getKey(newThemeKey, out var _newKey)) return false;
+            if (!IsKeyValid(oldThemeKey)) return false;
+            if (!IsKeyValid(newThemeKey)) return false;
 
-            if (!IsThemeKeyRegistered(_newKey))
+            //Does current theme have a registered info value? (any dictionary)
+            if (!IsThemeKeyRegistered(oldThemeKey))
             {
-                _msg = $@"Key : {_newKey} is not registered in any internal, external or global theme dictionary. Please use a registered key.";
+                _msg = $@"OldThemeKey is not valid. It doesn't have any registered value. Key: {GetKeyString(oldThemeKey)} ";
+                HandleException(_msg);
+                return false;
+            }
+
+            if (!IsThemeKeyRegistered(newThemeKey))
+            {
+                _msg = $@"Key : {GetKeyString(newThemeKey)} is not registered in any internal, external or global theme dictionary. Please use a registered key.";
                 HandleException(_msg, nameof(newThemeKey));
                 return false;
             }
@@ -329,19 +320,25 @@ namespace Haley.Services
                 {
                     if (_ds != null)
                     {
-                        _ds.SendToast("No change", $@"Old theme key and new theme key are same. Nothing to change. Key {_newKey}");
+                        _ds.SendToast("No change", $@"Old theme key and new theme key are same. Nothing to change. Key {GetKeyString(newThemeKey)}");
                         return false;
-
                     }
                 }    
             }
 
             //EACH DLL MIGHT HAVE INTERNAL AND ALSO EXTERNAL THEME IN THEIR MERGED DICTIONARIES.
+            bool themeChanged = false;
+            if(ChangeInternalTheme(newThemeKey,oldThemeKey,frameworkElement,targetAssembly,priority,showNotifications))
+            {
+                themeChanged = true;
+            }
+            
+            if(ChangeExternalTheme(newThemeKey, oldThemeKey, frameworkElement, targetAssembly, priority, showNotifications))
+            {
+                themeChanged = true;
+            }
 
-            ChangeInternalTheme(newThemeKey,oldThemeKey);
-            //Change external theme  
-
-            if (raiseChangeEvents)
+            if (raiseChangeEvents && themeChanged)
             {
                 //Set the new theme.
                 ActiveTheme = newThemeKey; //This will raise event and trigger the other controls to change their own themes.
@@ -357,47 +354,105 @@ namespace Haley.Services
         {
             return (info.Path != null);
         }
+        private bool ChangeExternalTheme(object newThemeKey, object oldThemeKey, object frameworkElement, Assembly targetAssembly, ThemeSearchMode priority, bool showNotifications)
+        {
+            //For an external theme to change, the old and new theme keys should be present (preference to targetassembly and then the global).
+            //Each assembly might have registered it's own version of theme, if not we try to get the global version.
+            //Since we are here at this point, we are sure that the theme is already registered in some dictionary.
 
-        private void ChangeInternalTheme(object newTheme,object oldTheme)
+            ThemeInfoBase oldThemeInfo = null;
+            ThemeInfoBase newThemeInfo = null;
+
+            //PROCESS OLD THEME INFO
+            if (_externalThemes.TryGetValue(oldThemeKey,out var oldInfoList))
+            {
+                oldThemeInfo = oldInfoList.FirstOrDefault(p => p.Source == targetAssembly);
+            }
+
+            if (oldThemeInfo == null)
+            {
+                //Try to check in global.
+                _globalThemes.TryGetValue(oldThemeKey, out oldThemeInfo);
+            }
+
+            if (oldThemeInfo == null)
+            {
+                Debug.WriteLine($@"Info not found for {GetKeyString(oldThemeKey)} in external and global dictionaries.");
+                return false;
+            }
+
+            //PROCESS NEW THEME INFO
+            if (_externalThemes.TryGetValue(newThemeKey, out var newInfoList))
+            {
+                newThemeInfo = newInfoList.FirstOrDefault(p => p.Source == targetAssembly);
+            }
+
+            if (newThemeInfo == null)
+            {
+                //Try to check in global.
+                _globalThemes.TryGetValue(newThemeKey, out newThemeInfo);
+            }
+
+            if (newThemeInfo == null)
+            {
+                Debug.WriteLine($@"Info not found for {GetKeyString(newThemeKey)} in external and global dictionaries.");
+                return false;
+            }
+
+            if (oldThemeInfo.Path == null || newThemeInfo.Path == null)
+            {
+                Debug.WriteLine("For changing the internal theme, the themeinfo Paths should not be null.");
+                return false;
+            }
+
+            if (oldThemeInfo.Path == newThemeInfo.Path)
+            {
+                Debug.WriteLine($@"Internal theme paths are same, Nothing to change.{newThemeInfo.Path}");
+                return false;
+            }
+
+            //Get old theme and the new theme info and change them.
+            ThemeChangeData _changeData = new ThemeChangeData() { OldTheme = oldThemeInfo, NewTheme = newThemeInfo, Priority = priority, Sender = frameworkElement, RaiseNotifications = showNotifications };
+
+            return ChangeTheme(_changeData);
+        }
+        private bool ChangeInternalTheme(object newThemeKey,object oldThemeKey, object frameworkElement, Assembly targetAssembly, ThemeSearchMode priority, bool showNotifications)
         {
             do
             {
-                getKey(newTheme, out var _newthemeKey); //New theme key
-                getKey(oldTheme, out var _oldThemeKey); //Old theme key.
-
                 if (InternalThemes == null)
                 {
                     Debug.WriteLine("Internal themes data is empty.");
                     break;
                 }
-                if (!InternalThemes.Themes.ContainsKey(newTheme))
+                if (!InternalThemes.Themes.ContainsKey(newThemeKey))
                 {
-                    Debug.WriteLine($@"Internal theme settings doesn't have any info associated with the key {_newthemeKey}");
+                    Debug.WriteLine($@"Internal theme settings doesn't have any info associated with the key {GetKeyString(newThemeKey)}");
                     break;
                 }
-                if (!InternalThemes.Themes.ContainsKey(oldTheme))
+                if (!InternalThemes.Themes.ContainsKey(oldThemeKey))
                 {
-                    Debug.WriteLine($@"Internal theme settings doesn't have any info associated with the key {_oldThemeKey}");
+                    Debug.WriteLine($@"Internal theme settings doesn't have any info associated with the key {GetKeyString(oldThemeKey)}");
                     break;
                 }
 
                 //Get Old Info
-                InternalThemes.Themes.TryGetValue(oldTheme, out var oldMode);
+                InternalThemes.Themes.TryGetValue(oldThemeKey, out var oldMode);
                 InternalThemes.InfoDic.TryGetValue(oldMode, out var OldThemeInfo);
 
                 //Get New Info
-                InternalThemes.Themes.TryGetValue(newTheme, out var newMode);
+                InternalThemes.Themes.TryGetValue(newThemeKey, out var newMode);
                 InternalThemes.InfoDic.TryGetValue(newMode, out var NewThemeInfo);
 
                 if (OldThemeInfo == null)
                 {
-                    Debug.WriteLine($@"Themeinfo for the key {_oldThemeKey} is empty. Cannot change anything.");
+                    Debug.WriteLine($@"Themeinfo for the key {GetKeyString(oldThemeKey)} is empty. Cannot change anything.");
                     break;
                 }
 
                 if (NewThemeInfo == null)
                 {
-                    Debug.WriteLine($@"Themeinfo for the key {_newthemeKey} is empty. Cannot change anything.");
+                    Debug.WriteLine($@"Themeinfo for the key {GetKeyString(newThemeKey)} is empty. Cannot change anything.");
                     break;
                 }
 
@@ -409,13 +464,21 @@ namespace Haley.Services
 
                 if (OldThemeInfo.Path == NewThemeInfo.Path)
                 {
-                    Debug.WriteLine("Internal themes are same, Cannot change.");
+                    Debug.WriteLine($@"Internal theme paths are same, Nothing to change.{NewThemeInfo.Path}");
+                    break;
                 }
 
                 //Get old theme and the new theme info and change them.
-                ThemeChangeData _changeData = new ThemeChangeData();
-                _changeData.OldTheme = InternalThemes.InfoDic.TryGetValue(ActiveTheme,)
+                ThemeChangeData _changeData = new ThemeChangeData() {OldTheme = OldThemeInfo,NewTheme = NewThemeInfo,Priority = priority,Sender = frameworkElement,RaiseNotifications = showNotifications };
+
+                return ChangeTheme(_changeData);
+
             } while (false);
+            return false;
+        }
+        private bool ChangeTheme(ThemeChangeData changeData)
+        {
+            return true;
         }
         private void HandleException(string message, string paramName = null,bool forceThrow = false)
         {
@@ -429,77 +492,28 @@ namespace Haley.Services
             }
             Debug.WriteLine(message);
         }
-        private bool getKey(object key, out string keyStr)
+        private bool IsKeyValid(object key)
         {
-            keyStr = null;
             if (key == null)
             {
                 HandleException("The theme key cannot be empty. Please provide a valid key for processing.", nameof(key));
                 return false;
             }
 
-            if (key is string _key_str)
-            {
-                keyStr = _key_str.ToLower();
-            }
-            keyStr =  key.AsString()?.ToLower() ?? key.ToString();
             return true;
         }
-        private bool changeInternalTheme(InternalThemeMode mode, bool showNotifications = false)
+        private string GetKeyString(object key)
         {
-            if (InternalTheme.Value == mode)
+            if (key == null) return null;
+            if (key is string _key_str)
             {
-                if (showNotifications)
-                {
-                    Debug.WriteLine("Same Internal Mode", $@"There is no change in mode. Current mode is {mode.ToString()}");
-                }
-                return false; //We already are at same mode.
+               return _key_str.ToLower();
             }
-
-            if (InternalTheme == null)
-            {
-                return false;
-            }
-
-            var _new_uri = _getInternalURI(mode);
-            var _old_uri = _getInternalURI(InternalTheme.Value);
-
-            if (_new_uri == null || _old_uri == null) return false; //Don't proceed if internal uri is not fetchables.
-            ThemeChangeData _changeData = new ThemeChangeData() {OldTheme =  }
-            ThemeRD internal_new_theme = new ThemeRD(_new_uri, _old_uri, _hw_themeRoot) { };
-            if (_changeTheme(null, internal_new_theme, ThemeSearchMode.Application, false, false, true, is_internal_call: true))
-            {
-                InternalTheme = mode;
-                return true;
-            }
-            return false;
+            return key.AsString()?.ToLower() ?? key.ToString();
         }
-        private void _getCurrentInternalTheme()
-        {
-            //this is just or processing and finding out the mode
-            try
-            {
-                //From Base, we need to get the first theme that matches a pattern
-                ResourceDictionary _base = new ResourceDictionary() { Source = _hw_themeParent };
-                var theme_URI = _base?.MergedDictionaries?.FirstOrDefault(_md => (_md.Source?.OriginalString.StartsWith(_hw_themePrefix)).Value).Source?.OriginalString;
-                var name_with_ex = theme_URI.Substring(_hw_themePrefix.Length);
-                var name_plain = name_with_ex.Substring(0, name_with_ex.Length - 5);
-                foreach (var item in Enum.GetValues(typeof(InternalThemeMode)))
-                {
-                    InternalThemeMode _theme = (InternalThemeMode)item;
-                    if (name_plain.Equals(_theme.ToString()))
-                    {
-                        InternalTheme = _theme;
-                        return;
-                    }
-                }
-                InternalTheme = InternalThemeMode.Normal;
-            }
-            catch (Exception)
-            {
-                InternalTheme = InternalThemeMode.Normal;
-            }
-        }
+        #endregion
+
+        #region Core Implementations
         private bool _changeTheme(DependencyObject sender, ThemeRD newtheme, ThemeSearchMode priority, bool compare_with_active_theme, bool raise_notification, bool include_haley_dictionaries = false, bool is_internal_call = false)
         {
             //Preliminary verifications
@@ -577,25 +591,6 @@ namespace Haley.Services
                         //This will trigger the change and then the controls subscribed to this will also change their theme. But we will not set again.
                     }
                 }
-                return true;
-            }
-            return false;
-        }
-        private Uri _getInternalURI(InternalThemeMode mode)
-        {
-            Uri actual = new Uri($@"{_hw_themePrefix}{mode.ToString()}.xaml", UriKind.RelativeOrAbsolute);
-            return actual;
-        }
-        private bool isHaleyDictionary(Uri _tocheck)
-        {
-            if (_tocheck == null) return false;
-            if (
-                 _tocheck.OriginalString.ToLower().StartsWith(_hw_absolute.ToLower()) ||
-                 _tocheck.OriginalString.ToLower().StartsWith(_hw_relative.ToLower()) ||
-                 _tocheck.OriginalString.ToLower().StartsWith(_hm_absolute.ToLower()) ||
-                 _tocheck.OriginalString.ToLower().StartsWith(_hm_relative.ToLower())
-                )
-            {
                 return true;
             }
             return false;
@@ -823,6 +818,7 @@ namespace Haley.Services
             tracker.Resource.MergedDictionaries
                 .Insert(0, new ResourceDictionary() { Source = _source_theme.Path });
         }
+
         #endregion
     }
 }

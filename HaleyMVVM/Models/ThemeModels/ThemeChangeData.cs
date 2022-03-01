@@ -13,6 +13,5 @@ namespace Haley.Models
         public bool RaiseNotifications { get; set; }
         public object Sender { get; set; }
         public ThemeSearchMode Priority { get; set; }
-        public bool IgnoreInternalTheme { get; set; }
     }
 }
