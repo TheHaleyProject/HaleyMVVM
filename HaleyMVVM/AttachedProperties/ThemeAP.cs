@@ -10,13 +10,13 @@ namespace Haley.Models
 {
     public static class ThemeAP
     {
-        private static EventHandler<object> GetChangeHandler(DependencyObject obj)
+        private static EventHandler<(object newTheme, object oldTheme)> GetChangeHandler(DependencyObject obj)
         {
-            return (EventHandler<object>)obj.GetValue(ChangeHandlerProperty);
+            return (EventHandler<(object newTheme, object oldTheme)>)obj.GetValue(ChangeHandlerProperty);
         }
 
         private static readonly DependencyProperty ChangeHandlerProperty =
-            DependencyProperty.RegisterAttached("ChangeHandler", typeof(EventHandler<object>), typeof(ThemeAP), new PropertyMetadata(null));
+            DependencyProperty.RegisterAttached("ChangeHandler", typeof(EventHandler<(object newTheme, object oldTheme)>), typeof(ThemeAP), new PropertyMetadata(null));
 
         public static bool GetMonitorChange(DependencyObject obj)
         {
@@ -38,7 +38,7 @@ namespace Haley.Models
             var _cassembly = Assembly.GetCallingAssembly();
             if (_themeChangeHandler == null)
             {
-                EventHandler<object> handler = (sender, theme) => { ThemeChangeHandler(sender, theme, d); };
+                EventHandler<(object newTheme, object oldTheme)> handler = (sender, themeTuple) => { ThemeChangeHandler(sender, themeTuple, d,_cassembly); };
                 d.SetCurrentValue(ChangeHandlerProperty, handler);
                 _themeChangeHandler = handler;
             }
@@ -49,16 +49,24 @@ namespace Haley.Models
             {
                 ThemeService.Singleton.ThemeChanged += _themeChangeHandler;
             }
+
+            //Handle late join
+            //if the startuptheme and active theme are not same, then we have a change (even though there is no trigger).
+            var _startupTheme = ThemeService.Singleton.StartupTheme;
+            var _activeTheme = ThemeService.Singleton.ActiveTheme;
+            if (_startupTheme != null && _activeTheme != null && (_startupTheme != _activeTheme))
+            {
+                //Themes has changed.
+                ThemeService.Singleton.ChangeTheme(_startupTheme, _activeTheme, d, _cassembly, ThemeSearchMode.FrameworkElement, false, false);
+            }
         }
 
-        private static void ThemeChangeHandler(object sender, object e,DependencyObject d)
+        private static void ThemeChangeHandler(object sender, (object newTheme, object oldTheme) e, DependencyObject d,Assembly asmbly)
         {
             //Sender will be themeservice. (who raises the event).
-            object theme = e;
-            if (e == null) return; //On first setup, previous theme path will be null. so, we don't have to worry about startup settings.
+            if (e.newTheme == null || e.oldTheme == null) return; //On first setup, previous theme path will be null. so, we don't have to worry about startup settings.
             if (!GetMonitorChange(d)) return; //We are not monitoring
-            var _priority = ThemeSearchMode.FrameworkElement; //We will replace the framework element theme.
-            ThemeService.Singleton.ChangeTheme(d, e, _priority, false, false);
+            ThemeService.Singleton.ChangeTheme(e.newTheme, e.oldTheme, d, asmbly, ThemeSearchMode.FrameworkElement, false, false);
         }
     }
 }

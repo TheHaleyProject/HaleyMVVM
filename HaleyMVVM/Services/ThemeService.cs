@@ -34,6 +34,7 @@ namespace Haley.Services
             }
         }
         public bool ThrowExceptionsOnFailure { get; set; }
+        public bool EnableTrackerCache { get; set; }
         public InternalThemeData InternalThemes { get; private set; }
         #endregion
 
@@ -42,8 +43,8 @@ namespace Haley.Services
         private IDialogService _ds = new DialogService();
 
         #region Dictionaries
-        private ConcurrentDictionary<object, List<ThemeInfo>> _externalThemes = new ConcurrentDictionary<object, List<ThemeInfo>>();
-        private ConcurrentDictionary<object, ThemeInfoBase> _globalThemes = new ConcurrentDictionary<object, ThemeInfoBase>();
+        private ConcurrentDictionary<object, List<ThemeInfoEx>> _externalThemes = new ConcurrentDictionary<object, List<ThemeInfoEx>>();
+        private ConcurrentDictionary<object, ThemeInfo> _globalThemes = new ConcurrentDictionary<object, ThemeInfo>();
         #endregion
 
         #endregion
@@ -58,6 +59,7 @@ namespace Haley.Services
         private ThemeService() 
         { 
             ThrowExceptionsOnFailure = true;
+            EnableTrackerCache = true;
             StartupTheme = null;
             ActiveTheme = null; 
         }
@@ -85,7 +87,7 @@ namespace Haley.Services
             InternalThemes = internal_themedata;
             return true;
         }
-        public List<ThemeInfoBase> GetThemeInfos(object key, ThemeDictionary dicType)
+        public List<ThemeInfo> GetThemeInfos(object key, ThemeDictionary dicType)
         {
             try
             {
@@ -97,14 +99,14 @@ namespace Haley.Services
                         if (_globalThemes.ContainsKey(key))
                         {
                             _globalThemes.TryGetValue(key, out var globalThemedata);
-                            return new List<ThemeInfoBase>() { globalThemedata };
+                            return new List<ThemeInfo>() { globalThemedata };
                         }
                         break;
                     case ThemeDictionary.External:
                         if (_externalThemes.ContainsKey(key))
                         {
                             _externalThemes.TryGetValue(key, out var themeData);
-                            return themeData?.Cast<ThemeInfoBase>()?.ToList();
+                            return themeData?.Cast<ThemeInfo>()?.ToList();
                         }
                         break;
                     case ThemeDictionary.Internal:
@@ -112,7 +114,7 @@ namespace Haley.Services
                         {
                             InternalThemes.Themes.TryGetValue(key, out var _internalMode);
                             InternalThemes.InfoDic.TryGetValue(_internalMode, out var internalThemeData);
-                            return new List<ThemeInfoBase>() { internalThemeData };
+                            return new List<ThemeInfo>() { internalThemeData };
                         }
                         break;
                 }
@@ -192,7 +194,7 @@ namespace Haley.Services
             }
             return false;
         }
-        public bool RegisterGlobal(object key, ThemeInfoBase value)
+        public bool RegisterGlobal(object key, ThemeInfo value)
         {
             if (!IsKeyValid(key)) return false;
             if (value == null || !IsThemeInfoValid(value))
@@ -209,12 +211,12 @@ namespace Haley.Services
 
             return _globalThemes.TryAdd(key, value);
         }
-        public bool Register(object key, ThemeInfoBase value)
+        public bool Register(object key, ThemeInfo value)
         {
             var asmbly = Assembly.GetCallingAssembly();
             return Register(key, value, asmbly);
         }
-        public bool Register(object key, ThemeInfoBase value, Assembly targetAssembly)
+        public bool Register(object key, ThemeInfo value, Assembly targetAssembly)
         {
             if (!IsKeyValid(key)) return false;
             if (value == null || !IsThemeInfoValid(value))
@@ -229,24 +231,24 @@ namespace Haley.Services
             }
             if (!_externalThemes.ContainsKey(key))
             {
-                _externalThemes.TryAdd(key, new List<ThemeInfo>());
+                _externalThemes.TryAdd(key, new List<ThemeInfoEx>());
             }
 
             _externalThemes.TryGetValue(key, out var themeData);
 
             if (themeData == null)
             {
-                themeData = new List<ThemeInfo>();
+                themeData = new List<ThemeInfoEx>();
             }
 
-            if (themeData.Any(p => p.Source == targetAssembly))
+            if (themeData.Any(p => p.SourceAssembly == targetAssembly))
             {
                 var _msg = $@"A theme is already registered for the assembly {targetAssembly.GetName().Name} against key {GetKeyString(key)}. An assembly should have unique themes for each key.";
                 HandleException(_msg);
                 return false;
             }
 
-            themeData.Add(new ThemeInfo(value.Name, value.Path) { Source = targetAssembly });
+            themeData.Add(new ThemeInfoEx(value.Name, value.Path) { SourceAssembly = targetAssembly });
 
             return true;
         }
@@ -283,7 +285,7 @@ namespace Haley.Services
             var _caller = Assembly.GetCallingAssembly();
             return ChangeTheme(newThemeKey,oldthemekey, null,_caller, showNotifications: showNotifications);
         }
-        public bool ChangeTheme(object newThemeKey, object oldThemeKey, object frameworkElement, Assembly targetAssembly, ThemeSearchMode priority = ThemeSearchMode.Application, bool raiseChangeEvents = true, bool showNotifications = false)
+        public bool ChangeTheme(object newThemeKey, object oldThemeKey, object frameworkElement, Assembly targetAssembly, ThemeSearchMode searchMode = ThemeSearchMode.Application, bool raiseChangeEvents = true, bool showNotifications = false)
         {
             string _msg = null;
 
@@ -328,12 +330,12 @@ namespace Haley.Services
 
             //EACH DLL MIGHT HAVE INTERNAL AND ALSO EXTERNAL THEME IN THEIR MERGED DICTIONARIES.
             bool themeChanged = false;
-            if(ChangeInternalTheme(newThemeKey,oldThemeKey,frameworkElement,targetAssembly,priority,showNotifications))
+            if(ChangeInternalTheme(newThemeKey,oldThemeKey,frameworkElement,targetAssembly,searchMode,showNotifications))
             {
                 themeChanged = true;
             }
             
-            if(ChangeExternalTheme(newThemeKey, oldThemeKey, frameworkElement, targetAssembly, priority, showNotifications))
+            if(ChangeExternalTheme(newThemeKey, oldThemeKey, frameworkElement, targetAssembly, searchMode, showNotifications))
             {
                 themeChanged = true;
             }
@@ -350,23 +352,23 @@ namespace Haley.Services
         #endregion
 
         #region Helpers
-        private bool IsThemeInfoValid(ThemeInfoBase info)
+        private bool IsThemeInfoValid(ThemeInfo info)
         {
             return (info.Path != null);
         }
-        private bool ChangeExternalTheme(object newThemeKey, object oldThemeKey, object frameworkElement, Assembly targetAssembly, ThemeSearchMode priority, bool showNotifications)
+        private bool ChangeExternalTheme(object newThemeKey, object oldThemeKey, object frameworkElement, Assembly targetAssembly, ThemeSearchMode searchMode, bool showNotifications)
         {
             //For an external theme to change, the old and new theme keys should be present (preference to targetassembly and then the global).
             //Each assembly might have registered it's own version of theme, if not we try to get the global version.
             //Since we are here at this point, we are sure that the theme is already registered in some dictionary.
 
-            ThemeInfoBase oldThemeInfo = null;
-            ThemeInfoBase newThemeInfo = null;
+            ThemeInfo oldThemeInfo = null;
+            ThemeInfo newThemeInfo = null;
 
             //PROCESS OLD THEME INFO
             if (_externalThemes.TryGetValue(oldThemeKey,out var oldInfoList))
             {
-                oldThemeInfo = oldInfoList.FirstOrDefault(p => p.Source == targetAssembly);
+                oldThemeInfo = oldInfoList.FirstOrDefault(p => p.SourceAssembly == targetAssembly);
             }
 
             if (oldThemeInfo == null)
@@ -384,7 +386,7 @@ namespace Haley.Services
             //PROCESS NEW THEME INFO
             if (_externalThemes.TryGetValue(newThemeKey, out var newInfoList))
             {
-                newThemeInfo = newInfoList.FirstOrDefault(p => p.Source == targetAssembly);
+                newThemeInfo = newInfoList.FirstOrDefault(p => p.SourceAssembly == targetAssembly);
             }
 
             if (newThemeInfo == null)
@@ -412,11 +414,11 @@ namespace Haley.Services
             }
 
             //Get old theme and the new theme info and change them.
-            ThemeChangeData _changeData = new ThemeChangeData() { OldTheme = oldThemeInfo, NewTheme = newThemeInfo, Priority = priority, Sender = frameworkElement, RaiseNotifications = showNotifications };
+            ThemeChangeData _changeData = new ThemeChangeData() { OldTheme = oldThemeInfo, NewTheme = newThemeInfo, SearchMode = searchMode, Sender = frameworkElement, RaiseNotifications = showNotifications ,Themekey = newThemeKey};
 
-            return ChangeTheme(_changeData);
+            return changeTheme(_changeData);
         }
-        private bool ChangeInternalTheme(object newThemeKey,object oldThemeKey, object frameworkElement, Assembly targetAssembly, ThemeSearchMode priority, bool showNotifications)
+        private bool ChangeInternalTheme(object newThemeKey,object oldThemeKey, object frameworkElement, Assembly targetAssembly, ThemeSearchMode searchMode, bool showNotifications)
         {
             do
             {
@@ -469,17 +471,14 @@ namespace Haley.Services
                 }
 
                 //Get old theme and the new theme info and change them.
-                ThemeChangeData _changeData = new ThemeChangeData() {OldTheme = OldThemeInfo,NewTheme = NewThemeInfo,Priority = priority,Sender = frameworkElement,RaiseNotifications = showNotifications };
+                ThemeChangeData _changeData = new ThemeChangeData() {OldTheme = OldThemeInfo,NewTheme = NewThemeInfo,SearchMode = searchMode,Sender = frameworkElement,RaiseNotifications = showNotifications, Themekey = newThemeKey };
 
-                return ChangeTheme(_changeData);
+                return changeTheme(_changeData);
 
             } while (false);
             return false;
         }
-        private bool ChangeTheme(ThemeChangeData changeData)
-        {
-            return true;
-        }
+       
         private void HandleException(string message, string paramName = null,bool forceThrow = false)
         {
             if (ThrowExceptionsOnFailure || forceThrow)
@@ -514,311 +513,174 @@ namespace Haley.Services
         #endregion
 
         #region Core Implementations
-        private bool _changeTheme(DependencyObject sender, ThemeRD newtheme, ThemeSearchMode priority, bool compare_with_active_theme, bool raise_notification, bool include_haley_dictionaries = false, bool is_internal_call = false)
-        {
-            //Preliminary verifications
-            if (newtheme == null || newtheme?.Path == null)
-            {
-                if (raise_notification)
-                {
-                    _ds.SendToast("Error", $@"The URI path for locating the theme  Dictionary is required.", NotificationIcon.Warning);
-                }
-                return false;
-            }
-
-            if (newtheme.PreviousThemePath == null)
-            {
-                //if active theme path is null, try to get it from the active theme property.
-                if (ActiveTheme == null)
-                {
-                    if (raise_notification)
-                    {
-                        _ds.SendToast("Error", $@"Active theme is null. Please set StartupTheme or provide PreviousThemePath value to replace.", NotificationIcon.Warning);
-                    }
-                    return false;
-                }
-
-                newtheme.PreviousThemePath = ActiveTheme.Path;
-            }
-            //COMPARE WITH ACTUAL OLD THEME
-            if (ActiveTheme != null && compare_with_active_theme)
-            {
-                //Basically, old theme's new uri is the actual value. So, actual value and newtheme's new value should not be equal.
-                //If we try to set the same theme again, do not respond.
-                if (ActiveTheme.Path == newtheme.Path)
-                {
-                    if (raise_notification)
-                    {
-                        _ds.SendToast("Conflict", $@"The theme ""{newtheme.Path}"" is the current theme. Nothing to change. Please check", NotificationIcon.Warning);
-                    }
-                    return false;
-                }
-            }
-
-            //COMPARE WITH USER PROVIDED REPLACE THEME
-            //if old and new theme are same, don't do anything.
-            if (newtheme.Path.Equals(newtheme.PreviousThemePath))
-            {
-                if (raise_notification)
-                {
-                    _ds.Warning("Conflict", $@"The both ActiveThemePath and New Theme path are same. Nothing to change. Please check");
-                }
-                return false;
-            }
-
-            //SET ATTRIBUTES ONLY AFTER ABOVE VALIDATIONS.
-            _raise_notification = raise_notification; //May change each time.
-            _priority = priority;
-            _source_theme = newtheme;
-            _sender = sender;
-            _includeHaley = include_haley_dictionaries;
-
-            if (_changeTheme())
-            {
-                //If we are changing for Haley Internal, we do not change other values
-                if (!is_internal_call)
-                {
-                    if (ActiveTheme != null)
-                    {
-                        OldTheme = new ThemeRD(ActiveTheme.Path, ActiveTheme.PreviousThemePath, ActiveTheme.BaseDictionaryPath);
-                    }
-
-                    var modified_theme = new ThemeRD(newtheme.Path, newtheme.PreviousThemePath, newtheme.BaseDictionaryPath) { };
-
-                    if (ActiveTheme.Path != modified_theme.Path && ActiveTheme.PreviousThemePath != modified_theme.PreviousThemePath)
-                    {
-                        ActiveTheme = modified_theme;
-                        //This will trigger the change and then the controls subscribed to this will also change their theme. But we will not set again.
-                    }
-                }
-                return true;
-            }
-            return false;
-        }
-        private bool _changeTheme()
+        private bool changeTheme(ThemeChangeData changeData)
         {
             try
             {
-                if (_sender == null)
+                if (changeData.Sender == null && changeData.SearchMode == ThemeSearchMode.FrameworkElement)
                 {
-                    //We cannot get Frameworkelement resources.
-                    //So, reset the priroity whatever it was before.
-                    _priority = ThemeSearchMode.Application;
-                }
-                List<ResourceDictionary> _resources = new List<ResourceDictionary>();
+                    var _msg = "The (sender) framework element is null. But the search mode is for frameworke element. Cannot change proceed further.";
+                    //We cannot get Frameworkelement resources since it is null, do not change anything. return.
+                    Debug.WriteLine(_msg);
 
-                var _elementResources = _getParentResource(ThemeSearchMode.FrameworkElement);
-                var _applicationResources = _getParentResource(ThemeSearchMode.Application);
-
-                //Now based on the search priority, we get the resources list and to a list
-                switch (_priority)
-                {
-                    case ThemeSearchMode.FrameworkElement:
-                        //First we check the framework element  resources. If we are not able to locate the resource, we move to application level element
-                        _resources.Add(_elementResources); //First Prio
-                        _resources.Add(_applicationResources); //Second Prio
-                        break;
-                    case ThemeSearchMode.Application:
-                    default:
-                        //First we check the application resources. If we are not able to locate the resource, we move to framework element level resources
-                        _resources.Add(_applicationResources); //First Prio
-                        _resources.Add(_elementResources); //Second Prio
-
-                        break;
-                }
-
-                bool _flag = false; //Assuming we did not find and replace theme.
-
-                foreach (var _res in _resources)
-                {
-                    if (_res == null) continue;
-                    if (!_includeHaley && _res.Source != null) //Application level and Framework Element level might not have a source
+                    if (changeData.RaiseNotifications)
                     {
-                        if (isHaleyDictionary(_res.Source)) continue; //Skipping haley dictionaries
-                    }
-                    if (_findAndReplace(_res))
-                    {
-                        if (_priority == ThemeSearchMode.All)
-                        {
-                            _flag = true; //Reason why we set flag for searchpriority both is that, when we find and replace value in one type (say Application) but we do not find in another (say Framework element), still the end result is positive because we have already replaced in one level.
-                            continue;
-                        }
-                        else
-                        {
-                            //In case we do not have priority set to both and we managed to find and replace , then we need not proceed further. We just break here.
-                            //In case of failure or searchpriroity to both, we proceed further.
-                            return true;
-                        }
+                        _ds?.SendToast("Null frameworkelement", _msg);
+                        return false;
                     }
                 }
-                return _flag;
 
+                //There is a possiblity the changeData could already have a ThemeTracker value.
+
+                var _rootDictionary = getRootDictionary(changeData.SearchMode, changeData.Sender);
+
+                return findAndReplace(_rootDictionary,changeData);
             }
             catch (Exception ex)
             {
-                if (_raise_notification)
+                if (changeData.RaiseNotifications)
                 {
                     _ds.Error("Error", ex.ToString());
                 }
                 return false;
             }
         }
-        private bool _findAndReplace(ResourceDictionary parent_resource)
+        private bool findAndReplace(ResourceDictionary rootDictionary, ThemeChangeData changeData)
         {
-            if (parent_resource == null) return false; //Sometimes when the object is getting loaded, the RD might not have been loaded and it might result in null
+            if (rootDictionary == null) return false; //Sometimes when the object is getting loaded, the RD might not have been loaded and it might result in null
 
-            List<ResourceDictionary> merged_dictionaries = new List<ResourceDictionary>();
-            //If we have a specific base dictionary, then it is easy for us. We directly try to find that dictionary. If not, we search all dictionaries.
-            if (_source_theme.BaseDictionaryPath != null)
+            if (rootDictionary.MergedDictionaries == null || rootDictionary.MergedDictionaries.Count == 0) return false;
+
+            ThemeTracker tracker = null;
+
+            if (changeData.OldTheme is ThemeInfoEx oldThemeEx)
             {
-                var base_res = _getBaseDictionary(parent_resource);
-                if (base_res != null)
+                //For global themes we will not have the tracking option.
+                if ( oldThemeEx.IsTracked && EnableTrackerCache)
                 {
-                    merged_dictionaries.Add(base_res);
+                    //Meaning,we know the hierarchy. We already have a ThemeTracker. Use it to check and replace.
+                    tracker = oldThemeEx.Tracker;
                 }
             }
 
-            //We check the merged dics count and based on that decide whether we need to search all dics or not.
-            if (merged_dictionaries.Count == 0)
+            if (tracker== null)
             {
-                if (parent_resource.MergedDictionaries != null)
+                tracker = new ThemeTracker() { Parent = null };
+                if (!getTracker(rootDictionary, changeData.OldTheme.Path, ref tracker)) return false;
+            }
+            
+            //We got a tracker.
+            if (!replaceTheme(ref tracker, changeData)) return false;
+            //If we manage to successfully replace the last child (or the target), we also need to replace the root.
+            if (tracker.Child?.RD != null)
+            {
+                var _rootbaseDic = rootDictionary.MergedDictionaries.FirstOrDefault(p => p.Source == tracker.Child.RD.Source);
+
+                rootDictionary.MergedDictionaries.Insert(0, tracker.Child.RD);
+                rootDictionary.MergedDictionaries.Remove(_rootbaseDic);
+            }
+
+            if (EnableTrackerCache)
+            {
+                //Since it is successfull, Set this tracker, so that we don't search again and again.
+                if (changeData.NewTheme is ThemeInfoEx newThemeEx)
                 {
-                    merged_dictionaries = parent_resource.MergedDictionaries?.ToList();
+                    var _themeId = newThemeEx.Id;
+                    if (newThemeEx.StoredDB == ThemeDictionary.External)
+                    {
+                        _externalThemes.TryGetValue(changeData.Themekey, out var infoList);
+                        var _target = infoList.FirstOrDefault(p => p.Id == newThemeEx.Id);
+                        if (_target != null)
+                        {
+                            _target.IsTracked = true;
+                            _target.Tracker = tracker;
+                        }
+                    }
                 }
             }
 
-            //Even after this if the merged dictionaries count is zero, we just drop further checking
-            if (merged_dictionaries.Count == 0) return false;
-
-            foreach (var _res_dic in merged_dictionaries)
-            {
-                if (!_includeHaley && _res_dic.Source != null)
-                {
-                    if (isHaleyDictionary(_res_dic.Source)) continue; //Skipping haley dictionaries
-                }
-                //try to find and change theme in each dictionary. if we hit positive, we just ignore rest.
-                if (_changeTheme(parent_resource, _res_dic))
-                {
-                    //WE BASICALLY ALTER THE LIST BY ADDING NEW VALUE AND REMOVING EXISTING. SO, AFTER THIS POINT IF WE TRY TO CONTINUE, IT WILL THROW EXCEPTION.
-                    return true;
-                }
-            }
-            return false;
+         return true;
         }
-        private ResourceDictionary _getParentResource(ThemeSearchMode searchType)
+        private ResourceDictionary getRootDictionary(ThemeSearchMode searchType,object sender)
         {
             //We expect either FrameWorkElement or Application
             ResourceDictionary resource = null;
             if (searchType == ThemeSearchMode.FrameworkElement)
             {
-                if (_sender != null)
+                if (sender != null)
                 {
-                    resource = ((FrameworkElement)_sender).Resources;
+                    resource = ((FrameworkElement)sender).Resources;
                 }
             }
             else
             {
                 if (Application.Current != null)
                 {
-                    resource = Application.Current?.Resources;
+                    resource = Application.Current.Resources;
                 }
             }
 
             return resource;
         }
-        private ResourceDictionary _getBaseDictionary(ResourceDictionary parent_resource)
-        {
-            ResourceDictionary base_dic = null;
-            //We should first validate that basedictionary uri is not empty already before calling this method. However, for safer side, checking again
-            if (_source_theme.BaseDictionaryPath == null) return null;
-            #region BestOptimum Code
-            //Base dictionary processing
-            base_dic = parent_resource.MergedDictionaries
-                ?.Where(p => p.Source == _source_theme.BaseDictionaryPath)?.FirstOrDefault();
 
-            return base_dic;
-            #endregion
+        private bool getTracker(ResourceDictionary rootDic, Uri oldThemeURI, ref ThemeTracker tracker)
+        {
+            //Our goal is to find which resource dictionary ends with old theme uri.
+            tracker.RD = rootDic;
+            ThemeTracker childTracker = new ThemeTracker();
+            childTracker.Parent = tracker; //this is the child's parent.
+
+            //Check if child direclty matches?
+           if (rootDic.Source != null && rootDic.Source == oldThemeURI)
+            {
+                //Found matching uri.
+                tracker.IsTarget = true;
+                return true;
+            }
+
+            //Check if any of the merged dictionaries of the child matches.
+            var matchFound = rootDic.MergedDictionaries.FirstOrDefault(p => p.Source != null && p.Source == oldThemeURI);
+            if (matchFound != null)
+            {
+                childTracker.RD = matchFound;
+                childTracker.IsTarget = true;
+                tracker.Child = childTracker;
+                return true;
+            }
+
+            //Loop through each of the merged dictionaries.
+            foreach (var rDic in rootDic.MergedDictionaries)
+            {
+                if(getTracker(rDic, oldThemeURI, ref childTracker))
+                {
+                    //If we manage the get the value.
+                    tracker.Child = childTracker;
+                    return true;
+                }
+            }
+
+            return false;
         }
-        private bool _changeTheme(ResourceDictionary parent_resource, ResourceDictionary base_dictionary)
+
+        private bool replaceTheme(ref ThemeTracker tracker,ThemeChangeData changeData)
         {
-            ThemeTracker tracker = null;
+            if (tracker == null) return false;
 
-            var _toplevel_target = parent_resource.MergedDictionaries?.Where(p => p.Source == _source_theme.PreviousThemePath)?.FirstOrDefault(); //Trying to find if theme exists in the parent level itself
-
-            if (_toplevel_target != null)
+            if (!tracker.IsTarget)
             {
-                tracker = new ThemeTracker(parent_resource, new RDTracker(_toplevel_target, null, true), true);
+                //Go down the tree
+                var child = tracker.Child;
+                replaceTheme(ref child,changeData);
             }
 
-            if (tracker == null)
-            {
-                //Loop through all the dictionaries of the resources to find out if it has the particular theme
-                tracker = _getOldTheme(base_dictionary);
-            }
+            //When you reach the target, check if the parent contains, the old theme and remove it.
 
-            if (tracker == null)
-            {
-                //Should we throw error if we are unable to find old theme????
-                //throw new ArgumentException($@"Unable to find the old theme {themeName_to_replace} for replacement");
-                return false;
-            }
+            var _oldRD = tracker.Parent?.RD.MergedDictionaries.FirstOrDefault(p => p.Source == changeData.OldTheme.Path);
 
-            _replaceTheme(ref tracker);
-
-            if (_toplevel_target != null) return true; //We do not need to change merged dictionaries.
-
-            parent_resource.MergedDictionaries.Insert(0, tracker.Resource); //We are adding it first because, next time when we search for themes, it wil be easy for the algorithm to locate theme at first
-            //Remove the base and add it again
-            parent_resource.MergedDictionaries.Remove(base_dictionary); //Which is basically the parent of the tracker
+            tracker.Parent?.RD.MergedDictionaries.Remove(_oldRD); //Do not remove directly using the tracker as it could contain the cached values (which would have been old). We only use the cache for traversing the tree.
+            tracker.Parent?.RD.MergedDictionaries.Insert(0, new ResourceDictionary() { Source = changeData.NewTheme.Path });
             return true;
         }
-        private ThemeTracker _getOldTheme(ResourceDictionary target_resource)
-        {
-            //THIS IS BASICALLY A COMPOSITE LEAF OBJECT
-            ThemeTracker tracker = null;
-            ResourceDictionary res = null;
-
-            res = target_resource.MergedDictionaries?.Where(p => p.Source == _source_theme.PreviousThemePath)?.FirstOrDefault(); //Trying to find if old theme exists.
-
-            if (res != null)
-            {
-                tracker = new ThemeTracker(target_resource, new ThemeTracker(res, null, false), true);
-                return tracker;
-            }
-
-            //Else, loop through all the merged dictionaries and try to find the child.
-            foreach (var rd in target_resource.MergedDictionaries)
-            {
-                if (!_includeHaley && rd.Source != null)
-                {
-                    if (isHaleyDictionary(rd.Source)) continue; //Skipping haley dictionaries
-                }
-
-                var _childtracker = _getOldTheme(rd);
-                if (_childtracker != null)
-                {
-                    //got the first found dictionary.
-                    tracker = new ThemeTracker(target_resource, _childtracker, false);
-                    //The child of "rd" is the final target. So, this rd is the parent of child tracker.
-                    return tracker;
-                }
-            }
-            return tracker; //This could even be null.
-        }
-        private void _replaceTheme(ref ThemeTracker tracker)
-        {
-            if (!tracker.is_last)
-            {
-                var _child = tracker.Child;
-                _replaceTheme(ref _child);
-            }
-
-            //When you reach the last value, replace it.
-            tracker.Resource.MergedDictionaries.Remove(tracker.Child.Resource); //Remove old dictionary
-            tracker.Resource.MergedDictionaries
-                .Insert(0, new ResourceDictionary() { Source = _source_theme.Path });
-        }
-
         #endregion
     }
 }

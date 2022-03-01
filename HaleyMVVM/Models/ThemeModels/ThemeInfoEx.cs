@@ -3,15 +3,17 @@ using System.Collections.Generic;
 using System.Text;
 using System.Reflection;
 using System.Windows;
+using Haley.Enums;
 
 namespace Haley.Models
 {
-    public class ThemeInfo :ThemeInfoBase
+    public class ThemeInfoEx :ThemeInfo
     {
-        public Assembly Source { get; set; }
+        public Assembly SourceAssembly { get; set; }
         public ThemeTracker Tracker { get; set; }
+        public ThemeDictionary StoredDB { get; set; }
         public bool IsTracked { get; set; }
-        public ThemeInfo(string name, Uri path) :base(name,path)
+        public ThemeInfoEx(string name, Uri path) :base(name,path)
         {
             IsTracked = false;
             Tracker = null;
