@@ -38,7 +38,7 @@ namespace Haley.Services
         #endregion
 
         #region Attributes
-        InternalThemeInfoProvider InternalThemes;
+        InternalThemeProvider InternalThemes;
         private object internalLock = new object(); //This internal lock is a REENTRANT (for samethread, meaning it can be locked multiple times inside the same thread).
         private object _activeTheme;
         private IDialogService _ds = new DialogService();
@@ -70,7 +70,7 @@ namespace Haley.Services
         #endregion
 
         #region Public Methods
-        public List<ThemeInfo> GetThemeInfos(object key, RegistrationMode dicType)
+        public List<ThemeInfo> GetThemeInfos(object key, ThemeRegistrationMode dicType)
         {
             try
             {
@@ -78,14 +78,14 @@ namespace Haley.Services
 
                 switch (dicType)
                 {
-                    case RegistrationMode.Independent:
+                    case ThemeRegistrationMode.Independent:
                         if (_globalThemes.ContainsKey(key))
                         {
                             _globalThemes.TryGetValue(key, out var globalThemedata);
                             return globalThemedata;
                         }
                         break;
-                    case RegistrationMode.AssemblyBased:
+                    case ThemeRegistrationMode.AssemblyBased:
                         if (_externalThemes.ContainsKey(key))
                         {
                             _externalThemes.TryGetValue(key, out var themeData);
@@ -101,15 +101,15 @@ namespace Haley.Services
                 return null;
             }
         }
-        public List<object> GetThemes(RegistrationMode dicType)
+        public List<object> GetThemes(ThemeRegistrationMode dicType)
         {
             try
             {
                 switch (dicType)
                 {
-                    case RegistrationMode.Independent:
+                    case ThemeRegistrationMode.Independent:
                         return _globalThemes?.Keys.ToList();
-                    case RegistrationMode.AssemblyBased:
+                    case ThemeRegistrationMode.AssemblyBased:
                         return _externalThemes?.Keys.ToList();
                 }
                 return null;
@@ -119,6 +119,14 @@ namespace Haley.Services
                 Debug.WriteLine(ex);
                 return null;
             }
+        }
+        public List<object> GetAllThemeKeys()
+        {
+            List<object> _allKeys = new List<object>();
+            _allKeys.AddRange(GetThemes(ThemeRegistrationMode.AssemblyBased)?? new List<object>());
+            _allKeys.AddRange(GetThemes(ThemeRegistrationMode.Independent)?? new List<object>());
+
+            return _allKeys.Distinct().ToList();
         }
         public bool SetStartupTheme(object startupKey)
         {
@@ -131,7 +139,7 @@ namespace Haley.Services
             StartupTheme = startupKey; //This becomes our startup theme.
             return true;
         }
-        public bool SetupInternalTheme(Func<InternalThemeInfoProvider> provider)
+        public bool SetupInternalTheme(Func<InternalThemeProvider> provider)
         {
             if (provider == null) return false;
             if (_internalThemeInitialized)
@@ -150,9 +158,9 @@ namespace Haley.Services
                 if (!IsKeyValid(key)) return false;
                 //The key should be present in any one of the dictionary.
                 bool registered = false;
-                registered = IsThemeKeyRegistered(key, RegistrationMode.Independent);
+                registered = IsThemeKeyRegistered(key, ThemeRegistrationMode.Independent);
                 if (registered) return true;
-                registered = IsThemeKeyRegistered(key, RegistrationMode.AssemblyBased);
+                registered = IsThemeKeyRegistered(key, ThemeRegistrationMode.AssemblyBased);
                 return registered;
             }
             catch (Exception)
@@ -160,71 +168,46 @@ namespace Haley.Services
                 return false;
             }
         }
-        public bool IsThemeKeyRegistered(object key,RegistrationMode dicType)
+        public bool IsThemeKeyRegistered(object key,ThemeRegistrationMode dicType)
         {
             if (!IsKeyValid(key)) return false;
             switch (dicType)
             {
-                case RegistrationMode.Independent:
+                case ThemeRegistrationMode.Independent:
                     return (_globalThemes.ContainsKey(key));
-                case RegistrationMode.AssemblyBased:
+                case ThemeRegistrationMode.AssemblyBased:
                     return (_externalThemes.ContainsKey(key));
             }
             return false;
         }
-        public string Register(Dictionary<object, InternalThemeMode> themeGroup)
+        public string Register(ThemeBuilderBase builder)
         {
-            //The internal themes should be initialized.
-            if (!_internalThemeInitialized)
+           if (builder is InternalThemeBuilder intrnlbldr)
             {
-                HandleException($@"Internal themes are not yet initialized. Please use the method {nameof(SetupInternalTheme)} to setup the internal themes.", "Internal Themes");
-                return null;
+                return RegisterInternal(intrnlbldr.GetThemeGroup() as Dictionary<object,InternalThemeMode>);
             }
 
-            return RegisterWithGroupId(themeGroup,(Gid) => 
+           if (builder is IndependentThemeBuilder indpntbldr)
             {
-                foreach (var kvp in themeGroup)
+                if (builder is AssemblyThemeBuilder asmbldr)
                 {
-                    if (!Register(kvp.Key, kvp.Value, Gid)) //Register under same group id.
+                    if (asmbldr.Target == null)
                     {
-                        return false; //Break and return because we failed to register.
+                        //Get the calling assembly which will be the one before the method (so directly the caller)
+                        asmbldr.Target = Assembly.GetCallingAssembly();
                     }
+                    //Assembly builder is an extension of Independent builder
+                    return RegisterAssembly(asmbldr.GetThemeGroup() as Dictionary<object, Uri>, asmbldr.Target,asmbldr.IndependentGroupReferenceId);
                 }
-                return true; 
-            });
-        }
-        public string Register(Dictionary<object, Uri> themeGroup, bool assemblyIndependent = false)
-        {
-            return RegisterWithGroupId(themeGroup, (Gid) =>
-            {
-                foreach (var kvp in themeGroup)
-                {
-                    if (!Register(kvp.Key, kvp.Value, Gid, assemblyIndependent)) //Register under same group id.
-                    {
-                        return false; //Break and return because we failed to register.
-                    }
-                }
-                return true;
-            });
-        }
-        public string Register(Dictionary<object, Uri> themeGroup, Assembly targetAssembly)
-        {
-            return RegisterWithGroupId(themeGroup, (Gid) =>
-            {
-                foreach (var kvp in themeGroup)
-                {
-                    if (!Register(kvp.Key, kvp.Value, targetAssembly, Gid)) //Register under same group id.
-                    {
-                        return false; //Break and return because we failed to register.
-                    }
-                }
-                return true;
-            });
+                //Independent builder
+                return RegisterIndependent(indpntbldr.GetThemeGroup() as Dictionary<object, Uri>);
+            }
+            return null;
         }
         #endregion
 
         #region Registration Helpers
-        private string RegisterWithGroupId(object themeDicObject, Func<string, bool> regDelegate)
+        private string AttachGroupIds(object themeDicObject, Func<string, bool> regDelegate)
         {
             if (themeDicObject == null)
             {
@@ -241,7 +224,28 @@ namespace Haley.Services
             _failedGroups.Add(Gid); //Can be used later to remove.
             return null;
         }
-        private bool Register(object key, InternalThemeMode mode, string groupId)
+        private string RegisterInternal(Dictionary<object, InternalThemeMode> themeGroup)
+        {
+            //The internal themes should be initialized.
+            if (!_internalThemeInitialized)
+            {
+                HandleException($@"Internal themes are not yet initialized. Please use the method {nameof(SetupInternalTheme)} to setup the internal themes.", "Internal Themes");
+                return null;
+            }
+
+            return AttachGroupIds(themeGroup, (Gid) =>
+            {
+                foreach (var kvp in themeGroup)
+                {
+                    if (!RegisterInternal(kvp.Key, kvp.Value, Gid)) //Register under same group id.
+                    {
+                        return false; //Break and return because we failed to register.
+                    }
+                }
+                return true;
+            });
+        }
+        private bool RegisterInternal(object key, InternalThemeMode mode, string groupId)
         {
             //The internal themes should be initialized.
             if (!_internalThemeInitialized)
@@ -250,28 +254,76 @@ namespace Haley.Services
                 return false;
             }
 
-            if (!InternalThemes.InfoDic.ContainsKey(mode))
+            if (!InternalThemes.Location.ContainsKey(mode))
             {
                 HandleException($@"Internal themes doesn't have any registered themeinfo related to the key {mode.ToString()}", "Internal Themes");
                 return false;
             }
 
-            if (!InternalThemes.InfoDic.TryGetValue(mode, out var _internalURI)) return false;
+            if (!InternalThemes.Location.TryGetValue(mode, out var _internalURI)) return false;
 
-            RegisterGlobal(key, _internalURI,groupId);
+            RegisterIndependent(key, _internalURI, groupId);
 
             return true;
         }
-        private bool Register(object key, Uri value, string groupId, bool assemblyIndependent = false)
+        private string RegisterIndependent(Dictionary<object, Uri> themeGroup)
         {
-            if (assemblyIndependent)
+            return AttachGroupIds(themeGroup, (Gid) =>
             {
-                return RegisterGlobal(key, value,groupId); //Register only in the global data.
-            }
-            var asmbly = Assembly.GetCallingAssembly();
-            return Register(key, value, asmbly,groupId);
+                foreach (var kvp in themeGroup)
+                {
+                    if (!RegisterIndependent(kvp.Key, kvp.Value, Gid)) //Register under same group id.
+                    {
+                        return false; //Break and return because we failed to register.
+                    }
+                }
+                return true;
+            });
         }
-        private bool Register(object key, Uri value, Assembly targetAssembly, string groupId)
+        private bool RegisterIndependent(object key, Uri value, string groupId)
+        {
+            if (!IsKeyValid(key)) return false;
+            if (value == null)
+            {
+                HandleException("ThemeInfo URI cannot be null. Path of themeinfo needs a proper value.", nameof(value));
+                return false;
+            }
+            if (!_globalThemes.ContainsKey(key))
+            {
+                if (!_globalThemes.TryAdd(key, new List<ThemeInfo>()))
+                {
+                    HandleException($@"Unable to add the key {GetKeyString(key)} to the globaltheme dictionary.");
+                    return false;
+                }
+            }
+
+            _globalThemes.TryGetValue(key, out var _themeList);
+            if (_themeList.Any(p => p.Path == value && p.GroupId == groupId)) //is alresady present.
+            {
+                Debug.WriteLine($@"The theme with path {value} is already registered for the key {GetKeyString(key)} with similar groupid.");
+                return true; //Already added. 
+            }
+            lock (internalLock)
+            {
+                _themeList.Add(new ThemeInfo(value, groupId) { });
+            }
+            return true;
+        }
+        private string RegisterAssembly(Dictionary<object, Uri> themeGroup, Assembly targetAssembly,string independentGroupReferenceId)
+        {
+            return AttachGroupIds(themeGroup, (Gid) =>
+            {
+                foreach (var kvp in themeGroup)
+                {
+                    if (!RegisterAssembly(kvp.Key, kvp.Value, targetAssembly, Gid, independentGroupReferenceId)) //Register under same group id.
+                    {
+                        return false; //Break and return because we failed to register.
+                    }
+                }
+                return true;
+            });
+        }
+        private bool RegisterAssembly(object key, Uri value, Assembly targetAssembly, string groupId, string independentGroupReferenceId)
         {
             if (!IsKeyValid(key)) return false;
             if (value == null)
@@ -305,39 +357,11 @@ namespace Haley.Services
 
             lock (internalLock)
             {
-                themeData.Add(new ThemeInfoEx(value,groupId) { SourceAssembly = targetAssembly});
+                themeData.Add(new ThemeInfoEx(value,groupId) { SourceAssembly = targetAssembly,CrossReferenceId = independentGroupReferenceId});
             }
             return true;
         }
-        private bool RegisterGlobal(object key, Uri value, string groupId)
-        {
-            if (!IsKeyValid(key)) return false;
-            if (value == null)
-            {
-                HandleException("ThemeInfo URI cannot be null. Path of themeinfo needs a proper value.", nameof(value));
-                return false;
-            }
-            if (!_globalThemes.ContainsKey(key))
-            {
-                if (!_globalThemes.TryAdd(key, new List<ThemeInfo>()))
-                {
-                    HandleException($@"Unable to add the key {GetKeyString(key)} to the globaltheme dictionary.");
-                    return false;
-                }
-            }
-
-            _globalThemes.TryGetValue(key, out var _themeList);
-            if (_themeList.Any(p => p.Path == value && p.GroupId ==groupId)) //is alresady present.
-            {
-                Debug.WriteLine($@"The theme with path {value} is already registered for the key {GetKeyString(key)} with similar groupid.");
-                return true; //Already added. 
-            }
-            lock (internalLock)
-            {
-                _themeList.Add(new ThemeInfo(value,groupId) {});
-            }
-            return true;
-        }
+    
         #endregion
 
         #region ChangeTheme
@@ -382,7 +406,7 @@ namespace Haley.Services
         #region Core Implementations
         private bool Validate(object newThemeKey, object oldThemeKey, object frameworkElement, Assembly targetAssembly, ThemeSearchMode searchMode = ThemeSearchMode.Application, bool raiseChangeEvents = true)
         {
-            if (!_registrationsValidated) _registrationsValidated = ValidateRegistrations(); //For all new registrations, we need to validate if the counts match across all groups. We also remove the failed groups.
+            if (!_registrationsValidated) _registrationsValidated = BuildAndValidate(); //For all new registrations, we need to validate if the counts match across all groups. We also remove the failed groups.
 
             string _msg = null;
 
@@ -425,7 +449,7 @@ namespace Haley.Services
                 }
             }
 
-            if (!PrepareThemeChangeData(newThemeKey, oldThemeKey, frameworkElement, targetAssembly, searchMode)) return false;
+            if (!GenerateAndProcessChangeData(newThemeKey, oldThemeKey, frameworkElement, targetAssembly, searchMode)) return false;
 
             if (raiseChangeEvents)
             {
@@ -436,11 +460,13 @@ namespace Haley.Services
 
             return true;
         }
-        private bool PrepareThemeChangeData(object newThemeKey, object oldThemeKey, object frameworkElement, Assembly targetAssembly, ThemeSearchMode searchMode)
+        private bool GenerateAndProcessChangeData(object newThemeKey, object oldThemeKey, object frameworkElement, Assembly targetAssembly, ThemeSearchMode searchMode)
         {
             //For an external theme to change, the old and new theme keys should be present (preference to targetassembly and then the global).
             //Each assembly might have registered it's own version of theme, if not we try to get the global version.
             //Since we are here at this point, we are sure that the theme is already registered in some dictionary.
+
+            //IF A CROSS GROUP REFERENCE IS PRESENT, AND THE CROSS REF DATA IS VALID AND PRESENT IN THE GLOBAL, THEN WE WILL NOT GET ANY NULL VALUES. ELSE, WE WILL GET NULL NUEWTHEMEINFOS OR OLDTHEMEINFOS. 
 
             List<ThemeInfo> oldThemeInfos = FetchThemes(oldThemeKey, targetAssembly);
             if (oldThemeInfos == null || oldThemeInfos.Count == 0)
@@ -543,12 +569,114 @@ namespace Haley.Services
         {
             return new List<GroupChangeData>();
         }
-        private bool ValidateRegistrations()
+        private void ClearFailedGroups()
         {
             //Remove failed groups 
-            
-            //Validate registrations.
-            return true;
+            foreach (var fGid in _failedGroups)
+            {
+                //Remove the Global Theme groups.
+                foreach (var gDic in _globalThemes)
+                {
+                    gDic.Value.RemoveAll(p => p.GroupId == fGid);
+                }
+
+                //Remove external themes
+                foreach (var eDic in _externalThemes)
+                {
+                    eDic.Value.RemoveAll(p => p.GroupId == fGid);
+                }
+            }
+            _failedGroups.Clear(); //Clear the list.
+        }
+
+        private (List<string> AllIds, List<ThemeInfo> AllValues) GetAllGroupInfo(ThemeRegistrationMode mode)
+        {
+            List<string> groupIds = new List<string>();
+            List<ThemeInfo> values = new List<ThemeInfo>();
+            switch (mode)
+            {
+                case ThemeRegistrationMode.Independent:
+                    _globalThemes.Values?.ToList().ForEach(p => values.AddRange(p)); //Get all the global values.
+                    break;
+                case ThemeRegistrationMode.AssemblyBased:
+                    _externalThemes.Values?.ToList().ForEach(p => values.AddRange(p));
+                    break;
+            }
+            groupIds = values?.Select(p => p.GroupId).ToList() ?? new List<string>();
+            return (groupIds.Distinct().ToList(), values);
+        }
+
+        private void FillMissingThemes(ThemeRegistrationMode mode, List<object> allKeys)
+        {
+            var allGroupInfo = GetAllGroupInfo(mode);
+
+
+            //All group ids should have one value against each key.
+            foreach (var key in allKeys)
+            {
+                List<string> _currentGids = null;
+                //Try to see if the dictionary values has all the keys.
+                if(mode == ThemeRegistrationMode.AssemblyBased)
+                {
+                    _externalThemes.TryGetValue(key, out var currentList);
+                    _currentGids = currentList?.Select(p => p.GroupId).ToList();
+                    var _idstoAdd = allGroupInfo.AllIds.Except(_currentGids).ToList();
+                    foreach (var id in _idstoAdd)
+                    {
+                        //Get default
+                        var defaultItem = allGroupInfo.AllValues.FirstOrDefault(p => p.GroupId == id) as ThemeInfoEx;
+
+                        //Try to get global theme
+                        _globalThemes.TryGetValue(key, out var globalList);
+                        ThemeInfoEx toadd = null;
+
+                        var _toadd = globalList.FirstOrDefault(p => p.GroupId == id);
+                        if (_toadd != null)
+                        {
+                            toadd = new ThemeInfoEx(_toadd.Path, _toadd.GroupId) { SourceAssembly = defaultItem.SourceAssembly };
+                        }
+                        else
+                        {
+                            toadd = defaultItem;
+                        }
+                        currentList.Add(toadd);
+                    }
+                }
+                else
+                {
+                    _globalThemes.TryGetValue(key, out var currentList);
+                    _currentGids = currentList?.Select(p => p.GroupId).ToList();
+                    //the currentlist Group Ids should match all keys. Any missing GroupIds should be added.
+                    var _idstoAdd = allGroupInfo.AllIds.Except(_currentGids).ToList();
+                    foreach (var id in _idstoAdd)
+                    {
+                        //For this groupid, get the first matching value from the values and add it to the ditionary.
+                        var _toadd = allGroupInfo.AllValues.FirstOrDefault(p => p.GroupId == id);
+                        currentList.Add(_toadd);
+                    }
+                }
+            }
+        }
+
+        private bool BuildAndValidate()
+        {
+            try
+            {
+                ClearFailedGroups();
+
+                //Fill missing themes with cross reference.
+                var allKeys = GetAllThemeKeys();
+
+                FillMissingThemes(ThemeRegistrationMode.Independent, allKeys); //IMPORTANT: INDEPENDENT FIRST BECAUSE ASSEMBLY BASED USES INDEPENDENT FOR CROSS REFERENCE.
+                FillMissingThemes(ThemeRegistrationMode.AssemblyBased, allKeys); 
+
+                return true;
+            }
+            catch (Exception ex)
+            {
+                HandleException(ex.ToString());
+                return false;
+            }    
         }
         private bool IsThemeInfoValid(ThemeInfo info)
         {
