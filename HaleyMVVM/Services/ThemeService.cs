@@ -44,6 +44,7 @@ namespace Haley.Services
         private IDialogService _ds = new DialogService();
         private bool _internalThemeInitialized = false;
         private List<string> _failedGroups = new List<string>();
+        private bool _registrationsValidated = false;
 
         #region Dictionaries
         private ConcurrentDictionary<object, List<ThemeInfoEx>> _externalThemes = new ConcurrentDictionary<object, List<ThemeInfoEx>>();
@@ -232,7 +233,11 @@ namespace Haley.Services
             }
 
             string Gid = Guid.NewGuid().ToString();
-            if (regDelegate.Invoke(Gid)) return Gid;
+            if (regDelegate.Invoke(Gid))
+            {
+                _registrationsValidated = false; //Whenever we successfully register something, it should be validated.
+                return Gid;
+            }
             _failedGroups.Add(Gid); //Can be used later to remove.
             return null;
         }
@@ -377,6 +382,8 @@ namespace Haley.Services
         #region Core Implementations
         private bool Validate(object newThemeKey, object oldThemeKey, object frameworkElement, Assembly targetAssembly, ThemeSearchMode searchMode = ThemeSearchMode.Application, bool raiseChangeEvents = true)
         {
+            if (!_registrationsValidated) _registrationsValidated = ValidateRegistrations(); //For all new registrations, we need to validate if the counts match across all groups. We also remove the failed groups.
+
             string _msg = null;
 
             if (targetAssembly == null)
@@ -475,11 +482,12 @@ namespace Haley.Services
                         return false;
                     }
                 }
-
                 var _rootDictionary = GetRootDictionary(changeData.SearchMode, changeData.Sender);
-
+                var groupDatas = GetGroupChangeDatas(changeData);
                 //After we get the root dictionary, we can either loop through, find the final target and replace it. Or, we can even 
-                return FindAndReplace(ref _rootDictionary, changeData, overwriteAtRoot);
+                if (!FindAndReplace(ref _rootDictionary, groupDatas, overwriteAtRoot)) return false;
+                SetRootDictionary(changeData.SearchMode, changeData.Sender);
+                return true;
             }
             catch (Exception ex)
             {
@@ -487,24 +495,25 @@ namespace Haley.Services
                 return false;
             }
         }
-        private bool FindAndReplace(ref ResourceDictionary rootDictionary, ThemeChangeData changeData, bool overwriteAtRoot)
+        private bool FindAndReplace(ref ResourceDictionary rootDictionary, List<GroupChangeData> groupDatas, bool overwriteAtRoot)
         {
             if (rootDictionary == null) return false; //Sometimes when the object is getting loaded, the RD might not have been loaded and it might result in null
 
             if (rootDictionary.MergedDictionaries == null || rootDictionary.MergedDictionaries.Count == 0) return false;
 
-            List<ThemeTracker> trackers = new List<ThemeTracker>();
+            foreach (var gData in groupDatas)
+            {
+                ThemeTracker tracker = null;
 
-            if (!GetTrackers(ref rootDictionary, changeData, ref trackers, overwriteAtRoot)) return false;
+                if (!GetTracker(rootDictionary, gData.OldTheme.Path, ref tracker, overwriteAtRoot)) return false;
 
-            //We got a tracker.
-            if (!Replace(trackers, changeData)) return false;
-
-            SetRootDictionary(changeData.SearchMode, changeData.Sender);
+                //We got a tracker.
+                if (!Replace(ref tracker, gData)) return false;
+            }
 
             return true;
         }
-        private bool Replace(List<ThemeTracker> trackers,ThemeChangeData changeData)
+        private bool Replace(ref ThemeTracker tracker, GroupChangeData groupData)
         {
             if (tracker == null) return false;
 
@@ -512,24 +521,35 @@ namespace Haley.Services
             {
                 //Go down the tree
                 var child = tracker.Child;
-                return Replace(ref child, changeData);
+                return Replace(ref child, groupData);
             }
 
             //When you reach the target, check if the parent contains, the old theme and remove it.
 
-            var _oldRD = tracker.Parent?.RD.MergedDictionaries.FirstOrDefault(p => p.Source == changeData.OldThemes.Path);
+            var _oldRD = tracker.Parent?.RD.MergedDictionaries.FirstOrDefault(p => p.Source == groupData.OldTheme.Path);
             if (_oldRD != null)
             {
                 //iF THIS IS Null, then it means that we are overwritting at root level.
                 tracker.Parent?.RD.MergedDictionaries.Remove(_oldRD); //Do not remove directly using the tracker as it could contain the cached values (which would have been old). We only use the cache for traversing the tree.
             }
            
-            tracker.Parent?.RD.MergedDictionaries.Insert(0, new ResourceDictionary() { Source = changeData.NewThemes.Path });
+            tracker.Parent?.RD.MergedDictionaries.Insert(0, new ResourceDictionary() { Source = groupData.NewTheme.Path });
             return true;
         }
         #endregion
 
         #region Helpers
+        private List<GroupChangeData> GetGroupChangeDatas(ThemeChangeData input)
+        {
+            return new List<GroupChangeData>();
+        }
+        private bool ValidateRegistrations()
+        {
+            //Remove failed groups 
+            
+            //Validate registrations.
+            return true;
+        }
         private bool IsThemeInfoValid(ThemeInfo info)
         {
             return (info.Path != null);
@@ -686,51 +706,7 @@ namespace Haley.Services
 
             return false;
         }
-        private bool GetTrackers(ref ResourceDictionary rootDic, ThemeChangeData changeData, ref List<ThemeTracker> trackers, bool overwriteAtRoot)
-        {
-            //Find multiple trackers for the oldthemeinfo inside the changedata.
-            //Our goal is to find which resource dictionary ends with old theme uri.
-            tracker.RD = rootDic; //Root dic goes to the root tracker's RD
-            ThemeTracker childTracker = new ThemeTracker();
-            childTracker.Parent = tracker; //this is the child's parent.
-
-            //Check if child direclty matches? || Probably WILL NEVER HAPPEN.
-            if (rootDic.Source != null && rootDic.Source == oldThemeURI)
-            {
-                //Found matching uri.
-                tracker.IsTarget = true;
-                return true;
-            }
-
-            //Check if any of the merged dictionaries of the child matches.
-            var matchFound = rootDic.MergedDictionaries.FirstOrDefault(p => p.Source != null && p.Source == oldThemeURI);
-
-            //If overwrite at root level, then it should be merged to the rootDic's merged dictionaries.
-            //This will ensure that all the cascading themes will follow it up.
-            //This is kind of like a override mechanism.
-            if (matchFound != null || overwriteAtRoot)
-            {
-                //if matchfound is not null, then we actually have this at root level.
-                //If match is not found but we overwrite it, we, proceed.
-                childTracker.RD = matchFound; //This could be null.
-                childTracker.IsTarget = true;
-                tracker.Child = childTracker;
-                return true;
-            }
-
-            //Loop through each of the merged dictionaries.
-            foreach (var rDic in rootDic.MergedDictionaries)
-            {
-                if (GetTracker(rDic, oldThemeURI, ref childTracker, overwriteAtRoot))
-                {
-                    //If we manage the get the value.
-                    tracker.Child = childTracker;
-                    return true;
-                }
-            }
-
-            return false;
-        }
+       
         #endregion
     }
 }
