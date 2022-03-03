@@ -87,7 +87,7 @@ namespace Haley.Models
             {
                 var calling_assembly = d.GetType().Assembly;
                 //Late join
-                ThemeService.Singleton.ChangeTheme(centeralActiveTheme, internalActiveTheme, d, calling_assembly, ThemeSearchMode.FrameworkElement, false);
+                ThemeService.Singleton.ChangeTheme(centeralActiveTheme, internalActiveTheme, d, calling_assembly, ThemeSearchMode.FrameworkElement);
             }
         }
 
@@ -96,7 +96,7 @@ namespace Haley.Models
             //Sender will be themeservice. (who raises the event).
             if (e.newTheme == null || e.oldTheme == null) return; //On first setup, previous theme path will be null. so, we don't have to worry about startup settings.
             if (!GetMonitorChange(d)) return; //We are not monitoring
-            if (ThemeService.Singleton.ChangeTheme(e.newTheme, e.oldTheme, d, asmbly, ThemeSearchMode.FrameworkElement, false))
+            if (ThemeService.Singleton.ChangeTheme(e.newTheme, e.oldTheme, d, asmbly, ThemeSearchMode.FrameworkElement))
             {
                 //Successfully changed.
                 d.SetCurrentValue(ActiveThemeProperty, e.newTheme);

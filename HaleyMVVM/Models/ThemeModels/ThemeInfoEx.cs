@@ -10,13 +10,9 @@ namespace Haley.Models
     public class ThemeInfoEx :ThemeInfo
     {
         public Assembly SourceAssembly { get; set; }
-        public ThemeTracker Tracker { get; set; }
-        public ThemeDictionary StoredDB { get; set; }
-        public bool IsTracked { get; set; }
-        public ThemeInfoEx(string name, Uri path) :base(name,path)
+        public ThemeInfoEx(Uri path,string groupId) :base(path,groupId)
         {
-            IsTracked = false;
-            Tracker = null;
+
         }
     }
 }
