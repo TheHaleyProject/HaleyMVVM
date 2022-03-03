@@ -35,7 +35,7 @@ namespace Haley.Services
         }
         public bool ThrowExceptionsOnFailure { get; set; }
         public bool EnableTrackerCache { get; set; }
-        public InternalThemeData InternalThemes { get; private set; }
+        public InternalThemeData HaleyThemes { get; private set; }
         #endregion
 
         #region Attributes
@@ -66,9 +66,9 @@ namespace Haley.Services
         #endregion
 
         #region Registrations
-        public bool AttachInternalTheme(InternalThemeData internal_themedata)
+        public bool AttachHaleyThemes(InternalThemeData internal_themedata)
         {
-            if (InternalThemes != null)
+            if (HaleyThemes != null)
             {
                 bool overwriteData = false;
                 var _msg = "Internal themes is already present. Do you wish to override the existing values?.";
@@ -84,7 +84,7 @@ namespace Haley.Services
                 }
                 if (!overwriteData) return false;
             }
-            InternalThemes = internal_themedata;
+            HaleyThemes = internal_themedata;
             return true;
         }
         public List<ThemeInfo> GetThemeInfos(object key, ThemeDictionary dicType)
@@ -110,10 +110,10 @@ namespace Haley.Services
                         }
                         break;
                     case ThemeDictionary.Internal:
-                        if (InternalThemes != null && InternalThemes.Themes.ContainsKey(key))
+                        if (HaleyThemes != null && HaleyThemes.Themes.ContainsKey(key))
                         {
-                            InternalThemes.Themes.TryGetValue(key, out var _internalMode);
-                            InternalThemes.InfoDic.TryGetValue(_internalMode, out var internalThemeData);
+                            HaleyThemes.Themes.TryGetValue(key, out var _internalMode);
+                            HaleyThemes.InfoDic.TryGetValue(_internalMode, out var internalThemeData);
                             return new List<ThemeInfo>() { internalThemeData };
                         }
                         break;
@@ -136,9 +136,9 @@ namespace Haley.Services
                     case ThemeDictionary.External:
                         return _externalThemes?.Keys.ToList();
                     case ThemeDictionary.Internal:
-                        if (InternalThemes != null)
+                        if (HaleyThemes != null)
                         {
-                            return InternalThemes?.Themes.Keys.ToList();
+                            return HaleyThemes?.Themes.Keys.ToList();
                         }
                         break;
                 }
@@ -158,7 +158,7 @@ namespace Haley.Services
                 HandleException(_msg,nameof(startupKey),true); //Force throw exception.
                 return;
             }
-            _activeTheme = startupKey; //This becomes our startup theme.
+            StartupTheme = startupKey; //This becomes our startup theme.
         }
         public bool IsThemeKeyRegistered(object key)
         {
@@ -189,8 +189,8 @@ namespace Haley.Services
                 case ThemeDictionary.External:
                     return (_externalThemes.ContainsKey(key));
                 case ThemeDictionary.Internal:
-                    if (InternalThemes == null || InternalThemes.Themes == null) return false;
-                    return (InternalThemes.Themes.ContainsKey(key));
+                    if (HaleyThemes == null || HaleyThemes.Themes == null) return false;
+                    return (HaleyThemes.Themes.ContainsKey(key));
             }
             return false;
         }
@@ -248,7 +248,7 @@ namespace Haley.Services
                 return false;
             }
 
-            themeData.Add(new ThemeInfoEx(value.Name, value.Path) { SourceAssembly = targetAssembly });
+            themeData.Add(new ThemeInfoEx(value.Name, value.Path) { SourceAssembly = targetAssembly,StoredDB = ThemeDictionary.External});
 
             return true;
         }
@@ -282,10 +282,24 @@ namespace Haley.Services
                 return false;
             }
             //The sender can never be null. Do remember to send the assembly as the sender.
-            var _caller = Assembly.GetCallingAssembly();
-            return ChangeTheme(newThemeKey,oldthemekey, null,_caller, showNotifications: showNotifications);
+            //var _caller = Assembly.GetCallingAssembly(); //this will cause issues as calling can happen from anywhere.
+            var _caller = Assembly.GetEntryAssembly(); //Irrespective of where it is getting called, it will always use the .Exe assembly (which will ofcouse contain the App.Xaml or the App.Resources).
+            return changeTheme(newThemeKey,oldthemekey, null,_caller,showNotifications: showNotifications);
         }
-        public bool ChangeTheme(object newThemeKey, object oldThemeKey, object frameworkElement, Assembly targetAssembly, ThemeSearchMode searchMode = ThemeSearchMode.Application, bool raiseChangeEvents = true, bool showNotifications = false)
+
+        public bool ChangeTheme(object newThemeKey, object oldThemeKey, object frameworkElement, Assembly targetAssembly, ThemeSearchMode searchMode = ThemeSearchMode.Application, bool showNotifications = false)
+        {
+            return changeTheme(newThemeKey, oldThemeKey, frameworkElement, targetAssembly, searchMode, false, showNotifications); //Here we will not raise the change events as we give the user option to use the assembly. Internal assembly change should not raise anything.
+        }
+
+        #endregion
+
+        #region Helpers
+        private bool IsThemeInfoValid(ThemeInfo info)
+        {
+            return (info.Path != null);
+        }
+        private bool changeTheme(object newThemeKey, object oldThemeKey, object frameworkElement, Assembly targetAssembly, ThemeSearchMode searchMode = ThemeSearchMode.Application, bool raiseChangeEvents = true, bool showNotifications = false)
         {
             string _msg = null;
 
@@ -325,17 +339,18 @@ namespace Haley.Services
                         _ds.SendToast("No change", $@"Old theme key and new theme key are same. Nothing to change. Key {GetKeyString(newThemeKey)}");
                         return false;
                     }
-                }    
+                }
             }
 
             //EACH DLL MIGHT HAVE INTERNAL AND ALSO EXTERNAL THEME IN THEIR MERGED DICTIONARIES.
             bool themeChanged = false;
-            if(ChangeInternalTheme(newThemeKey,oldThemeKey,frameworkElement,targetAssembly,searchMode,showNotifications))
+
+            if (ChangeExternalTheme(newThemeKey, oldThemeKey, frameworkElement, targetAssembly, searchMode, showNotifications))
             {
                 themeChanged = true;
             }
-            
-            if(ChangeExternalTheme(newThemeKey, oldThemeKey, frameworkElement, targetAssembly, searchMode, showNotifications))
+
+            if (ChangeHaleyThemes(newThemeKey, oldThemeKey, frameworkElement, targetAssembly, searchMode, showNotifications))
             {
                 themeChanged = true;
             }
@@ -344,17 +359,10 @@ namespace Haley.Services
             {
                 //Set the new theme.
                 ActiveTheme = newThemeKey; //This will raise event and trigger the other controls to change their own themes.
-                ThemeChanged?.Invoke(this, (newThemeKey,oldThemeKey));
+                ThemeChanged?.Invoke(this, (newThemeKey, oldThemeKey));
             }
 
             return true;
-        }
-        #endregion
-
-        #region Helpers
-        private bool IsThemeInfoValid(ThemeInfo info)
-        {
-            return (info.Path != null);
         }
         private bool ChangeExternalTheme(object newThemeKey, object oldThemeKey, object frameworkElement, Assembly targetAssembly, ThemeSearchMode searchMode, bool showNotifications)
         {
@@ -418,33 +426,33 @@ namespace Haley.Services
 
             return changeTheme(_changeData);
         }
-        private bool ChangeInternalTheme(object newThemeKey,object oldThemeKey, object frameworkElement, Assembly targetAssembly, ThemeSearchMode searchMode, bool showNotifications)
+        private bool ChangeHaleyThemes(object newThemeKey,object oldThemeKey, object frameworkElement, Assembly targetAssembly, ThemeSearchMode searchMode, bool showNotifications)
         {
             do
             {
-                if (InternalThemes == null)
+                if (HaleyThemes == null)
                 {
                     Debug.WriteLine("Internal themes data is empty.");
                     break;
                 }
-                if (!InternalThemes.Themes.ContainsKey(newThemeKey))
+                if (!HaleyThemes.Themes.ContainsKey(newThemeKey))
                 {
                     Debug.WriteLine($@"Internal theme settings doesn't have any info associated with the key {GetKeyString(newThemeKey)}");
                     break;
                 }
-                if (!InternalThemes.Themes.ContainsKey(oldThemeKey))
+                if (!HaleyThemes.Themes.ContainsKey(oldThemeKey))
                 {
                     Debug.WriteLine($@"Internal theme settings doesn't have any info associated with the key {GetKeyString(oldThemeKey)}");
                     break;
                 }
 
                 //Get Old Info
-                InternalThemes.Themes.TryGetValue(oldThemeKey, out var oldMode);
-                InternalThemes.InfoDic.TryGetValue(oldMode, out var OldThemeInfo);
+                HaleyThemes.Themes.TryGetValue(oldThemeKey, out var oldMode);
+                HaleyThemes.InfoDic.TryGetValue(oldMode, out var OldThemeInfo);
 
                 //Get New Info
-                InternalThemes.Themes.TryGetValue(newThemeKey, out var newMode);
-                InternalThemes.InfoDic.TryGetValue(newMode, out var NewThemeInfo);
+                HaleyThemes.Themes.TryGetValue(newThemeKey, out var newMode);
+                HaleyThemes.InfoDic.TryGetValue(newMode, out var NewThemeInfo);
 
                 if (OldThemeInfo == null)
                 {
@@ -473,7 +481,7 @@ namespace Haley.Services
                 //Get old theme and the new theme info and change them.
                 ThemeChangeData _changeData = new ThemeChangeData() {OldTheme = OldThemeInfo,NewTheme = NewThemeInfo,SearchMode = searchMode,Sender = frameworkElement,RaiseNotifications = showNotifications, Themekey = newThemeKey };
 
-                return changeTheme(_changeData);
+                return changeTheme(_changeData,true);
 
             } while (false);
             return false;
@@ -513,7 +521,7 @@ namespace Haley.Services
         #endregion
 
         #region Core Implementations
-        private bool changeTheme(ThemeChangeData changeData)
+        private bool changeTheme(ThemeChangeData changeData, bool  overwriteAtRoot = false)
         {
             try
             {
@@ -534,7 +542,8 @@ namespace Haley.Services
 
                 var _rootDictionary = getRootDictionary(changeData.SearchMode, changeData.Sender);
 
-                return findAndReplace(_rootDictionary,changeData);
+                //After we get the root dictionary, we can either loop through, find the final target and replace it. Or, we can even 
+                return findAndReplace(ref _rootDictionary, changeData, overwriteAtRoot);
             }
             catch (Exception ex)
             {
@@ -545,7 +554,7 @@ namespace Haley.Services
                 return false;
             }
         }
-        private bool findAndReplace(ResourceDictionary rootDictionary, ThemeChangeData changeData)
+        private bool findAndReplace(ref ResourceDictionary rootDictionary, ThemeChangeData changeData, bool overwriteAtRoot)
         {
             if (rootDictionary == null) return false; //Sometimes when the object is getting loaded, the RD might not have been loaded and it might result in null
 
@@ -566,19 +575,13 @@ namespace Haley.Services
             if (tracker== null)
             {
                 tracker = new ThemeTracker() { Parent = null };
-                if (!getTracker(rootDictionary, changeData.OldTheme.Path, ref tracker)) return false;
+                if (!getTracker(rootDictionary, changeData.OldTheme.Path, ref tracker, overwriteAtRoot)) return false;
             }
             
             //We got a tracker.
             if (!replaceTheme(ref tracker, changeData)) return false;
-            //If we manage to successfully replace the last child (or the target), we also need to replace the root.
-            if (tracker.Child?.RD != null)
-            {
-                var _rootbaseDic = rootDictionary.MergedDictionaries.FirstOrDefault(p => p.Source == tracker.Child.RD.Source);
 
-                rootDictionary.MergedDictionaries.Insert(0, tracker.Child.RD);
-                rootDictionary.MergedDictionaries.Remove(_rootbaseDic);
-            }
+            setRootDictionary(changeData.SearchMode, changeData.Sender);
 
             if (EnableTrackerCache)
             {
@@ -623,14 +626,37 @@ namespace Haley.Services
             return resource;
         }
 
-        private bool getTracker(ResourceDictionary rootDic, Uri oldThemeURI, ref ThemeTracker tracker)
+        private void setRootDictionary(ThemeSearchMode searchType, object sender)
+        {
+            ResourceDictionary _rootdic = null;
+            if (searchType == ThemeSearchMode.FrameworkElement)
+            {
+                if (sender != null)
+                {
+                    _rootdic = ((FrameworkElement)sender).Resources;
+                    ((FrameworkElement)sender).Resources = null;
+                    ((FrameworkElement)sender).Resources = _rootdic;
+                }
+            }
+            else
+            {
+                if (Application.Current != null)
+                {
+                    _rootdic = Application.Current.Resources;
+                    Application.Current.Resources = null;
+                    Application.Current.Resources = _rootdic;
+                }
+            }
+        }
+
+        private bool getTracker(ResourceDictionary rootDic, Uri oldThemeURI, ref ThemeTracker tracker,bool overwriteAtRoot)
         {
             //Our goal is to find which resource dictionary ends with old theme uri.
-            tracker.RD = rootDic;
+            tracker.RD = rootDic; //Root dic goes to the root tracker's RD
             ThemeTracker childTracker = new ThemeTracker();
             childTracker.Parent = tracker; //this is the child's parent.
 
-            //Check if child direclty matches?
+            //Check if child direclty matches? || Probably WILL NEVER HAPPEN.
            if (rootDic.Source != null && rootDic.Source == oldThemeURI)
             {
                 //Found matching uri.
@@ -640,9 +666,15 @@ namespace Haley.Services
 
             //Check if any of the merged dictionaries of the child matches.
             var matchFound = rootDic.MergedDictionaries.FirstOrDefault(p => p.Source != null && p.Source == oldThemeURI);
-            if (matchFound != null)
+
+            //If overwrite at root level, then it should be merged to the rootDic's merged dictionaries.
+            //This will ensure that all the cascading themes will follow it up.
+            //This is kind of like a override mechanism.
+            if (matchFound != null || overwriteAtRoot)
             {
-                childTracker.RD = matchFound;
+                //if matchfound is not null, then we actually have this at root level.
+                //If match is not found but we overwrite it, we, proceed.
+                childTracker.RD = matchFound; //This could be null.
                 childTracker.IsTarget = true;
                 tracker.Child = childTracker;
                 return true;
@@ -651,7 +683,7 @@ namespace Haley.Services
             //Loop through each of the merged dictionaries.
             foreach (var rDic in rootDic.MergedDictionaries)
             {
-                if(getTracker(rDic, oldThemeURI, ref childTracker))
+                if(getTracker(rDic, oldThemeURI, ref childTracker,overwriteAtRoot))
                 {
                     //If we manage the get the value.
                     tracker.Child = childTracker;
@@ -670,14 +702,18 @@ namespace Haley.Services
             {
                 //Go down the tree
                 var child = tracker.Child;
-                replaceTheme(ref child,changeData);
+                return replaceTheme(ref child, changeData);
             }
 
             //When you reach the target, check if the parent contains, the old theme and remove it.
 
             var _oldRD = tracker.Parent?.RD.MergedDictionaries.FirstOrDefault(p => p.Source == changeData.OldTheme.Path);
-
-            tracker.Parent?.RD.MergedDictionaries.Remove(_oldRD); //Do not remove directly using the tracker as it could contain the cached values (which would have been old). We only use the cache for traversing the tree.
+            if (_oldRD != null)
+            {
+                //iF THIS IS Null, then it means that we are overwritting at root level.
+                tracker.Parent?.RD.MergedDictionaries.Remove(_oldRD); //Do not remove directly using the tracker as it could contain the cached values (which would have been old). We only use the cache for traversing the tree.
+            }
+           
             tracker.Parent?.RD.MergedDictionaries.Insert(0, new ResourceDictionary() { Source = changeData.NewTheme.Path });
             return true;
         }
