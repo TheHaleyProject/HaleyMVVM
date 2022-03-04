@@ -11,6 +11,7 @@ namespace Haley.Models
         public ThemeTracker Parent { get; set; }
         public ThemeTracker Child { get; set; }
         public bool IsTarget { get; set; }
+        public bool IsRoot { get; set; }
         public ThemeTracker()
         {
             Id = Guid.NewGuid().ToString();
@@ -20,6 +21,7 @@ namespace Haley.Models
             this.RD = rd;
             this.Child = child;
             this.IsTarget = isTarget;
+            IsRoot = false;
         }
     }
 }
