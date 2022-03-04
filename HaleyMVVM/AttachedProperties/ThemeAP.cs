@@ -61,7 +61,17 @@ namespace Haley.Models
             if (d is FrameworkElement fe)
             {
                 fe.Initialized += Fe_Initialized;
+                fe.Unloaded += Fe_Unloaded;
             }
+        }
+
+        private static void Fe_Unloaded(object sender, RoutedEventArgs e)
+        {
+            //Unregister
+            if (!(sender is DependencyObject d && sender is FrameworkElement fe)) return;
+            fe.Unloaded -= Fe_Unloaded;
+            var _themeChangeHandler = GetChangeHandler(d);
+            ThemeService.Singleton.ThemeChanged -= _themeChangeHandler;
         }
 
         private static void Fe_Initialized(object sender, EventArgs e)
