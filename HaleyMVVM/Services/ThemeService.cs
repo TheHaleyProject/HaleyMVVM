@@ -67,7 +67,7 @@ namespace Haley.Services
             EnableNotifications = false;
             StartupTheme = null;
             ActiveTheme = null;
-            ReplaceMode = ThemeReplaceMode.FindReplace;
+            ReplaceMode = ThemeReplaceMode.IgnoreFindReplaceAndCreateCopy;
         }
         #endregion
 
@@ -622,7 +622,7 @@ namespace Haley.Services
                 }
 
                 //Check if we need to do root copy.
-                if (gData.AddCopyAtRoot || ReplaceMode==ThemeReplaceMode.FindReplaceAndCreateCopy)
+                if (gData.AddCopyAtRoot || ReplaceMode==ThemeReplaceMode.FindReplaceAndCreateCopy || ReplaceMode == ThemeReplaceMode.IgnoreFindReplaceAndCreateCopy)
                 {
                     //Irrespective of the presence of the dictionary at root level, we add it. (after theme swtiches, it will be automatically deducted and replaced above).
                     addDelegate.Invoke();
@@ -647,8 +647,20 @@ namespace Haley.Services
            
             if (_hasOldRds.HasValue || _hasOldRds.Value)
             {
-                tracker.Parent?.RD.MergedDictionaries.ToList().RemoveAll(p => groupData.PossibleOldThemes.Any(q => p.Source == q.Path && q.Path != groupData.NewTheme.Path));
-                 //Do not remove directly using the tracker as it could contain the cached values (which would have been old). We only use the cache for traversing the tree. 
+                bool isPresent = true;
+                do
+                {
+                    var _toremove = tracker.Parent?.RD.MergedDictionaries.FirstOrDefault(merged=> 
+                    groupData.PossibleOldThemes.Any(oldT=>oldT.Path ==merged.Source) &&
+                    merged.Source != groupData.NewTheme.Path);
+                    isPresent = (_toremove != null);
+                    if (isPresent)
+                    {
+                        tracker.Parent?.RD.MergedDictionaries.Remove(_toremove);
+                    }
+                    //Do not remove directly using the tracker as it could contain the cached values (which would have been old). We only use the cache for traversing the tree. 
+                } while (isPresent);
+               
             }
 
             return true;
