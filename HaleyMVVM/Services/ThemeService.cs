@@ -20,7 +20,7 @@ namespace Haley.Services
     public class ThemeService : IThemeService
     {
         #region Properties
-        public event EventHandler<(object newTheme,object oldTheme)> ThemeChanged;
+        public event EventHandler<object> ThemeChanged;
         /// <summary>
         /// Startup theme can be set only once and it will be used by controls on late join (to change their themes to match the Active theme).
         /// </summary>
@@ -67,7 +67,7 @@ namespace Haley.Services
             EnableNotifications = false;
             StartupTheme = null;
             ActiveTheme = null;
-            ReplaceMode = ThemeReplaceMode.FindAndReplace;
+            ReplaceMode = ThemeReplaceMode.FindReplace;
         }
         #endregion
 
@@ -93,6 +93,16 @@ namespace Haley.Services
             }
             return _registrationsValidated;
 
+        }
+        public List<ThemeInfo> GetAllRegisteredThemeInfos()
+        {
+            var _allAsmGroups = GetAllGroupInfo(ThemeRegistrationMode.AssemblyBased);
+            var _allIndpndGroups = GetAllGroupInfo(ThemeRegistrationMode.Independent);
+
+            List<ThemeInfo> allInfos = new List<ThemeInfo>();
+            allInfos.AddRange(_allAsmGroups.AllValues);
+            allInfos.AddRange(_allIndpndGroups.AllValues);
+            return allInfos;
         }
         public List<ThemeInfo> GetThemeInfos(object key, ThemeRegistrationMode dicType)
         {
@@ -403,37 +413,24 @@ namespace Haley.Services
         public bool ChangeTheme(object newThemeKey)
         {
             //This will only change the application level theme change which will also raise the theme changed event at last, which will be consumed by the controls (if they have subscribed to it).
-            object oldthemekey = ActiveTheme ?? StartupTheme; //Startup theme is the fall back. If nothing is present, we consider startup theme.
-            string _msg = null;
-            //Check current theme
-            if (oldthemekey == null)
-            {
-                _msg = "Startuptheme is null. Use SetStartupTheme method to set the initial starting theme. Based on the startup theme, the new themes can be changed and applied.";
-                HandleException(_msg, "StartupTheme");
-                return false;
-            }
-
-            //Does current theme have a registered info value? (in any dictionary)
-            if (!IsThemeKeyRegistered(oldthemekey))
-            {
-                _msg = $@"Startuptheme has to be a valid registered key. Current startup theme {GetKeyString(oldthemekey)} is not a valid key value. Please register the themeinfos using this key or provide a valid startup key.";
-                HandleException(_msg);
-                return false;
-            }
             //The sender can never be null. Do remember to send the assembly as the sender.
             //var _caller = Assembly.GetCallingAssembly(); //this will cause issues as calling can happen from anywhere.
-            var _caller = Assembly.GetEntryAssembly(); //Irrespective of where it is getting called, it will always use the .Exe assembly (which will ofcouse contain the App.Xaml or the App.Resources).
-            return Validate(newThemeKey,oldthemekey, null,_caller);
+            //Irrespective of where it is getting called, it will always use the .Exe assembly (which will ofcouse contain the App.Xaml or the App.Resources).
+            var _caller = Assembly.GetEntryAssembly(); 
+            return Validate(newThemeKey, null,_caller);
         }
-        public bool ChangeTheme(object newThemeKey, object oldThemeKey, object frameworkElement, Assembly targetAssembly, ThemeSearchMode searchMode = ThemeSearchMode.Application)
+        public bool ChangeTheme(object newThemeKey, object frameworkElement, Assembly targetAssembly, ThemeSearchMode searchMode = ThemeSearchMode.Application)
         {
-            return Validate(newThemeKey, oldThemeKey, frameworkElement, targetAssembly, searchMode, false); //Here we will not raise the change events as we give the user option to use the assembly. Internal assembly change should not raise anything.
+            return Validate(newThemeKey, frameworkElement, targetAssembly, searchMode, false); //Here we will not raise the change events as we give the user option to use the assembly. Internal assembly change should not raise anything.
         }
-
+        public void SyncAllWithActiveTheme()
+        {
+            ThemeChanged?.Invoke(this, ActiveTheme??StartupTheme); //This will basically force all the synchronize with the active.
+        }
         #endregion
 
         #region Core Implementations
-        private bool Validate(object newThemeKey, object oldThemeKey, object frameworkElement, Assembly targetAssembly, ThemeSearchMode searchMode = ThemeSearchMode.Application, bool raiseChangeEvents = true)
+        private bool Validate(object newThemeKey, object frameworkElement, Assembly targetAssembly, ThemeSearchMode searchMode = ThemeSearchMode.Application, bool raiseChangeEvents = true)
         {
             if (!_registrationsValidated)  BuildAndFillMissing(); //For all new registrations, we need to validate if the counts match across all groups. We also remove the failed groups.
 
@@ -446,17 +443,7 @@ namespace Haley.Services
                 return false;
             }
 
-            if (!IsKeyValid(oldThemeKey)) return false;
             if (!IsKeyValid(newThemeKey)) return false;
-
-            //Does current theme have a registered info value? (any dictionary)
-            if (!IsThemeKeyRegistered(oldThemeKey))
-            {
-                _msg = $@"OldThemeKey is not valid. It doesn't have any registered value. Key: {GetKeyString(oldThemeKey)} ";
-                HandleException(_msg);
-                return false;
-            }
-
             if (!IsThemeKeyRegistered(newThemeKey))
             {
                 _msg = $@"Key : {GetKeyString(newThemeKey)} is not registered in any internal, external or global theme dictionary. Please use a registered key.";
@@ -468,7 +455,7 @@ namespace Haley.Services
             {
                 //Then it means we need to change and also raise the change events.
                 //So compare with existing before raising event.
-                if (oldThemeKey == newThemeKey)
+                if (ActiveTheme == newThemeKey)
                 {
                     if (EnableNotifications)
                     {
@@ -478,31 +465,24 @@ namespace Haley.Services
                 }
             }
 
-            if (!GenerateAndProcessChangeData(newThemeKey, oldThemeKey, frameworkElement, targetAssembly, searchMode)) return false;
+            if (!GenerateAndProcessChangeData(newThemeKey, frameworkElement, targetAssembly, searchMode)) return false;
 
             if (raiseChangeEvents)
             {
                 //Set the new theme.
                 ActiveTheme = newThemeKey; //This will raise event and trigger the other controls to change their own themes.
-                ThemeChanged?.Invoke(this, (newThemeKey, oldThemeKey));
+                ThemeChanged?.Invoke(this, newThemeKey);
             }
 
             return true;
         }
-        private bool GenerateAndProcessChangeData(object newThemeKey, object oldThemeKey, object frameworkElement, Assembly targetAssembly, ThemeSearchMode searchMode)
+        private bool GenerateAndProcessChangeData(object newThemeKey, object frameworkElement, Assembly targetAssembly, ThemeSearchMode searchMode)
         {
             //For an external theme to change, the old and new theme keys should be present (preference to targetassembly and then the global).
             //Each assembly might have registered it's own version of theme, if not we try to get the global version.
             //Since we are here at this point, we are sure that the theme is already registered in some dictionary.
 
             //IF A CROSS GROUP REFERENCE IS PRESENT, AND THE CROSS REF DATA IS VALID AND PRESENT IN THE GLOBAL, THEN WE WILL NOT GET ANY NULL VALUES. ELSE, WE WILL GET NULL NUEWTHEMEINFOS OR OLDTHEMEINFOS. 
-
-            List<ThemeInfo> oldThemeInfos = FetchThemes(oldThemeKey, targetAssembly);
-            if (oldThemeInfos == null || oldThemeInfos.Count == 0)
-            {
-                Debug.WriteLine($@"Infos not found for {GetKeyString(oldThemeKey)} in any dictionary.");
-                return false;
-            }
 
             List<ThemeInfo> newThemeInfos = FetchThemes(newThemeKey, targetAssembly);
             if (newThemeInfos == null || newThemeInfos.Count == 0)
@@ -511,15 +491,8 @@ namespace Haley.Services
                 return false;
             }
 
-            //If we have already filled the missing elements, the counts should definitely match.
-            if(oldThemeInfos.Count != newThemeInfos.Count)
-            {
-                HandleException($@"The dictionary count has a mismatch between {GetKeyString(newThemeKey)} and {GetKeyString(oldThemeKey)}. Please check.");
-                return false;
-            }
-
             //Get old theme and the new theme info and change them.
-            ThemeChangeData _changeData = new ThemeChangeData() { OldThemes = oldThemeInfos, NewThemes = newThemeInfos, SearchMode = searchMode, Sender = frameworkElement, Themekey = newThemeKey };
+            ThemeChangeData _changeData = new ThemeChangeData() { NewThemes = newThemeInfos, SearchMode = searchMode, Sender = frameworkElement, Themekey = newThemeKey };
 
             return Process(_changeData);
         }
@@ -569,7 +542,7 @@ namespace Haley.Services
                 AllMergedDictionaries.Add(new ResourceDictionary() { Source = originalBaseDic.Source });
             }
 
-            if(ReplaceMode == ThemeReplaceMode.FindAndReplace)
+            if(ReplaceMode == ThemeReplaceMode.FindReplace)
             {
                 IsSuccess = FindAndReplace(AllMergedDictionaries, groupDatas);
             }
@@ -591,7 +564,6 @@ namespace Haley.Services
 
             return IsSuccess;
         }
-
         private bool FindAndReplace(List<ResourceDictionary> AllMergedDictionaries,List<GroupChangeData> groupDatas)
         {
             bool IsSuccess = true;
@@ -605,21 +577,16 @@ namespace Haley.Services
                     //If the missing themes are autogenerated,then there is a huge possiblility that we might create a theme which is not matching with the startup theme. 
                     //For instance, we haven't setup startuptheme value (which the user has to know) for a particular group . Then we try to fill, there is a possibility that it might even take a non present theme and place it there.
 
-
-                    //TODO: What if we get all the possible matches for Old theme (so that we can compare and see which old theme is present and then remove it???).
-                    //TODO: If we follow the above method, then oldthemeitself is irrelevant. User can just send the new value and we can verify whicever is present and remove it. (since everything falls in the same group ID)
-
-                    //currently to avoid similar issues, we just go ahead.
-                    if (gData.OldTheme.Path == gData.NewTheme.Path) continue;
-
                     ThemeTracker tracker = new ThemeTracker() { IsRoot = true };
                     //Give priority to find and replace.
                     //If the root matches, we ignore at this stage. because we need to come back again and process rootoverwrite.
                     //Get tracker will ignore if basedictionary directly matches the old theme (as we set IsRoot = true above). Because we will replace that later.
 
-                    if (!GetTracker(baseDictionary, gData.OldTheme.Path, ref tracker))
+                    if (gData.PossibleOldThemes == null || gData.PossibleOldThemes.Count == 0) continue; //Nothing to 
+
+                    if (!GetTracker(baseDictionary, gData.PossibleOldThemes.Select(p=>p.Path).ToList(), ref tracker))
                     {
-                        Debug.WriteLine($@"Unable to prepare a ThemeTracker for key {gData.Themekey.AsString()} with OldTheme Path: {gData.OldTheme.Path} and new path: {gData.NewTheme.Path} with searchMode {gData.SearchMode} for assembly {gData.Sender}");
+                        Debug.WriteLine($@"Unable to prepare a ThemeTracker for key {gData.Themekey.AsString()} with new path: {gData.NewTheme.Path} with searchMode {gData.SearchMode} for assembly {gData.Sender}");
                         continue;
                     }
 
@@ -627,7 +594,7 @@ namespace Haley.Services
                     if (!Replace(ref tracker, gData))
                     {
                         IsSuccess = false;
-                        Debug.WriteLine($@"Unable to Replace the theme for key {gData.Themekey.AsString()} with OldTheme Path: {gData.OldTheme.Path} and new path: {gData.NewTheme.Path}");
+                        Debug.WriteLine($@"Unable to Replace the theme for key {gData.Themekey.AsString()} with new path: {gData.NewTheme.Path}");
                         continue;
                     }
                 }
@@ -640,26 +607,28 @@ namespace Haley.Services
             foreach (var gData in groupDatas)
             {
                 Action addDelegate = () => { AllMergedDictionaries.Insert(0, new ResourceDictionary() { Source = gData.NewTheme.Path }); };
+                Action removeDelegate = () => { AllMergedDictionaries.RemoveAll(p => gData.PossibleOldThemes.Any(q => q.Path == p.Source && q.Path != gData.NewTheme.Path)); };
+
+                //Before adding newTheme, get the list of items to remove.
+                var _hasOldRds = AllMergedDictionaries.Any(p => gData.PossibleOldThemes.Any(q => q.Path == p.Source));
 
                 //IF OLD DATA FOUND, WE WILL REPLACE IT.
-                var _old = AllMergedDictionaries.FirstOrDefault(p => p.Source == gData.OldTheme.Path);
-                if (_old != null)
+                if (_hasOldRds)
                 {
                     //replace with new data and continue further.
                     addDelegate.Invoke();
-                    AllMergedDictionaries.Remove(_old);
+                    removeDelegate.Invoke();
                     continue; //Donot go again and add below.
                 }
 
                 //Check if we need to do root copy.
-                if (gData.AddCopyAtRoot || ReplaceMode==ThemeReplaceMode.CreateCopiesAtRoot)
+                if (gData.AddCopyAtRoot || ReplaceMode==ThemeReplaceMode.FindReplaceAndCreateCopy)
                 {
                     //Irrespective of the presence of the dictionary at root level, we add it. (after theme swtiches, it will be automatically deducted and replaced above).
                     addDelegate.Invoke();
                 }
             }
         }
-
         private bool Replace(ref ThemeTracker tracker, GroupChangeData groupData)
         {
             if (tracker == null) return false;
@@ -671,45 +640,74 @@ namespace Haley.Services
                 return Replace(ref child, groupData);
             }
 
+            //Before adding newTheme, get the list of items to remove.
+            var _hasOldRds = tracker.Parent?.RD.MergedDictionaries.Any(p => groupData.PossibleOldThemes.Any(q => q.Path == p.Source));
+
             tracker.Parent?.RD.MergedDictionaries.Insert(0, new ResourceDictionary() { Source = groupData.NewTheme.Path }); //Insert at the beginning.
-
-            //When you reach the target, check if the parent contains, the old theme and remove it.
-            var _oldRD = tracker.Parent?.RD.MergedDictionaries.FirstOrDefault(p => p.Source == groupData.OldTheme.Path);
-            if (_oldRD != null)
+           
+            if (_hasOldRds.HasValue || _hasOldRds.Value)
             {
-                //iF THIS IS Null, then it means that we are overwritting at root level.
-                tracker.Parent?.RD.MergedDictionaries.Remove(_oldRD); //Do not remove directly using the tracker as it could contain the cached values (which would have been old). We only use the cache for traversing the tree. 
+                tracker.Parent?.RD.MergedDictionaries.ToList().RemoveAll(p => groupData.PossibleOldThemes.Any(q => p.Source == q.Path && q.Path != groupData.NewTheme.Path));
+                 //Do not remove directly using the tracker as it could contain the cached values (which would have been old). We only use the cache for traversing the tree. 
             }
-
-            ////Now try to initiate the new dictionary
-            //_newRd.BeginInit();
-            //_newRd.EndInit();
 
             return true;
         }
         #endregion
 
         #region Helpers
+        private List<ThemeInfo> GetThemeInfos(List<ThemeInfo> allRegisteredInfos, string groupId, Uri toIgnore)
+        {
+            try
+            {
+                //Irrespective of the Key, try to find all themeinfos sharing same group Id.
+                if (groupId == null)
+                {
+                    HandleException("GroupId cannot be null, unable to get all themeinfos.");
+                    return null;
+                }
+
+                if (allRegisteredInfos == null)
+                {
+                    HandleException("All registered Infos cannot be null, unable to get all themeinfos.");
+                    return null;
+                }
+
+                List<ThemeInfo> result = new List<ThemeInfo>();
+                result = allRegisteredInfos.Where(p => p.GroupId == groupId && p.Path != toIgnore)?.ToList();
+
+                return result;
+            }
+            catch (Exception ex)
+            {
+                HandleException(ex.ToString());
+                return null;
+            }
+        }
         private List<GroupChangeData> GetGroupChangeDatas(ThemeChangeData input)
         {
             List<GroupChangeData> result = new List<GroupChangeData>();
             try
             {
-                foreach (var gId in input.OldThemes.Select(p => p.GroupId)?.ToList())
+                var allRegisteredThemes = GetAllRegisteredThemeInfos(); 
+
+                foreach (var newTheme in input.NewThemes.Distinct())
                 {
+                    if (newTheme == null || string.IsNullOrWhiteSpace(newTheme.GroupId)) continue;
+                    var otherThemes = GetThemeInfos(allRegisteredThemes, newTheme.GroupId, newTheme.Path);
                     //Each gId should have values in old and new themes (this would already have been taken care by the fill method)
                     GroupChangeData _data = new GroupChangeData()
                     {
                         SearchMode = input.SearchMode,
                         Sender = input.Sender,
                         Themekey = input.Themekey,
-                        GroupId = gId,
-                        OldTheme = input.OldThemes.FirstOrDefault(p => p.GroupId == gId),
-                        NewTheme = input.NewThemes.FirstOrDefault(p => p.GroupId == gId)
+                        GroupId = newTheme.GroupId,
+                        PossibleOldThemes =otherThemes,
+                        NewTheme = newTheme
                     };
 
                     //A group itself gets registered with the prop
-                    _data.AddCopyAtRoot = (_data.OldTheme?.AddCopyAtRoot).Value; //Property of all theme in a group willbe same.
+                    _data.AddCopyAtRoot = newTheme.AddCopyAtRoot; //Property of all theme in a group willbe same.
                     result.Add(_data);
                 }
                 return result;
@@ -740,7 +738,7 @@ namespace Haley.Services
             }
             _failedGroups.Clear(); //Clear the list.
         }
-        private (List<string> AllIds, List<ThemeInfo> AllValues) GetAllGroupInfo(ThemeRegistrationMode mode)
+        private (List<string> AllGids, List<ThemeInfo> AllValues) GetAllGroupInfo(ThemeRegistrationMode mode)
         {
             List<string> groupIds = new List<string>();
             List<ThemeInfo> values = new List<ThemeInfo>();
@@ -774,7 +772,7 @@ namespace Haley.Services
 
                     _externalThemes.TryGetValue(key, out var currentList);
                     _currentGids = currentList?.Select(p => p.GroupId).ToList() ?? new List<string>();
-                    var _idstoAdd = allGroupInfo.AllIds.Except(_currentGids).ToList();
+                    var _idstoAdd = allGroupInfo.AllGids.Except(_currentGids).ToList();
                     foreach (var id in _idstoAdd)
                     {
                         //Get default
@@ -807,7 +805,7 @@ namespace Haley.Services
                         _globalThemes.TryGetValue(key, out var currentList);
                     _currentGids = currentList?.Select(p => p.GroupId).ToList() ?? new List<string>();
                     //the currentlist Group Ids should match all keys. Any missing GroupIds should be added.
-                    var _idstoAdd = allGroupInfo.AllIds.Except(_currentGids).ToList();
+                    var _idstoAdd = allGroupInfo.AllGids.Except(_currentGids).ToList();
 
                     foreach (var id in _idstoAdd)
                     {
@@ -908,29 +906,7 @@ namespace Haley.Services
 
             return resource;
         }
-        private void SetRootDictionary(ThemeSearchMode searchType, object sender)
-        {
-            ResourceDictionary _rootdic = null;
-            if (searchType == ThemeSearchMode.FrameworkElement)
-            {
-                if (sender != null)
-                {
-                    _rootdic = ((FrameworkElement)sender).Resources;
-                    ((FrameworkElement)sender).Resources = null;
-                    ((FrameworkElement)sender).Resources = _rootdic;
-                }
-            }
-            else
-            {
-                if (Application.Current != null)
-                {
-                    _rootdic = Application.Current.Resources;
-                    Application.Current.Resources = null;
-                    Application.Current.Resources = _rootdic;
-                }
-            }
-        }
-        private bool GetTracker(ResourceDictionary parentDic, Uri oldThemeURI, ref ThemeTracker tracker)
+        private bool GetTracker(ResourceDictionary parentDic, List<Uri> oldThemes, ref ThemeTracker tracker)
         {
             //TRACKER SHOULD NOT CONSIDER THE CURRENT 
             //Our goal is to find which resource dictionary ends with old theme uri.
@@ -939,7 +915,7 @@ namespace Haley.Services
             childTracker.Parent = tracker; //this is the child's parent.
 
             //Check if child direclty matches?
-            if (!tracker.IsRoot && parentDic.Source != null && parentDic.Source == oldThemeURI)
+            if (!tracker.IsRoot && parentDic.Source != null && oldThemes.Any(p=> p == parentDic.Source))
             {
                 //Found matching uri.
                 tracker.IsTarget = true;
@@ -947,7 +923,7 @@ namespace Haley.Services
             }
 
             //Check if any of the merged dictionaries of the child matches.
-            var matchFound = parentDic.MergedDictionaries.FirstOrDefault(p => p.Source != null && p.Source == oldThemeURI);
+            var matchFound = parentDic.MergedDictionaries.FirstOrDefault(p => p.Source != null && oldThemes.Any(s => s == parentDic.Source));
 
             //If overwrite at root level, then it should be merged to the rootDic's merged dictionaries.
             //This will ensure that all the cascading themes will follow it up.
@@ -965,7 +941,7 @@ namespace Haley.Services
             //Loop through each of the merged dictionaries.
             foreach (var rDic in parentDic.MergedDictionaries)
             {
-                if (GetTracker(rDic, oldThemeURI, ref childTracker))
+                if (GetTracker(rDic, oldThemes, ref childTracker))
                 {
                     //If we manage the get the value.
                     tracker.Child = childTracker;
