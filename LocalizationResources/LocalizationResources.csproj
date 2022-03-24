@@ -38,8 +38,8 @@
     <StartupObject />
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="Haley.Abstractions, Version=1.0.0.0, Culture=neutral, PublicKeyToken=9b5f4902d3fea17a, processorArchitecture=MSIL">
-      <HintPath>..\packages\Haley.Abstractions.1.0.0\lib\netstandard2.0\Haley.Abstractions.dll</HintPath>
+    <Reference Include="Haley.Abstractions, Version=1.0.11.0, Culture=neutral, PublicKeyToken=9b5f4902d3fea17a, processorArchitecture=MSIL">
+      <HintPath>..\packages\Haley.Abstractions.1.0.11\lib\netstandard2.0\Haley.Abstractions.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Data" />

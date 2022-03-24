@@ -34,7 +34,7 @@ namespace Haley.Abstractions
         #endregion
 
         #region Register Methods
-        public virtual string Register<viewmodelType, viewType>(viewmodelType InputViewModel = null, bool use_vm_as_key = true, RegisterMode mode = RegisterMode.Singleton)
+        public virtual string Register<viewmodelType, viewType>(viewmodelType InputViewModel = null, bool use_vm_as_key = true, RegisterMode mode = RegisterMode.ContainerSingleton)
             where viewmodelType : class, BaseViewModelType
             where viewType : class
         {
@@ -51,7 +51,7 @@ namespace Haley.Abstractions
            return Register<viewmodelType, viewType>(_key, InputViewModel, mode);
         }
 
-        public virtual string Register<viewmodelType, viewType>(Enum @enum, viewmodelType InputViewModel = null, RegisterMode mode = RegisterMode.Singleton)
+        public virtual string Register<viewmodelType, viewType>(Enum @enum, viewmodelType InputViewModel = null, RegisterMode mode = RegisterMode.ContainerSingleton)
            where viewmodelType : class, BaseViewModelType
            where viewType : class
         {
@@ -60,7 +60,7 @@ namespace Haley.Abstractions
            return Register<viewmodelType, viewType>(_key, InputViewModel, mode);
         }
 
-        public virtual string Register<viewmodelType, viewType>(string key, viewmodelType InputViewModel = null, RegisterMode mode = RegisterMode.Singleton)
+        public virtual string Register<viewmodelType, viewType>(string key, viewmodelType InputViewModel = null, RegisterMode mode = RegisterMode.ContainerSingleton)
             where viewmodelType : class, BaseViewModelType
             where viewType : class
         {
@@ -79,7 +79,7 @@ namespace Haley.Abstractions
                 if (service_provider is IBaseContainer baseContainer)
                 {
                     //Register this in the DI only if it is singleton. For transient, we can always resolve new.
-                    if (mode == RegisterMode.Singleton)
+                    if (mode == RegisterMode.ContainerSingleton)
                     {
                         var vm_status = baseContainer.CheckIfRegistered(typeof(viewmodelType), null);
                         if (!vm_status.status)
@@ -217,7 +217,7 @@ namespace Haley.Abstractions
                 throw new ArgumentException($"Key {key} is not registered to any controls. Please check.");
             }
 
-            (Type _viewmodel_type, Type _view_type, RegisterMode _mode) _registered_tuple = (null, null, RegisterMode.Singleton);
+            (Type _viewmodel_type, Type _view_type, RegisterMode _mode) _registered_tuple = (null, null, RegisterMode.ContainerSingleton);
             main_mapping.TryGetValue(key, out _registered_tuple);
 
             //if (_registered_tuple._viewmodel_type == null || _registered_tuple._view_type == null)

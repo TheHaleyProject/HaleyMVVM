@@ -41,7 +41,7 @@ namespace Haley.MVVM
             if (_instance == null)
             {
                 //We will make default
-                _instance = new ContainerStore(new DIContainer()); //We use the base DI container.
+                _instance = new ContainerStore(new MicroContainer()); //We use the base DI container.
             }
             return _instance;
         }
@@ -85,7 +85,7 @@ namespace Haley.MVVM
 
         private void _registerServices()
         {
-            DI.Register<IDialogService, DialogService>(RegisterMode.Singleton);
+            DI.Register<IDialogService, DialogService>(RegisterMode.ContainerSingleton);
             DialogService _dservice = DI.Resolve<IDialogService>() as DialogService;
             DI.Register<IDialogServiceEx, DialogService>(_dservice);
             //If we register the dialogservice as Transient, then for each resolution, it will create separate instance. So, different classes might have different properties (like glow color, header, background).

@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Haley.Models;
 using Haley.Abstractions;
+using Haley.Enums;
 
 namespace Haley.IOC
 {
@@ -41,11 +42,11 @@ namespace Haley.IOC
                 //Because we know that in our ContainerFactory, the Iconrol,Iwindow,Iservice provider concrete implementations.
                 //Forced singleton means that irrespective of how the resolve call is made (ResolveAsTransient, ResolveAsSingleton), we always resolve as singleton. That's what ForcedSingleton means.
                 var DI = GetDI();
-                DI.Register<IControlContainer, ControlContainer>((ControlContainer)Controls, true);
-                DI.Register<IWindowContainer, WindowContainer>((WindowContainer)Windows, true);
-                DI.Register<IContainerFactory, ContainerFactory>((ContainerFactory)this, true);
-                DI.Register<IServiceProvider, DIContainer>((DIContainer)Services, true);
-                DI.Register<IBaseContainer, DIContainer>((DIContainer)Services, true);
+                DI.Register<IControlContainer, ControlContainer>((ControlContainer)Controls, SingletonMode.UniversalSingleton);
+                DI.Register<IWindowContainer, WindowContainer>((WindowContainer)Windows, SingletonMode.UniversalSingleton);
+                DI.Register<IContainerFactory, ContainerFactory>((ContainerFactory)this, SingletonMode.UniversalSingleton);
+                DI.Register<IServiceProvider, MicroContainer>((MicroContainer)Services, SingletonMode.UniversalSingleton);
+                DI.Register<IBaseContainer, MicroContainer>((MicroContainer)Services, SingletonMode.UniversalSingleton);
                 return true;
             }
 

@@ -169,7 +169,7 @@
     </When>
     <Otherwise>
       <ItemGroup>
-        <PackageReference Include="Haley.Abstractions" Version="1.0.8" />
+        <PackageReference Include="Haley.Abstractions" Version="1.0.11" />
       </ItemGroup>
     </Otherwise>
   </Choose>
@@ -184,7 +184,7 @@
     </When>
     <Otherwise>
       <ItemGroup>
-        <PackageReference Include="Haley.MVVM" Version="6.2.6" />
+        <PackageReference Include="Haley.MVVM" Version="6.2.10" />
       </ItemGroup>
     </Otherwise>
   </Choose>
@@ -198,7 +198,7 @@
     </When>
     <Otherwise>
       <ItemGroup>
-        <PackageReference Include="Haley.Extensions" Version="2.1.5" />
+        <PackageReference Include="Haley.Extensions" Version="2.1.6" />
       </ItemGroup>
     </Otherwise>
   </Choose>
@@ -212,7 +212,7 @@
     </When>
     <Otherwise>
       <ItemGroup>
-        <PackageReference Include="Haley.IOC" Version="3.0.6" />
+        <PackageReference Include="Haley.IOC" Version="3.0.7" />
       </ItemGroup>
     </Otherwise>
   </Choose>
