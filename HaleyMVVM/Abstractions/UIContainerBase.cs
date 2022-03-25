@@ -16,19 +16,41 @@ namespace Haley.Abstractions
 
         #region Initation
         protected IServiceProvider service_provider;
+        private IContainerFactory _factory;
+        protected IContainerFactory container_factory 
+        {
+            get 
+            {
+                if (_factory == null)
+                {
+                    _factory = service_provider.GetService(typeof(IContainerFactory)) as IContainerFactory;
+                }
+                return _factory;
+            } 
+        }
+
         protected ConcurrentDictionary<string,(Type VMtype, Type ViewType,RegisterMode mode)> main_mapping { get; set; } //Dictionary to store enumvalue and viewmodel type as key and usercontrol as value
 
         public UIContainerBase(IServiceProvider _serviceProvider)
         {
-            Id = Guid.NewGuid().ToString();
+            service_provider = _serviceProvider;
+
+            if (_serviceProvider is IBaseServiceProvider basePrvdr)
+            {
+                Id = basePrvdr?.Id ??Guid.NewGuid().ToString(); //For base providers, the ID should match the service provider (so that it would be easy to fetch the relevant container factory)
+            }
+            else
+            {
+                Id = Guid.NewGuid().ToString();
+            }
+
             main_mapping = new ConcurrentDictionary<string, (Type VMtype, Type ViewType, RegisterMode mode)>();
 
             if (_serviceProvider == null)
             {
-                throw new ArgumentException("Service provide cannot be empty while initiating UIContainerBase");
+                throw new ArgumentException("Service provider cannot be empty while initiating UIContainerBase");
             }
            
-            service_provider= _serviceProvider;
         }
 
         #endregion
@@ -60,6 +82,20 @@ namespace Haley.Abstractions
            return Register<viewmodelType, viewType>(_key, InputViewModel, mode);
         }
 
+        private SingletonMode GetMode(RegisterMode mode)
+        {
+            switch (mode)
+            {
+                case RegisterMode.ContainerSingleton:
+                    return SingletonMode.ContainerSingleton;
+                case RegisterMode.ContainerWeakSingleton:
+                    return SingletonMode.ContainerWeakSingleton;
+                case RegisterMode.UniversalSingleton:
+                    return SingletonMode.UniversalSingleton;
+            }
+            return SingletonMode.ContainerSingleton;
+        }
+
         public virtual string Register<viewmodelType, viewType>(string key, viewmodelType InputViewModel = null, RegisterMode mode = RegisterMode.ContainerSingleton)
             where viewmodelType : class, BaseViewModelType
             where viewType : class
@@ -79,17 +115,17 @@ namespace Haley.Abstractions
                 if (service_provider is IBaseContainer baseContainer)
                 {
                     //Register this in the DI only if it is singleton. For transient, we can always resolve new.
-                    if (mode == RegisterMode.ContainerSingleton)
+                    if (mode == RegisterMode.ContainerSingleton || mode == RegisterMode.ContainerWeakSingleton)
                     {
                         var vm_status = baseContainer.CheckIfRegistered(typeof(viewmodelType), null);
                         if (!vm_status.status)
                         {
-                            baseContainer.Register<viewmodelType>(InputViewModel);
+                            baseContainer.Register(InputViewModel,GetMode(mode));
                         }
                         var view_status = baseContainer.CheckIfRegistered(typeof(viewType), null);
                         if (!view_status.status)
                         {
-                            baseContainer.Register<viewType>();
+                            baseContainer.Register<viewType>(mode);
                         }
                     }
                 }
@@ -120,6 +156,7 @@ namespace Haley.Abstractions
         {
             try
             {
+                //AT PRESENT, ONLY THE VIEWS REGISTERED IN THIS CONTAINER IS RESOLVED.
                 //Even view should be resolved by _di instance. because sometimes, views can direclty expect some 
                 if (viewType == null) return null;
                 object resultcontrol;

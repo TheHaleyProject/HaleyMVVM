@@ -17,7 +17,7 @@ namespace Haley.IOC
 {
     public sealed class WindowContainer : UIContainerBase<IHaleyVM>, IWindowContainer  //Implementation of the DialogService Interface.
     {
-        public WindowContainer(IServiceProvider _injection_container) : base(_injection_container) { }
+        public WindowContainer(IServiceProvider serviceContainer) : base(serviceContainer) { }
 
         #region ShowDialog Methods
         public bool? ShowDialog(Enum key, object InputViewModel = null, ResolveMode resolve_mode = ResolveMode.AsRegistered)

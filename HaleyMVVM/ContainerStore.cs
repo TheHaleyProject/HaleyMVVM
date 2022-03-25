@@ -5,6 +5,7 @@ using Haley.Enums;
 using Haley.IOC;
 using System.Windows;
 using System.Windows.Controls;
+using System.Collections.Concurrent;
 
 namespace Haley.MVVM
 {
@@ -13,27 +14,43 @@ namespace Haley.MVVM
     /// </summary>
     public sealed class ContainerStore
     {
-        #region Static Attributes
-        private static ContainerStore _instance;
-
+        #region OBSOLETE
+       
         #endregion
 
-        private IContainerFactory _factory;
-        public bool CanRegister { get; private set; }
-        public IBaseContainer DI => _getDI();
-        public IServiceProvider Provider => _factory.Services;
-        public IWindowContainer Windows => _factory.Windows;
-        public IControlContainer Controls => _factory.Controls;
         public string Id { get; private set; }
+        private IMicroContainerFactory _rootFactory;
 
+        #region Static Attributes
+        private static ContainerStore _instance;
+        private ConcurrentDictionary<string, IContainerFactory> factories = new ConcurrentDictionary<string, IContainerFactory>();
+        #endregion
+
+        #region Root
+        public IBaseServiceProvider Provider => _rootFactory.Services;
+        public IWindowContainer Windows => _rootFactory.Windows;
+        public IControlContainer Controls => _rootFactory.Controls;
+        public IBaseContainer DI => _rootFactory.Container;
+        #endregion
+
+        /// <summary>
+        /// Will return Root Factory
+        /// </summary>
+        /// <returns></returns>
         public IContainerFactory GetFactory()
         {
-            return _factory;
+            return _rootFactory;
         }
 
-        private IBaseContainer _getDI()
+        /// <summary>
+        /// Used to return the factory related to a service provider.
+        /// </summary>
+        /// <param name="serviceProviderId"></param>
+        /// <returns></returns>
+        public IContainerFactory GetFactory(string serviceProviderId)
         {
-            return _factory.GetDI();
+            if (!factories.TryGetValue(serviceProviderId, out var factory)) return null;
+            return factory;
         }
 
         private static ContainerStore getSingleton()
@@ -41,46 +58,46 @@ namespace Haley.MVVM
             if (_instance == null)
             {
                 //We will make default
-                _instance = new ContainerStore(new MicroContainer()); //We use the base DI container.
+                _instance = new ContainerStore(new MicroContainer()); ///The new container will be the root container.
             }
             return _instance;
-        }
-
-        public static ContainerStore CreateSingleton(IContainerFactory factory)
-        {
-            if (_instance != null)
-            {
-                throw new ArgumentException("Factory can be initiated only once.");
-            }
-
-            _instance = new ContainerStore(factory);
-            return _instance;
-        }
-
-        private ContainerStore(IContainerFactory container_factory)
-        {
-            _initiate(container_factory);
         }
 
         private ContainerStore(IBaseContainer _baseContainer)
         {
-            _initiate(new ContainerFactory(_baseContainer));
-            _registerSelf();
+            _baseContainer.ChildCreated += ChildCreatedHandler;
+            _baseContainer.ContainerDisposed += ContainerDisposed;
+            _rootFactory = new MicroContainerFactory(_baseContainer); //This will also do a self register
+
+            //Since above creation method will also self register the factory and the other contianers into the base container, we don't need to get them from the factories (from below line) at all. However, we are adding it to the factories, so that we have an alternative way of fetching the factory, provided we have only the container id.
+            factories.TryAdd(_rootFactory.Id, _rootFactory);
+            Id = _baseContainer?.Id ?? Guid.NewGuid().ToString(); //if it is a micro factory it will register it self.
             _registerServices();
         }
 
-        private void _initiate(IContainerFactory container_factory)
+        private void ContainerDisposed(object sender, string e)
         {
-            //Set ID
-            Id = Guid.NewGuid().ToString();
-            //just set this.
-            _factory = container_factory;
-            CanRegister = _factory is IBaseContainer;
+            //Dispose the continer which was send. //Root will not be removed as it is also stored in a variable.
+            factories.TryRemove(e, out var removedFactory);
+            if (removedFactory is IMicroContainerFactory microFactory)
+            {
+                removedFactory.Dispose();
+                microFactory.Container.ContainerDisposed -= ContainerDisposed;
+            }
         }
 
-        private void _registerSelf()
+        private void ChildCreatedHandler(object sender, IBaseContainer e)
         {
-            _factory.Initiate();
+            //Sender is who created this child. //All we need to do is, whenever a new child is created, we create a new factory for it and add it to the repo here.
+            //Also subscribe to the new child's events.
+            if (e is null) return;
+
+            var microFactory = new MicroContainerFactory(e);
+            if (factories.TryAdd(e.Id,microFactory))
+            {
+                e.ChildCreated += ChildCreatedHandler;
+                e.ContainerDisposed += ContainerDisposed;
+            }
         }
 
         private void _registerServices()

@@ -82,23 +82,21 @@ namespace HaleyMVVM.Test
         {
             //Arrange
             //Set01
-            IContainerFactory _factory = new ContainerFactory(new MicroContainer());
-            //If we use a containerstore, then it will selfregister. But if we are using a container factory, we can also use alternative IOC Container (which implements IServiceProvider). So in this case, we need to register self manually.
-            var hasRgisterd =_factory.Initiate(); 
+            IContainerFactory _factory = new MicroContainerFactory(new MicroContainer());
 
             //Set 02
-            IBaseContainer _newbase = new MicroContainer();
+            IBaseContainer _newbase = new MicroContainer(); //an isolated root.
             IControlContainer _newControl = new ControlContainer(_newbase);
             IWindowContainer _newWndw = new WindowContainer(_newbase);
 
             //var _houseFactory01 = ((IBaseContainer)_factory.DI).Resolve<HouseFactory>(); //This should have all relevance to main factory.
 
-            var _houseFactory01 = ((ContainerFactory)_factory).GetDI().Resolve<HouseFactory>(); //This should have all relevance to main factory.
+            var _houseFactory01 = ((IMicroContainerFactory)_factory).Services.Resolve<HouseFactory>(); //This should have all relevance to main factory.
 
 
             //Act
             var _house02 = _newbase.Resolve<House>(); //resolve using newbasecontainer
-            var _oldhouse = ((IBaseContainer)_factory.Services).Resolve<House>(); //resolve using the main factory.
+            var _oldhouse = ((IBaseContainer)_factory.Services)?.Resolve<House>(); //resolve using the main factory.
 
             //Assert
             Assert.Equal(_houseFactory01.house.Container.Id, _oldhouse.Container.Id); //Both houses should have received same base container.
