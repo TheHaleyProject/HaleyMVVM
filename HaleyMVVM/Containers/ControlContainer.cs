@@ -15,7 +15,7 @@ namespace Haley.IOC
 {
     public sealed class ControlContainer : UIContainerBase<IHaleyVM>, IControlContainer 
     {
-        public ControlContainer(IServiceProvider serviceContainer):base(serviceContainer) { }
+        public ControlContainer(IServiceProvider serviceContainer):base(serviceContainer,typeof(UserControl)) { }
 
         public override object GenerateViewFromKey(object key, object InputViewModel = null, ResolveMode mode = ResolveMode.AsRegistered)
         {

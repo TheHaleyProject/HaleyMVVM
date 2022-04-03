@@ -73,6 +73,19 @@ namespace Haley.Models
         public static readonly DependencyProperty ContentProperty =
             DependencyProperty.RegisterAttached("Content", typeof(DataTemplate), typeof(DialogSetterAP), new FrameworkPropertyMetadata(null,propertyChangedCallback: OnAnyPropertyChanged));
 
+        public static string GetContainerKey(DependencyObject obj)
+        {
+            return (string)obj.GetValue(ContainerKeyProperty);
+        }
+
+        public static void SetContainerKey(DependencyObject obj, string value)
+        {
+            obj.SetValue(ContainerKeyProperty, value);
+        }
+
+        public static readonly DependencyProperty ContainerKeyProperty =
+            DependencyProperty.RegisterAttached("ContainerKey", typeof(string), typeof(DialogSetterAP), new FrameworkPropertyMetadata(null, propertyChangedCallback: OnAnyPropertyChanged));
+
         private static void OnAnyPropertyChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
         {
             //here subcribe to the events 
@@ -89,16 +102,24 @@ namespace Haley.Models
             if(sender is UIElement uie)
             {
                 var _content = GetContent(uie);
+                var _containerKey = GetContainerKey(uie);
+                //preference to content.
                 var _title = GetTitle(uie) ?? "Dialog Window";
                 var _blur = GetBlurWindows(uie);
-                if (_content != null)
+                if (_content == null && _containerKey == null) return;
+
+                //use this datatemplate or usercontrol and display on a notification dialog
+                var _ds = getDS(sender as DependencyObject);
+                if (_ds == null) return;
+                if (_ds is IDialogServiceEx _dsEx)
                 {
-                    //use this datatemplate or usercontrol and display on a notification dialog
-                    var _ds = getDS(sender as DependencyObject);
-                    if (_ds == null) return;
-                    if (_ds is IDialogServiceEx _dsEx)
+                    if (_content != null)
                     {
-                        _dsEx.ShowCustomView(_title, _content, _blur);
+                        _dsEx.ShowCustomView(_title, template: _content, blurOtherWindows: _blur);
+                    }
+                    else
+                    {
+                        _dsEx.ShowContainerView(_title, _containerKey, blurOtherWindows: _blur);
                     }
                 }
             }

@@ -102,9 +102,10 @@ namespace Haley.MVVM
 
         private void _registerServices()
         {
-            DI.Register<IDialogService, DialogService>(RegisterMode.ContainerSingleton);
+            DI.Register<IDialogService, DialogService>(RegisterMode.UniversalSingleton);
             DialogService _dservice = DI.Resolve<IDialogService>() as DialogService;
-            DI.Register<IDialogServiceEx, DialogService>(_dservice);
+            DI.Register<IDialogServiceEx, DialogService>(_dservice,SingletonMode.UniversalSingleton);
+            DI.Register<IThemeService, ThemeService>(ThemeService.Singleton,SingletonMode.UniversalSingleton);
             //If we register the dialogservice as Transient, then for each resolution, it will create separate instance. So, different classes might have different properties (like glow color, header, background).
             //So we register as singleton. If user wishes to resolve as transient, then he/she can still do that by ResolveAsTransient (as it is not forced singleton).
         }

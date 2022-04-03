@@ -17,7 +17,7 @@ using System.Diagnostics;
 
 namespace Haley.Services
 {
-    public class ThemeService : IThemeService
+    public sealed class ThemeService : IThemeService
     {
         #region Properties
         public event EventHandler<object> ThemeChanged;

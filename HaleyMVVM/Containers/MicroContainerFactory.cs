@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Haley.Models;
 using Haley.Abstractions;
 using Haley.Enums;
+using Haley.Services;
 
 namespace Haley.IOC
 {

@@ -22,6 +22,11 @@ namespace Haley.Models
         {
             ViewModelClosed?.Invoke(sender, e);
         }
+
+        protected void InvokeVMClosed(object sender, bool result)
+        {
+            ViewModelClosed?.Invoke(sender, new FrameClosingEventArgs(result, null));
+        }
         public BaseVM() { }
     }
 }

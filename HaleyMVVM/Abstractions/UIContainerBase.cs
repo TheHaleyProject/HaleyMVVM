@@ -12,6 +12,7 @@ namespace Haley.Abstractions
 {
     public abstract class UIContainerBase<BaseViewModelType> : IUIContainerBase<BaseViewModelType>
     {
+        public Type BaseViewType;
         public string Id { get; }
 
         #region Initation
@@ -31,9 +32,10 @@ namespace Haley.Abstractions
 
         protected ConcurrentDictionary<string,(Type VMtype, Type ViewType,RegisterMode mode)> main_mapping { get; set; } //Dictionary to store enumvalue and viewmodel type as key and usercontrol as value
 
-        public UIContainerBase(IServiceProvider _serviceProvider)
+        public UIContainerBase(IServiceProvider _serviceProvider,Type baseViewType)
         {
             service_provider = _serviceProvider;
+            BaseViewType = baseViewType;
 
             if (_serviceProvider is IBaseServiceProvider basePrvdr)
             {
@@ -49,6 +51,11 @@ namespace Haley.Abstractions
             if (_serviceProvider == null)
             {
                 throw new ArgumentException("Service provider cannot be empty while initiating UIContainerBase");
+            }
+
+            if(BaseViewType == null)
+            {
+                throw new ArgumentException("baseViewType cannot be empty while initiating UIContainerBase");
             }
            
         }
@@ -96,12 +103,23 @@ namespace Haley.Abstractions
             return SingletonMode.ContainerSingleton;
         }
 
+        private bool ValidateViewType(Type viewType)
+        {
+            if (!BaseViewType.IsAssignableFrom(viewType))
+            {
+                throw new ArgumentException($@"View type is not matching for this container. Expected type of view is {BaseViewType.ToString()}. {viewType} is not derived from {BaseViewType}");
+            }
+            return true;
+        }
+
         public virtual string Register<viewmodelType, viewType>(string key, viewmodelType InputViewModel = null, RegisterMode mode = RegisterMode.ContainerSingleton)
             where viewmodelType : class, BaseViewModelType
             where viewType : class
         {
             try
             {
+                ValidateViewType(typeof(viewType));
+
                 //First add the internal main mappings.
                 if (main_mapping.ContainsKey(key) == true)
                 {
@@ -112,24 +130,31 @@ namespace Haley.Abstractions
                 main_mapping.TryAdd(key, _tuple);
 
                 //If service provider is of type base provider then we can register it aswell (as it will have an implementation)
-                if (service_provider is IBaseContainer baseContainer)
+
+                if(!(service_provider is IBaseContainer baseContainer))return key;
+                //If registermode is anything other than singleton or weaksingleton, do not validate.
+
+                if (mode == RegisterMode.UniversalSingleton)
                 {
-                    //Register this in the DI only if it is singleton. For transient, we can always resolve new.
-                    if (mode == RegisterMode.ContainerSingleton || mode == RegisterMode.ContainerWeakSingleton)
-                    {
-                        var vm_status = baseContainer.CheckIfRegistered(typeof(viewmodelType), null);
-                        if (!vm_status.status)
-                        {
-                            baseContainer.Register(InputViewModel,GetMode(mode));
-                        }
-                        var view_status = baseContainer.CheckIfRegistered(typeof(viewType), null);
-                        if (!view_status.status)
-                        {
-                            baseContainer.Register<viewType>(mode);
-                        }
-                    }
+                    throw new ArgumentException("Universal singleton registrations has to be directly done on the Root DI container. Cannot register from the Control/Window or child containers.");
                 }
-                
+
+                if (mode != RegisterMode.ContainerSingleton && mode != RegisterMode.ContainerWeakSingleton)return key;
+
+                //For ContainerSingletonMode, directly register using the view or the viewmodel type as key.
+                //For WeakSingleton, register using (View/Viewmodel-combo key).
+                var vm_status = baseContainer.CheckIfRegistered(typeof(viewmodelType), null);
+                if (!vm_status.status)
+                {
+                    baseContainer.Register(InputViewModel, GetMode(mode));
+                }
+
+                var view_status = baseContainer.CheckIfRegistered(typeof(viewType), null);
+                if (!view_status.status)
+                {
+                    baseContainer.Register<viewType>(mode);
+                }
+
                 return key;
             }
             catch (Exception ex)
@@ -233,6 +258,7 @@ namespace Haley.Abstractions
         public viewType GenerateView<viewType>(object InputViewModel = null, ResolveMode mode = ResolveMode.AsRegistered)
             where viewType : class
         {
+            ValidateViewType(typeof(viewType));
             string _key = typeof(viewType).ToString();
             return GenerateViewFromKey(_key, InputViewModel, mode) as viewType;
         }
