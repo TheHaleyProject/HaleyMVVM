@@ -41,6 +41,13 @@ namespace Haley.Utils
         {
             //THIS WHOLE PART IS JUST A MIDDLE WARE. WHEN THE XAML REQUESTS FOR A VALUE USING "PROVIDE VALUE" METHOD OF THE EXTENSION, WE MERELY CREATE A NEW PROPERTY BINDING AND USE THE NEW BINDING'S PROVIDE VALUE.
 
+            #region Option 1
+            ////If we wish to get datacontext of the binding element (like textbloc or box, use below methods to get the prop and then the property where it is bounded)
+            //var targetProvider = (IProvideValueTarget)serviceProvider.GetService(typeof(IProvideValueTarget));
+            //var targetElement = targetProvider.TargetObject as FrameworkElement; //This element will have a Tag value (which can be used to store the required data)
+            //var targetProperty = targetProvider.TargetProperty as DependencyProperty;
+            #endregion
+
             string provider_key = ProviderKey;
 
             if (string.IsNullOrWhiteSpace(provider_key))
