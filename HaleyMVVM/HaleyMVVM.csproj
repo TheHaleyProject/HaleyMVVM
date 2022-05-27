@@ -126,7 +126,7 @@
 		</When>
 		<Otherwise>
 			<ItemGroup>
-				<PackageReference Include="Haley.Abstractions" Version="1.0.15" />
+				<PackageReference Include="Haley.Abstractions" Version="1.0.16-beta3" />
 			</ItemGroup>
 		</Otherwise>
 	</Choose>
@@ -186,7 +186,7 @@
     </When>
     <Otherwise>
      <ItemGroup>
-       <PackageReference Include="Haley.IOC" Version="3.0.9" />
+       <PackageReference Include="Haley.IOC" Version="3.0.10-beta2" />
 	 </ItemGroup>
     </Otherwise>
 </Choose>  

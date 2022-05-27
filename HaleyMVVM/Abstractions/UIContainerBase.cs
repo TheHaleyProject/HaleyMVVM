@@ -63,6 +63,41 @@ namespace Haley.Abstractions
         #endregion
 
         #region Register Methods
+
+        public virtual string Register<viewmodelType, viewType>(object key, viewmodelType InputViewModel = null, RegisterMode mode = RegisterMode.ContainerSingleton)
+            where viewmodelType : class, BaseViewModelType
+            where viewType : class
+        {
+            //Get the enum value and its type name to prepare a string
+            getKey(key,out var _key);
+            return RegisterInternal<viewmodelType, viewType>(_key, InputViewModel,null, mode);
+        }
+
+        public virtual string DelegateRegister<viewmodelType, viewType>(Func<viewmodelType> creator, bool use_vm_as_key = true, RegisterMode mode = RegisterMode.ContainerSingleton)
+            where viewmodelType : class, BaseViewModelType
+            where viewType : class
+        {
+            string _key = null;
+            if (use_vm_as_key)
+            {
+                _key = typeof(viewmodelType).ToString();
+            }
+            else
+            {
+                _key = typeof(viewType).ToString();
+            }
+
+            return DelegateRegister<viewmodelType, viewType>(_key, creator, mode);
+        }
+
+        public virtual string DelegateRegister<viewmodelType, viewType>(object key, Func<viewmodelType> creator, RegisterMode mode = RegisterMode.ContainerSingleton)
+            where viewmodelType : class, BaseViewModelType
+            where viewType : class
+        {
+            getKey(key, out var _key);
+            return RegisterInternal<viewmodelType, viewType>(_key, null,creator,  mode);
+        }
+
         public virtual string Register<viewmodelType, viewType>(viewmodelType InputViewModel = null, bool use_vm_as_key = true, RegisterMode mode = RegisterMode.ContainerSingleton)
             where viewmodelType : class, BaseViewModelType
             where viewType : class
@@ -77,47 +112,17 @@ namespace Haley.Abstractions
                 _key = typeof(viewType).ToString();
             }
 
-           return Register<viewmodelType, viewType>(_key, InputViewModel, mode);
+           return RegisterInternal<viewmodelType, viewType>(_key, InputViewModel,null, mode);
         }
 
-        public virtual string Register<viewmodelType, viewType>(Enum @enum, viewmodelType InputViewModel = null, RegisterMode mode = RegisterMode.ContainerSingleton)
-           where viewmodelType : class, BaseViewModelType
-           where viewType : class
-        {
-            //Get the enum value and its type name to prepare a string
-            string _key = @enum.GetKey();
-           return Register<viewmodelType, viewType>(_key, InputViewModel, mode);
-        }
-
-        private SingletonMode GetMode(RegisterMode mode)
-        {
-            switch (mode)
-            {
-                case RegisterMode.ContainerSingleton:
-                    return SingletonMode.ContainerSingleton;
-                case RegisterMode.ContainerWeakSingleton:
-                    return SingletonMode.ContainerWeakSingleton;
-                case RegisterMode.UniversalSingleton:
-                    return SingletonMode.UniversalSingleton;
-            }
-            return SingletonMode.ContainerSingleton;
-        }
-
-        private bool ValidateViewType(Type viewType)
-        {
-            if (!BaseViewType.IsAssignableFrom(viewType))
-            {
-                throw new ArgumentException($@"View type is not matching for this container. Expected type of view is {BaseViewType.ToString()}. {viewType} is not derived from {BaseViewType}");
-            }
-            return true;
-        }
-
-        public virtual string Register<viewmodelType, viewType>(string key, viewmodelType InputViewModel = null, RegisterMode mode = RegisterMode.ContainerSingleton)
+        protected string RegisterInternal<viewmodelType, viewType>(string key, viewmodelType InputViewModel = null, Func<viewmodelType> vmCreator = null, RegisterMode mode = RegisterMode.ContainerSingleton)
             where viewmodelType : class, BaseViewModelType
             where viewType : class
         {
             try
             {
+                if (string.IsNullOrWhiteSpace(key)) key = typeof(viewType).ToString();
+
                 ValidateViewType(typeof(viewType));
 
                 //First add the internal main mappings.
@@ -146,7 +151,19 @@ namespace Haley.Abstractions
                 var vm_status = baseContainer.CheckIfRegistered(typeof(viewmodelType), null);
                 if (!vm_status.status)
                 {
-                    baseContainer.Register(InputViewModel, GetMode(mode));
+                    if (InputViewModel != null)
+                    {
+                        baseContainer.Register(InputViewModel, GetMode(mode));
+                    }
+                    else if(vmCreator != null)
+                    {
+                        baseContainer.Register(vmCreator, GetMode(mode));
+                    }
+                    else
+                    {
+                        //Dont send in any instance. It will be created based on the type.
+                        baseContainer.Register<viewmodelType>(null, GetMode(mode));
+                    }
                 }
 
                 var view_status = baseContainer.CheckIfRegistered(typeof(viewType), null);
@@ -166,7 +183,27 @@ namespace Haley.Abstractions
         #endregion
 
         #region Private Methods
-
+        private SingletonMode GetMode(RegisterMode mode)
+        {
+            switch (mode)
+            {
+                case RegisterMode.ContainerSingleton:
+                    return SingletonMode.ContainerSingleton;
+                case RegisterMode.ContainerWeakSingleton:
+                    return SingletonMode.ContainerWeakSingleton;
+                case RegisterMode.UniversalSingleton:
+                    return SingletonMode.UniversalSingleton;
+            }
+            return SingletonMode.ContainerSingleton;
+        }
+        private bool ValidateViewType(Type viewType)
+        {
+            if (!BaseViewType.IsAssignableFrom(viewType))
+            {
+                throw new ArgumentException($@"View type is not matching for this container. Expected type of view is {BaseViewType.ToString()}. {viewType} is not derived from {BaseViewType}");
+            }
+            return true;
+        }
         protected (BaseViewModelType view_model, object view) _generateValuePair(string key, ResolveMode mode)
         {
             var _mapping_value = GetMappingValue(key);
@@ -176,7 +213,6 @@ namespace Haley.Abstractions
             BaseViewModelType resultViewModel = _generateViewModel(_mapping_value.viewmodel_type, mode);
             return (resultViewModel, resultcontrol);
         }
-
         protected object _generateView(Type viewType, ResolveMode mode = ResolveMode.AsRegistered)
         {
             try
