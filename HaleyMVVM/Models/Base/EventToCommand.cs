@@ -33,6 +33,9 @@ namespace Haley.Models
         public static readonly DependencyProperty CommandParameterProperty =
             DependencyProperty.Register(nameof(CommandParameter), typeof(object), typeof(EventToCommand), null);
 
+        /// <summary>
+        /// If set, then command parameter will be reset (even if some binding already exists) with the arguments
+        /// </summary>
         public bool BindEventArgs
         {
             get { return (bool)GetValue(BindEventArgsProperty); }
@@ -40,7 +43,7 @@ namespace Haley.Models
         }
 
         public static readonly DependencyProperty BindEventArgsProperty =
-            DependencyProperty.Register(nameof(BindEventArgs), typeof(bool), typeof(EventToCommand), new PropertyMetadata(true));
+            DependencyProperty.Register(nameof(BindEventArgs), typeof(bool), typeof(EventToCommand), new PropertyMetadata(false));
 
         #endregion
 
@@ -59,12 +62,8 @@ namespace Haley.Models
         {
             //if commandparameter is null, then check if we should bind the params. Then bind it.
 
-            if (CommandParameter == null)
-            {
-                if (BindEventArgs)
-                {
-                    CommandParameter = parameter;
-                }
+            if (BindEventArgs) {
+                CommandParameter = parameter;
             }
 
             if (this.AssociatedObject != null)
