@@ -47,7 +47,7 @@ namespace Haley.Utils
                 return resizeImage(image_uri, pixel_height, pixel_width, resize_mode, dpi);
             } catch(Exception ex)
             {
-                throw ex;
+                throw;
             }
         }
 
@@ -64,7 +64,7 @@ namespace Haley.Utils
                 return resizeImage(image, pixel_height, pixel_width, resize_mode, dpi);
             } catch(Exception ex)
             {
-                throw ex;
+                throw;
             }
         }
 
@@ -81,7 +81,7 @@ namespace Haley.Utils
                 return resizeImage(imageToByte(image), pixel_height, pixel_width, resize_mode, dpi);
             } catch(Exception ex)
             {
-                throw ex;
+                throw;
             }
         }
 
@@ -104,7 +104,7 @@ namespace Haley.Utils
                 return resizeImage((ImageSource)result_image, pixel_height, pixel_width, resize_mode, dpi);
             } catch(Exception ex)
             {
-                throw ex;
+                throw;
             }
         }
 
@@ -135,7 +135,7 @@ namespace Haley.Utils
                 return null;
             } catch(Exception ex)
             {
-                throw ex;
+                throw;
             }
         }
     #endregion
@@ -152,7 +152,7 @@ namespace Haley.Utils
                 }
             } catch(Exception ex)
             {
-                throw ex;
+                throw;
             }
         }
 
@@ -174,7 +174,7 @@ namespace Haley.Utils
                 return null;
             } catch(Exception ex)
             {
-                throw ex;
+                throw;
             }
         }
 
@@ -191,7 +191,7 @@ namespace Haley.Utils
                 return result;
             } catch(Exception ex)
             {
-                throw ex;
+                throw;
             }
         }
 
@@ -210,7 +210,7 @@ namespace Haley.Utils
                 return result;
             } catch(Exception ex)
             {
-                throw ex;
+                throw;
             }
         }
 
@@ -222,7 +222,7 @@ namespace Haley.Utils
                 return Convert.ToBase64String(_byte_array);
             } catch(Exception ex)
             {
-                throw ex;
+                throw;
             }
         }
 
@@ -234,7 +234,7 @@ namespace Haley.Utils
                 return Convert.ToBase64String(_byte_array);
             } catch(Exception ex)
             {
-                throw ex;
+                throw;
             }
         }
 
@@ -248,7 +248,7 @@ namespace Haley.Utils
                 return byteToImage(_byte_array);
             } catch(Exception ex)
             {
-                throw ex;
+                throw;
             }
         }
 
@@ -262,7 +262,7 @@ namespace Haley.Utils
                 return byteToImageSource(byte_array);
             } catch(Exception ex)
             {
-                throw ex;
+                throw;
             }
         }
 
@@ -274,7 +274,7 @@ namespace Haley.Utils
                 return byteToImage(byte_array);
             } catch(Exception ex)
             {
-                throw ex;
+                throw;
             }
         }
 
@@ -288,7 +288,7 @@ namespace Haley.Utils
                 return result;
             } catch(Exception ex)
             {
-                throw ex;
+                throw;
             }
         }
 
@@ -314,7 +314,7 @@ namespace Haley.Utils
                 return _result;
             } catch(Exception ex)
             {
-                throw ex;
+                throw;
             }
         }
 
@@ -331,7 +331,7 @@ namespace Haley.Utils
                 return pixel_array;
             } catch(Exception ex)
             {
-                throw ex;
+                throw;
             }
         }
 
@@ -362,7 +362,7 @@ namespace Haley.Utils
                 return bmap_source;
             } catch(Exception ex)
             {
-                throw ex;
+                throw;
             }
         }
         #endregion
@@ -387,7 +387,7 @@ namespace Haley.Utils
             }
             catch (Exception ex)
             {
-                throw ex;
+                throw;
             }
         }
 
@@ -411,7 +411,7 @@ namespace Haley.Utils
             }
             catch (Exception ex)
             {
-                throw ex;
+                throw;
             }
         }
 
@@ -444,7 +444,7 @@ namespace Haley.Utils
             }
             catch (Exception ex)
             {
-                throw ex;
+                throw;
             }
         }
 
@@ -485,7 +485,7 @@ namespace Haley.Utils
                 return true;
             } catch(Exception ex)
             {
-                throw ex;
+                throw;
             }
         }
 
@@ -513,7 +513,7 @@ namespace Haley.Utils
                 }
             } catch(Exception ex)
             {
-                throw ex;
+                throw;
             }
         }
         #endregion
@@ -550,7 +550,7 @@ namespace Haley.Utils
                 return result;
             } catch(Exception ex)
             {
-                throw ex;
+                throw;
             }
         }
 
@@ -607,7 +607,7 @@ namespace Haley.Utils
                 return dpi_adjusted_image_source;
             } catch(Exception ex)
             {
-                throw ex;
+                throw;
             }
         }
 
@@ -648,7 +648,7 @@ namespace Haley.Utils
                 return result;
             } catch(Exception ex)
             {
-                throw ex;
+                throw;
             }
         }
 
@@ -662,7 +662,7 @@ namespace Haley.Utils
                 return true; //Else width is greater or equal. In both case, we can fit the width.
             } catch(Exception ex)
             {
-                throw ex;
+                throw;
             }
         }
     #endregion
