@@ -62,16 +62,19 @@ namespace Haley.Models
         {
             //if commandparameter is null, then check if we should bind the params. Then bind it.
 
+            object cmdparam = null;
             if (BindEventArgs) {
-                CommandParameter = parameter;
+                cmdparam = parameter;
+            } else {
+                cmdparam = CommandParameter;
             }
 
             if (this.AssociatedObject != null)
             {
                 ICommand _cmd = _resolveCommand();
-                if ((_cmd != null) && _cmd.CanExecute(CommandParameter))
+                if ((_cmd != null) && _cmd.CanExecute(cmdparam))
                 {
-                    _cmd.Execute(CommandParameter);
+                    _cmd.Execute(cmdparam);
                 }
             }
         }

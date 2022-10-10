@@ -1,4 +1,5 @@
 ﻿//using Accessibility;
+using Haley.Events;
 using Microsoft.Xaml.Behaviors;
 using System;
 using System.Collections.Concurrent;
@@ -22,7 +23,7 @@ namespace Haley.Models {
 
         #region Properties
 
-        public event EventHandler<IEnumerable<Key>> KeyDown;
+        public event EventHandler<HotKeyArgs> KeyDown;
 
         public ICommand KeyDownCommand {
             get { return (ICommand)GetValue(KeyDownCommandProperty); }
@@ -83,9 +84,9 @@ namespace Haley.Models {
                     return;
                 }
                 _pressedKeys.TryAdd(e.Key, e.Key);
-                e.Handled = true; //handle this
+                //e.Handled = true; //handle this
                 //send a copy of the list before cleaning it up.
-                InvokeCommand();
+                InvokeCommand(e);
                 TimerBasedCleanup();
             } catch (Exception ex) {
                 Debug.WriteLine(ex.ToString());
@@ -104,7 +105,7 @@ namespace Haley.Models {
                 if (_pressedKeys.ContainsKey(e.Key)) {
                     _pressedKeys.TryRemove(e.Key, out var removed);
                 }
-                e.Handled = true; //handle this
+                //e.Handled = true; //handle this
             } catch (Exception ex) {
                 Debug.WriteLine(ex.ToString());
             }
@@ -114,15 +115,19 @@ namespace Haley.Models {
             CleanPressedKeys(); //clean immediately
         }
 
-        private void InvokeCommand() {
+        private void InvokeCommand(KeyEventArgs e) {
             var _keys = _pressedKeys.Keys.ToList();
             //Don't send the actual list, because it might result in collection modified erro
             var cleanedKeys = Cleanup(_keys); //CLEAN BEFORE RAISING EVENT.
             cleanedKeys.Sort();
-            if ((KeyDownCommand != null) && KeyDownCommand.CanExecute(cleanedKeys)) {
-                KeyDownCommand.Execute(cleanedKeys);
+            var parameters = new HotKeyArgs(){
+                AssociatedObject = AssociatedObject,
+                PressedKeys = cleanedKeys,
+                SourceArg = e};
+            if ((KeyDownCommand != null) && KeyDownCommand.CanExecute(parameters)) {
+                KeyDownCommand.Execute(parameters);
             }
-            KeyDown?.Invoke(this, cleanedKeys);
+            KeyDown?.Invoke(this, parameters);
         }
         #endregion
 
