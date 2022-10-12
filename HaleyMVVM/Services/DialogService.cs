@@ -140,11 +140,12 @@ namespace Haley.Services
 
             return Notification.ShowDialog(_wndw,blurOtherWindows);
         }
-        public INotification ShowCustomView(string title, DataTemplate template = null, bool blurOtherWindows = false)
+        public INotification ShowCustomView(string title, object templateOrControl = null, bool blurOtherWindows = false)
         {
             //First get the type of notification.
-            if (template == null) return null;
-            var _wndw = _getNotificationWindow(title, template);
+            if (templateOrControl == null) return null;
+            
+            var _wndw = _getNotificationWindowForTemplate(title, templateOrControl);
             return Notification.ShowDialog(_wndw, blurOtherWindows);
         }
         public INotification Info(string title, string message, DialogMode mode = DialogMode.Notification, bool blurOtherWindows = false)
@@ -166,7 +167,7 @@ namespace Haley.Services
         #endregion
 
         #region Container Methods
-        public INotification ShowContainerView(string title, string key, object InputViewModel = null, ResolveMode mode = ResolveMode.AsRegistered, bool blurOtherWindows = false, IControlContainer container = null)
+        public INotification ShowContainerView(string title, object key, object InputViewModel = null, ResolveMode mode = ResolveMode.AsRegistered, bool blurOtherWindows = false, IControlContainer container = null)
         {
             UserControl _view = null;
             try
@@ -186,40 +187,32 @@ namespace Haley.Services
             }
             catch (Exception ex)
             {
-                string _msg = $@"No UserControl is associated with the key - {key}" + Environment.NewLine + ex.ToString();
+                string _msg = $@"No UserControl is associated with the key - {key.ToString()}" + Environment.NewLine + ex.ToString();
                 var _infoWndw = _getNotificationWindow(title, _msg, NotificationIcon.Error, DisplayType.ShowInfo, false);
                 return Notification.ShowDialog(_infoWndw,blurOtherWindows);
             }
 
             if (_view == null)
             {
-                string _msg = $@"No UserControl is associated with the key - {key}";
+                string _msg = $@"No UserControl is associated with the key - {key.ToString()}";
                 var _infoWndw = _getNotificationWindow(title, _msg, NotificationIcon.Error, DisplayType.ShowInfo, false);
                 return Notification.ShowDialog(_infoWndw,blurOtherWindows);
             }
 
-            var _wndw = _getNotificationWindow(title, _view);
+            var _wndw = _getNotificationWindowForContainer(title, _view);
             return Notification.ShowContainerView(_wndw,blurOtherWindows); //notification will fetch the viewmodel and add it to INotification result.
         }
-        public INotification ShowContainerView(string title, Enum @enum, object InputViewModel = null, ResolveMode mode = ResolveMode.AsRegistered, bool blurOtherWindows = false, IControlContainer container = null)
+        
+        public INotification ShowContainerView<ViewOrVMType>(string title, object InputViewModel = null, ResolveMode mode = ResolveMode.AsRegistered, bool blurOtherWindows = false, IControlContainer container = null) where ViewOrVMType : class
         {
-            string _key = @enum.GetKey();
-            return ShowContainerView(title, _key, InputViewModel, mode, blurOtherWindows, container);
-        }
-        public INotification ShowContainerView<ViewType>(string title, object InputViewModel = null, ResolveMode mode = ResolveMode.AsRegistered, bool blurOtherWindows = false, IControlContainer container = null) where ViewType : class
-        {
-            if (!(typeof(ViewType).BaseType == typeof(UserControl) || typeof(ViewType) == typeof(UserControl)))
-            {
-                throw new ArgumentException("Container view excepts a type of usercontrol");
-
+            //either this should be from ihaleyvm (for viewmodels) or it should be an usercontrol
+            if (typeof(IHaleyVM).IsAssignableFrom(typeof(ViewOrVMType)) || typeof(ViewOrVMType).BaseType == typeof(UserControl) || typeof(ViewOrVMType) == typeof(UserControl)) {
+                //this is a viewmodel input
+                string _key = typeof(ViewOrVMType).ToString();
+                return ShowContainerView(title, _key, InputViewModel, mode, blurOtherWindows, container);
+            }else  {
+                throw new ArgumentException("Container view excepts a type of usercontrol or a type that implements IHaleyVM");
             }
-            string _key = typeof(ViewType).ToString();
-            return ShowContainerView(title, _key, InputViewModel, mode, blurOtherWindows, container);
-        }
-        public INotification ShowContainerView<VMType>(string title, VMType InputViewModel = null, ResolveMode mode = ResolveMode.AsRegistered, bool blurOtherWindows = false, IControlContainer container = null) where VMType : class, IHaleyVM
-        {
-            string _key = typeof(VMType).ToString();
-            return ShowContainerView(title, _key, InputViewModel, mode, blurOtherWindows,container);
         }
 
         #endregion
@@ -295,7 +288,7 @@ namespace Haley.Services
             _newWindow.WindowStartupLocation = _startupLocation;
             return _newWindow;
         }
-        private Notification _getNotificationWindow(string title, UserControl container_view, bool? showInTaskBar = null, bool? topMost = null)
+        private Notification _getNotificationWindowForContainer(string title, UserControl container_view, bool? showInTaskBar = null, bool? topMost = null)
         {
             var _newWindow = _getNotificationBaseWindow(title, DisplayType.ContainerView,showInTaskBar,topMost );
             _newWindow.ContainerView = container_view;
@@ -310,10 +303,18 @@ namespace Haley.Services
             _newWindow.ShowNotificationIcon = !hideIcon;
             return _newWindow;
         }
-        private Notification _getNotificationWindow(string title, DataTemplate template, bool? showInTaskBar = null, bool? topMost = null)
+        private Notification _getNotificationWindowForTemplate(string title, object template, bool? showInTaskBar = null, bool? topMost = null)
         {
             var _newWindow = _getNotificationBaseWindow(title, DisplayType.CustomView, showInTaskBar, topMost);
-            _newWindow.CustomViewTemplate = template;
+
+            if (template.GetType().BaseType == typeof(UserControl) || template.GetType() == typeof(UserControl)) {
+                //we are dealing with usercontrol. prepare a datatemplate with this usercontrol
+                _newWindow.CustomView = template as UserControl;
+                _newWindow.UseCustomView = true;
+            } else {
+                _newWindow.CustomViewTemplate = template as DataTemplate;
+                _newWindow.UseCustomView = false;
+            }
             return _newWindow;
         }
 

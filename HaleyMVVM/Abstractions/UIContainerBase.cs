@@ -64,7 +64,7 @@ namespace Haley.Abstractions
 
         #region Register Methods
 
-        public virtual string Register<viewmodelType, viewType>(object key, viewmodelType InputViewModel = null, RegisterMode mode = RegisterMode.ContainerSingleton)
+        public virtual string RegisterWithKey<viewmodelType, viewType>(object key, viewmodelType InputViewModel = null, RegisterMode mode = RegisterMode.ContainerSingleton)
             where viewmodelType : class, BaseViewModelType
             where viewType : class
         {
@@ -73,7 +73,7 @@ namespace Haley.Abstractions
             return RegisterInternal<viewmodelType, viewType>(_key, InputViewModel,null, mode);
         }
 
-        public virtual string DelegateRegister<viewmodelType, viewType>(Func<viewmodelType> creator, bool use_vm_as_key = true, RegisterMode mode = RegisterMode.ContainerSingleton)
+        public virtual string LazyRegister<viewmodelType, viewType>(Func<viewmodelType> creator, bool use_vm_as_key = true, RegisterMode mode = RegisterMode.ContainerSingleton)
             where viewmodelType : class, BaseViewModelType
             where viewType : class
         {
@@ -87,10 +87,10 @@ namespace Haley.Abstractions
                 _key = typeof(viewType).ToString();
             }
 
-            return DelegateRegister<viewmodelType, viewType>(_key, creator, mode);
+            return LazyRegisterWithKey<viewmodelType, viewType>(_key, creator, mode);
         }
 
-        public virtual string DelegateRegister<viewmodelType, viewType>(object key, Func<viewmodelType> creator, RegisterMode mode = RegisterMode.ContainerSingleton)
+        public virtual string LazyRegisterWithKey<viewmodelType, viewType>(object key, Func<viewmodelType> creator, RegisterMode mode = RegisterMode.ContainerSingleton)
             where viewmodelType : class, BaseViewModelType
             where viewType : class
         {
@@ -157,7 +157,7 @@ namespace Haley.Abstractions
                     }
                     else if(vmCreator != null)
                     {
-                        baseContainer.Register(vmCreator, GetMode(mode));
+                        baseContainer.LazyRegister(vmCreator, GetMode(mode));
                     }
                     else
                     {

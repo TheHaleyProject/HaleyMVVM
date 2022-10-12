@@ -10,6 +10,8 @@ using Haley.Utils;
 using System.Windows.Media.Animation;
 using System.Windows.Threading;
 using System.Windows.Media.Effects;
+using Haley.Models;
+using System.Diagnostics;
 
 namespace Haley.WPF.Controls
 {
@@ -46,9 +48,10 @@ namespace Haley.WPF.Controls
             AllowsTransparency = true;
             WindowStyle = WindowStyle.None;
             WindowStartupLocation = WindowStartupLocation.CenterOwner;
-            CommandBindings.Add(new CommandBinding(ApplicationCommands.Close, _closeAction));
-            CommandBindings.Add(new CommandBinding(SystemCommands.CloseWindowCommand, _closeAllToasts));
-            CommandBindings.Add(new CommandBinding(ComponentCommands.MoveDown, _dragMove));
+            CommandBindings.Add(new CommandBinding(NotificationCommands.CloseAllToasts, _closeAllToasts));
+            CommandBindings.Add(new CommandBinding(NotificationCommands.DragMove, _dragMove));
+            CommandBindings.Add(new CommandBinding(NotificationCommands.CancelResult, (s, e) => { _closeAction(s, e, false); } ));
+            CommandBindings.Add(new CommandBinding(NotificationCommands.OkayResult, (s, e) => { _closeAction(s, e, true); }));
         }
 
         private void InitiateWindows()
@@ -110,21 +113,43 @@ namespace Haley.WPF.Controls
                 input.Type = DisplayType.ShowInfo;
             }
             _showDialog(ref input, blurOtherWindows);
-            return (INotification)input;
+
+            if (input.Type == DisplayType.CustomView && input.CustomView != null) {
+                //If we are dealing with custom view, then try to get the viewmodel as well
+                input.ViewModel = input.CustomView.DataContext; //may be this could be null
+            }
+            NotificationResult _result = new NotificationResult();
+            try {
+                return input.MapProperties(_result, true, true);
+            } catch (Exception) {
+
+                return input;
+            }
         }
 
         public static INotification ShowContainerView(Notification input,bool blurOtherWindows = false)
         {
             if (input.ContainerView?.DataContext is IHaleyVM _dc)
             {
-                _dc.ViewModelClosed += (o, e) => { input.Close(); };
+                //May be this is not even handled. We decide to directly make use of the NotificationCommands routed event.
+                _dc.ViewModelClosed += (o, e) => {
+                    input.DialogResult = e.event_result;
+                    input.Message = e.message?.ToString();
+                    input.Close(); 
+                };
             }
             _showDialog(ref input, blurOtherWindows);
                                                        
             //Now get the viewmodel of the container view and add it to result.
             var _vm = input.ContainerView.DataContext;
-                input.ContainerViewModel = _vm;
-            return (INotification)input;
+                input.ViewModel = _vm;
+            NotificationResult _result = new NotificationResult();
+            try {
+                return input.MapProperties(_result, true, true);
+            } catch (Exception) {
+
+                return input;
+            }
         }
 
         public static bool SendToast(Notification input, int display_seconds = 7)
@@ -172,7 +197,9 @@ namespace Haley.WPF.Controls
 
         #region Common Properties
         public DataTemplate CustomViewTemplate { get; set; }
-        public object ContainerViewModel { get; set; }
+        public UserControl CustomView { get; set; }
+        public bool UseCustomView { get; set; }
+        public object ViewModel { get; set; }
         public UserControl ContainerView { get; set; }
         public string Id { get; private set; }
         #endregion
@@ -367,14 +394,13 @@ namespace Haley.WPF.Controls
             this.DragMove();
         }
 
-        void _closeAction(object sender, ExecutedRoutedEventArgs e)
+        void _closeAction(object sender, ExecutedRoutedEventArgs e,bool dialogresult)
         {
             try
             {
                 if (Type != DisplayType.ToastInfo)
                 {
                     //Close can be raised from either any place.
-                    bool dialogresult = (bool)e.Parameter;
                     this.DialogResult = dialogresult;
                 }
             }

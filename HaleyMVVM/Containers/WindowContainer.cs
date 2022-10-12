@@ -20,52 +20,51 @@ namespace Haley.IOC
         public WindowContainer(IServiceProvider serviceContainer) : base(serviceContainer,typeof(Window)) { }
 
         #region ShowDialog Methods
-        public bool? ShowDialog(Enum key, object InputViewModel = null, ResolveMode resolve_mode = ResolveMode.AsRegistered)
+        public bool? ShowDialog<ViewType>(object InputViewModel, ResolveMode resolve_mode = ResolveMode.AsRegistered) where ViewType : class
         {
-            string _key = key.GetKey();
-            return ShowDialog(_key, InputViewModel, resolve_mode);
-        }
-        public bool? ShowDialog<ViewModelType>(ViewModelType InputViewModel = null, ResolveMode resolve_mode = ResolveMode.AsRegistered) where ViewModelType : class, IHaleyVM
-        {
-            string _key = typeof(ViewModelType).ToString();
-            return ShowDialog(_key, InputViewModel, resolve_mode);
-        }
-        public bool? ShowViewDialog<ViewType>(ResolveMode resolve_mode = ResolveMode.AsRegistered) where ViewType : class
-        {
-            if (!(typeof(ViewType).BaseType == typeof(Window) || typeof(ViewType) == typeof(Window)))
-            {
-                throw new ArgumentException("Works only for objects with base type Window");
-            }
+            //View is expected to be a window
             string _key = typeof(ViewType).ToString();
+            return ShowDialog(_key, InputViewModel, resolve_mode);
+        }
+        public bool? ShowDialog<ViewOrVMType>(ResolveMode resolve_mode = ResolveMode.AsRegistered) where ViewOrVMType : class
+        {
+            //either the type should be a window or it should be of ihaleyvm
+            if (!(
+                typeof(ViewOrVMType).BaseType == typeof(Window) || 
+                typeof(ViewOrVMType) == typeof(Window) || 
+                typeof(IHaleyVM).IsAssignableFrom(typeof(ViewOrVMType))
+                )){
+                throw new ArgumentException("Works only for objects with base type Window or for classes which implements IHaleyVM");
+            }
+            string _key = typeof(ViewOrVMType).ToString();
             return ShowDialog(_key, null, resolve_mode);
         }
-        public bool? ShowDialog(string key, object InputViewModel = null, ResolveMode resolve_mode = ResolveMode.AsRegistered)
+        public bool? ShowDialog(object key, object InputViewModel = null, ResolveMode resolve_mode = ResolveMode.AsRegistered)
         {
             return _invokeDisplay(key, InputViewModel, resolve_mode, is_modeless: false); //This is modal
         }
         #endregion
 
         #region Show Methods
-        public void Show<ViewModelType>(ViewModelType InputViewModel = null, ResolveMode resolve_mode = ResolveMode.AsRegistered) where ViewModelType : class, IHaleyVM
+        public void Show<ViewType>(object InputViewModel, ResolveMode resolve_mode = ResolveMode.AsRegistered) where ViewType : class
         {
-            string _key = typeof(ViewModelType).ToString();
+            string _key = typeof(ViewType).ToString();
             Show(_key, InputViewModel, resolve_mode);
         }
-        public void ShowView<ViewType>(ResolveMode resolve_mode = ResolveMode.AsRegistered) where ViewType : class
+        public void Show<ViewOrVMType>(ResolveMode resolve_mode = ResolveMode.AsRegistered) where ViewOrVMType : class
         {
-            if (!(typeof(ViewType).BaseType == typeof(Window) || typeof(ViewType) == typeof(Window)))
-            {
-                throw new ArgumentException("Works only for objects with base type Window");
+            //either the type should be a window or it should be of ihaleyvm
+            if (!(
+                typeof(ViewOrVMType).BaseType == typeof(Window) ||
+                typeof(ViewOrVMType) == typeof(Window) ||
+                typeof(IHaleyVM).IsAssignableFrom(typeof(ViewOrVMType))
+                )) {
+                throw new ArgumentException("Works only for objects with base type Window or for classes which implements IHaleyVM");
             }
-            string _key = typeof(ViewType).ToString();
+            string _key = typeof(ViewOrVMType).ToString();
             Show(_key, null, resolve_mode);
         }
-        public void Show(Enum key, object InputViewModel = null, ResolveMode resolve_mode = ResolveMode.AsRegistered)
-        {
-            string _key = key.GetKey();
-            Show(_key, InputViewModel, resolve_mode);
-        }
-        public void Show(string key, object InputViewModel = null, ResolveMode resolve_mode = ResolveMode.AsRegistered)
+        public void Show(object key, object InputViewModel = null, ResolveMode resolve_mode = ResolveMode.AsRegistered)
         {
             _invokeDisplay(key, InputViewModel, resolve_mode, is_modeless: true); //This is modeless
         }
@@ -107,7 +106,7 @@ namespace Haley.IOC
         #endregion
 
         #region Private Methods
-        private bool? _invokeDisplay(string key, object InputViewModel, ResolveMode resolve_mode , bool is_modeless)
+        private bool? _invokeDisplay(object key, object InputViewModel, ResolveMode resolve_mode , bool is_modeless)
         {
             bool? _result = null;
 

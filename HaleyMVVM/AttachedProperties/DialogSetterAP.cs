@@ -115,13 +115,14 @@ namespace Haley.Models
                 {
                     if (_content != null)
                     {
-                        _dsEx.ShowCustomView(_title, template: _content, blurOtherWindows: _blur);
+                        _dsEx.ShowCustomView(_title, templateOrControl: _content, blurOtherWindows: _blur);
                     }
                     else
                     {
                         _dsEx.ShowContainerView(_title, _containerKey, blurOtherWindows: _blur);
                     }
                 }
+                e.Handled = true; // Don't send the event beyond this.
             }
         }
 

@@ -23,6 +23,6 @@ namespace Haley.Abstractions
         Color? GlowColor { get; set; }
         WindowStartupLocation StartupLocation { get; set; }
 
-        INotification ShowCustomView(string title, DataTemplate template = null, bool blurOtherWindows = false);
+        INotification ShowCustomView(string title, object templateOrControl = null, bool blurOtherWindows = false);
     }
 }

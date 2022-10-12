@@ -3,6 +3,7 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:bc="clr-namespace:Haley.WPF.Controls"
     xmlns:beh="http://schemas.microsoft.com/xaml/behaviors"
+    xmlns:utils="clr-namespace:Haley.Utils"
     xmlns:enums="clr-namespace:Haley.Enums;assembly=Haley.Abstractions"
     xmlns:sys="clr-namespace:System;assembly=mscorlib">
 
@@ -72,12 +73,12 @@
                 <Grid Grid.Column="0" x:Name="PART_header" Background="#02FFFFFF" IsHitTestVisible="True">
                     <beh:Interaction.Triggers>
                         <beh:EventTrigger EventName="MouseLeftButtonDown" >
-                            <beh:InvokeCommandAction Command="{x:Static ComponentCommands.MoveDown}"/>
+                            <beh:InvokeCommandAction Command="{x:Static utils:NotificationCommands.DragMove}"/>
                         </beh:EventTrigger>
                     </beh:Interaction.Triggers>
                     <TextBlock Text="{Binding Title,RelativeSource={RelativeSource AncestorType={x:Type bc:Notification}}}" Foreground="{Binding Foreground,RelativeSource={RelativeSource AncestorType={x:Type bc:Notification}}}" HorizontalAlignment="Left" VerticalAlignment="Center"  FontSize="12" FontFamily="Century Gothic" Margin="10,0"/>
                 </Grid>
-                <Button Grid.Column="1" Style="{StaticResource internal_notify_flexi_button_base}"  Width="{Binding ElementName=grdHeader, Path=ActualHeight}" CommandParameter="{StaticResource False}" Command="{x:Static ApplicationCommands.Close}" IsHitTestVisible="True">
+                <Button Grid.Column="1" Style="{StaticResource internal_notify_flexi_button_base}"  Width="{Binding ElementName=grdHeader, Path=ActualHeight}" Command="{x:Static utils:NotificationCommands.CancelResult}" IsHitTestVisible="True">
                     <Viewbox Margin="4" IsHitTestVisible="False">
                         <Ellipse Height="10" Width="10" Fill="#FFAE3636" Stroke="White" StrokeThickness="0.5"/>
                     </Viewbox>
@@ -130,8 +131,8 @@
 
     <DataTemplate x:Key="internal_notification_controlbox">
         <StackPanel Orientation="Horizontal" Grid.Row="1" HorizontalAlignment="Right" Margin="0,2">
-            <Button Style="{StaticResource internal_notify_flexi_button}"  Margin="4,1" Content="Cancel" CommandParameter="{StaticResource False}" Command="{x:Static ApplicationCommands.Close}" SnapsToDevicePixels="True"/>
-            <Button Style="{StaticResource internal_notify_flexi_button}"  Margin="4,1" Background="{Binding AccentColor,RelativeSource={RelativeSource AncestorType={x:Type bc:Notification}}}" Foreground="{Binding AccentForeground,RelativeSource={RelativeSource AncestorType={x:Type bc:Notification}}}" Content="ACCEPT" CommandParameter="{StaticResource True}" Command="{x:Static ApplicationCommands.Close}" SnapsToDevicePixels="True"/>
+            <Button Style="{StaticResource internal_notify_flexi_button}"  Margin="4,1" Content="Cancel" Command="{x:Static utils:NotificationCommands.CancelResult}" SnapsToDevicePixels="True"/>
+            <Button Style="{StaticResource internal_notify_flexi_button}"  Margin="4,1" Background="{Binding AccentColor,RelativeSource={RelativeSource AncestorType={x:Type bc:Notification}}}" Foreground="{Binding AccentForeground,RelativeSource={RelativeSource AncestorType={x:Type bc:Notification}}}" Content="ACCEPT" Command="{x:Static utils:NotificationCommands.OkayResult}" SnapsToDevicePixels="True"/>
         </StackPanel>
     </DataTemplate>
 
@@ -176,6 +177,23 @@
         <ContentControl Content="{Binding ContainerView,RelativeSource={RelativeSource AncestorType={x:Type bc:Notification}}}"/>
     </DataTemplate>
 
+    <DataTemplate x:Key="internal_notification_customView">
+        <ContentControl>
+            <ContentControl.Style>
+                <Style TargetType="{x:Type ContentControl}">
+                    <Style.Triggers>
+                        <DataTrigger Binding="{Binding UseCustomView,RelativeSource={RelativeSource AncestorType={x:Type bc:Notification}}}" Value="{StaticResource True}">
+                            <Setter Property="Content" Value="{Binding CustomView,RelativeSource={RelativeSource AncestorType={x:Type bc:Notification}}}"/>
+                        </DataTrigger>
+                        <DataTrigger Binding="{Binding UseCustomView,RelativeSource={RelativeSource AncestorType={x:Type bc:Notification}}}" Value="{StaticResource False}">
+                            <Setter Property="ContentTemplate" Value="{Binding CustomViewTemplate,RelativeSource={RelativeSource AncestorType={x:Type bc:Notification}}}"/>
+                        </DataTrigger>
+                    </Style.Triggers>
+                </Style>
+            </ContentControl.Style>
+        </ContentControl>
+    </DataTemplate>
+
     <ControlTemplate x:Key="internal_notification_dialog" TargetType="{x:Type bc:Notification}">
         <Grid Background="{x:Null}" Margin="{TemplateBinding Margin}">
             <Border MinHeight="100" CornerRadius="0" Background="#02FFFFFF" BorderThickness="{TemplateBinding BorderThickness}" BorderBrush="{TemplateBinding BorderBrush}">
@@ -213,7 +231,7 @@
                                         </DataTrigger>
 
                                         <DataTrigger Binding="{Binding Type,RelativeSource={RelativeSource AncestorType={x:Type bc:Notification}}}" Value="{x:Static enums:DisplayType.CustomView}">
-                                            <Setter Property="ContentTemplate" Value="{Binding CustomViewTemplate,RelativeSource={RelativeSource AncestorType={x:Type bc:Notification}}}"/>
+                                            <Setter Property="ContentTemplate" Value="{StaticResource internal_notification_customView}"/>
                                         </DataTrigger>
                                     </Style.Triggers>
                                 </Style>
@@ -247,7 +265,7 @@
                         <TextBlock Text="{TemplateBinding AppName}" HorizontalAlignment="Left" VerticalAlignment="Center" FontSize="13" FontFamily="Century Gothic" Margin="5,0"/>
                     </Grid>
                     <!--CLOSE BUTTON-->
-                    <Button Grid.Column="1" Style="{StaticResource internal_notify_flexi_button_base}"  Width="22" Height="22" CommandParameter="{StaticResource False}" Command="{x:Static ApplicationCommands.Close}" IsHitTestVisible="True" SnapsToDevicePixels="True">
+                    <Button Grid.Column="1" Style="{StaticResource internal_notify_flexi_button_base}"  Width="22" Height="22" Command="{x:Static utils:NotificationCommands.CancelResult}" IsHitTestVisible="True" SnapsToDevicePixels="True">
                         <Viewbox Margin="3" IsHitTestVisible="False">
                             <Ellipse Height="10" Width="10" Fill="#FFAE3636" Stroke="White" StrokeThickness="0.5"/>
                         </Viewbox>
@@ -275,7 +293,7 @@
 
                     <!--Close All toasts-->
                     <TextBlock Grid.Row="2" VerticalAlignment="Bottom" HorizontalAlignment="Right" Margin="3">           
-                    <Hyperlink CommandParameter="{StaticResource False}" Command="{x:Static SystemCommands.CloseWindowCommand}" TextDecorations="Underline" FontSize="9" Foreground="{TemplateBinding ToastForeground}">
+                    <Hyperlink Command="{x:Static utils:NotificationCommands.CloseAllToasts}" TextDecorations="Underline" FontSize="9" Foreground="{TemplateBinding ToastForeground}">
                         Close All
                     </Hyperlink>
                     </TextBlock>
