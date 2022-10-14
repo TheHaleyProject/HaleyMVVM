@@ -120,7 +120,7 @@ namespace Haley.WPF.Controls
             }
             NotificationResult _result = new NotificationResult();
             try {
-                return input.MapProperties(_result, true, true);
+                return input.MapProperties(_result,new MappingInfo() { ComparisonMethod = StringComparison.OrdinalIgnoreCase,IncludeIgnoredMembers=true});
             } catch (Exception) {
 
                 return input;
@@ -145,7 +145,7 @@ namespace Haley.WPF.Controls
                 input.ViewModel = _vm;
             NotificationResult _result = new NotificationResult();
             try {
-                return input.MapProperties(_result, true, true);
+                return input.MapProperties(_result, new MappingInfo() { ComparisonMethod = StringComparison.OrdinalIgnoreCase, IncludeIgnoredMembers = true });
             } catch (Exception) {
 
                 return input;
