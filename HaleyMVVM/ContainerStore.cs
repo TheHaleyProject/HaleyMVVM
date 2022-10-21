@@ -6,6 +6,7 @@ using Haley.IOC;
 using System.Windows;
 using System.Windows.Controls;
 using System.Collections.Concurrent;
+using System.Windows.Navigation;
 
 namespace Haley.MVVM
 {
@@ -14,32 +15,21 @@ namespace Haley.MVVM
     /// </summary>
     public sealed class ContainerStore
     {
-        #region OBSOLETE
-       
-        #endregion
-
-        public string Id { get; private set; }
-        private IMicroContainerFactory _rootFactory;
-
         #region Static Attributes
-        private static ContainerStore _instance;
-        private ConcurrentDictionary<string, IContainerFactory> factories = new ConcurrentDictionary<string, IContainerFactory>();
-        #endregion
-
-        #region Root
-        public IBaseServiceProvider Provider => _rootFactory.Services;
-        public IWindowContainer Windows => _rootFactory.Windows;
-        public IControlContainer Controls => _rootFactory.Controls;
-        public IBaseContainer DI => _rootFactory.Container;
-        #endregion
+        private static ContainerStore INSTANCE = getSingleton();
+        public static IBaseServiceProvider Provider => INSTANCE._rootFactory.Services;
+        public static IWindowContainer Windows => INSTANCE._rootFactory.Windows;
+        public static IControlContainer Controls => INSTANCE._rootFactory.Controls;
+        public static IMicroContainer DI => INSTANCE._rootFactory.Container;
+        public static string Id => INSTANCE._id;
 
         /// <summary>
         /// Will return Root Factory
         /// </summary>
         /// <returns></returns>
-        public IContainerFactory GetFactory()
-        {
-            return _rootFactory;
+        public static IContainerFactory GetFactory() {
+            //Always the root.
+            return INSTANCE._rootFactory;
         }
 
         /// <summary>
@@ -47,69 +37,47 @@ namespace Haley.MVVM
         /// </summary>
         /// <param name="serviceProviderId"></param>
         /// <returns></returns>
-        public IContainerFactory GetFactory(string serviceProviderId)
-        {
-            if (!factories.TryGetValue(serviceProviderId, out var factory)) return null;
-            return factory;
+        public static IContainerFactory Getchild(string id, bool search_all_children = false) {
+            if (INSTANCE._rootFactory == null) return null;
+            return INSTANCE._rootFactory.GetChild(id, search_all_children);
         }
 
+        #endregion
+
+        private IMicroContainerFactory _rootFactory;
+        private string _id;
         private static ContainerStore getSingleton()
         {
-            if (_instance == null)
+            if (INSTANCE == null)
             {
                 //We will make default
-                _instance = new ContainerStore(new MicroContainer()); ///The new container will be the root container.
+                INSTANCE = new ContainerStore(new MicroContainer()); ///The new container will be the root container.
             }
-            return _instance;
+            return INSTANCE;
         }
 
-        private ContainerStore(IBaseContainer _baseContainer)
+        private ContainerStore(IMicroContainer _baseContainer)
         {
-            _baseContainer.ChildCreated += ChildCreatedHandler;
-            _baseContainer.ContainerDisposed += ContainerDisposed;
             _rootFactory = new MicroContainerFactory(_baseContainer); //This will also do a self register
 
             //Since above creation method will also self register the factory and the other contianers into the base container, we don't need to get them from the factories (from below line) at all. However, we are adding it to the factories, so that we have an alternative way of fetching the factory, provided we have only the container id.
-            factories.TryAdd(_rootFactory.Id, _rootFactory);
-            Id = _baseContainer?.Id ?? Guid.NewGuid().ToString(); //if it is a micro factory it will register it self.
+            _id = _baseContainer?.Id ?? Guid.NewGuid().ToString(); //if it is a micro factory it will register it self.
             _registerServices();
-        }
-
-        private void ContainerDisposed(object sender, string e)
-        {
-            //Dispose the continer which was send. //Root will not be removed as it is also stored in a variable.
-            factories.TryRemove(e, out var removedFactory);
-            if (removedFactory is IMicroContainerFactory microFactory)
-            {
-                removedFactory.Dispose();
-                microFactory.Container.ContainerDisposed -= ContainerDisposed;
-            }
-        }
-
-        private void ChildCreatedHandler(object sender, IBaseContainer e)
-        {
-            //Sender is who created this child. //All we need to do is, whenever a new child is created, we create a new factory for it and add it to the repo here.
-            //Also subscribe to the new child's events.
-            if (e is null) return;
-
-            var microFactory = new MicroContainerFactory(e);
-            if (factories.TryAdd(e.Id,microFactory))
-            {
-                e.ChildCreated += ChildCreatedHandler;
-                e.ContainerDisposed += ContainerDisposed;
-            }
         }
 
         private void _registerServices()
         {
-            DI.Register<IDialogService, DialogService>(RegisterMode.UniversalSingleton);
-            DialogService _dservice = DI.Resolve<IDialogService>() as DialogService;
-            DI.Register<IDialogServiceEx, DialogService>(_dservice,SingletonMode.UniversalSingleton);
-            DI.Register<IThemeService, ThemeService>(ThemeService.Singleton,SingletonMode.UniversalSingleton);
-            DI.Register<IConfigManager, ConfigManagerService>(RegisterMode.UniversalSingleton);
+            var container = _rootFactory?.Container;
+            if (container == null) return;
+            container.Register<IDialogService, DialogService>(RegisterMode.UniversalSingleton);
+            DialogService _dservice = container.Resolve<IDialogService>() as DialogService;
+            container.Register<IDialogServiceEx, DialogService>(_dservice,SingletonMode.UniversalSingleton);
+            container.Register<IThemeService, ThemeService>(ThemeService.Singleton,SingletonMode.UniversalSingleton);
+            container.Register<IConfigManager, ConfigManagerService>(RegisterMode.UniversalSingleton);
             //If we register the dialogservice as Transient, then for each resolution, it will create separate instance. So, different classes might have different properties (like glow color, header, background).
             //So we register as singleton. If user wishes to resolve as transient, then he/she can still do that by ResolveAsTransient (as it is not forced singleton).
         }
-        public static ContainerStore Singleton => getSingleton();
+        [Obsolete(@"Remove the SINGLETON keyword. Replace ""ContainerStore.Singleton.[METHOD/PROPERTY]"" with ""ContainerStore.[METHOD/PROPERTY]""", true)]
+        public static ContainerStore Singleton => null;
     }
 }

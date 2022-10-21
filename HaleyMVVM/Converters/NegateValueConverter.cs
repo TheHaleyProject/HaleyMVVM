@@ -9,7 +9,7 @@ using System.ComponentModel;
 
 namespace Haley.MVVM.Converters
 {
-    public class NegateValueConverter : IValueConverter
+    public sealed class NegateValueConverter : IValueConverter
     {
         /// <summary>
         /// To negate the value of a converter

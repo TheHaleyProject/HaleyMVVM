@@ -13,7 +13,7 @@ namespace Haley.MVVM.Converters
     /// <summary>
     /// This converter should divide whatever value that you provide by 2 and return the result
     /// </summary>
-    public class HalfValueConverter : IValueConverter
+    public sealed class HalfValueConverter : IValueConverter
     {
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
         {

@@ -10,7 +10,7 @@ using Haley.Utils;
 
 namespace Haley.MVVM.Converters
 {
-    public class EnumTypeToValuesConverter : IValueConverter
+    public sealed class EnumTypeToValuesConverter : IValueConverter
     {
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
         {

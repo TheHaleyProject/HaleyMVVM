@@ -9,7 +9,7 @@ using System.ComponentModel;
 
 namespace Haley.MVVM.Converters
 {
-    public class VerificationConverter : IValueConverter
+    public sealed class VerificationConverter : IValueConverter
     {
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
         {

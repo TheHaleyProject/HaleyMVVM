@@ -9,7 +9,7 @@ using System.ComponentModel;
 
 namespace Haley.MVVM.Converters
 {
-    public class ScrollLimitConverter : IMultiValueConverter
+    public sealed class ScrollLimitConverter : IMultiValueConverter
     {
         public object Convert(object[] values, Type targetType, object parameter, CultureInfo culture)
         {

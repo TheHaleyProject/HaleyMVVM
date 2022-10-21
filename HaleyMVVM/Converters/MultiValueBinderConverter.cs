@@ -9,7 +9,7 @@ using System.ComponentModel;
 
 namespace Haley.MVVM.Converters
 {
-    public class MultiValueBinderConverter : IMultiValueConverter
+    public sealed class MultiValueBinderConverter : IMultiValueConverter
     {
         public object Convert(object[] values, Type targetType, object parameter, CultureInfo culture)
         {

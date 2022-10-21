@@ -9,7 +9,7 @@ using System.ComponentModel;
 
 namespace Haley.MVVM.Converters
 {
-    public class BoolToVisibilityConverter : IValueConverter
+    public sealed class BoolToVisibilityConverter : IValueConverter
     {
         /// <summary>
         /// To convert boolean to visibility
@@ -23,17 +23,17 @@ namespace Haley.MVVM.Converters
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
         {
             bool input = (bool)value;
-            int param = 0; //Sometimes users can choose not to enter parameter value, in such cases, we make 1 as default.
-            if (parameter != null) int.TryParse((string)parameter,out param); 
+            int inverse = 0; //Sometimes users can choose not to enter parameter value, in such cases, we make 1 as default.
+            if (parameter != null) int.TryParse((string)parameter,out inverse); 
 
             switch (input)
             {
                 case true:
-                    if (param == 0) return Visibility.Visible;
+                    if (inverse == 0) return Visibility.Visible;
                     return Visibility.Collapsed;
                 case false:
                 default:
-                    if (param == 0) return Visibility.Collapsed;
+                    if (inverse == 0) return Visibility.Collapsed;
                     return Visibility.Visible;
             }
         }
@@ -41,17 +41,17 @@ namespace Haley.MVVM.Converters
         public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
         {
             bool input = (bool)value;
-            int param = 0; //Sometimes users can choose not to enter parameter value, in such cases, we make 1 as default.
-            if (parameter != null) int.TryParse((string)parameter, out param);
+            int inverse = 0; //Sometimes users can choose not to enter parameter value, in such cases, we make 1 as default.
+            if (parameter != null) int.TryParse((string)parameter, out inverse);
 
             switch (input)
             {
                 case true:
-                    if (param == 0) return Visibility.Visible;
+                    if (inverse == 0) return Visibility.Visible;
                     return Visibility.Collapsed;
                 case false:
                 default:
-                    if (param == 0) return Visibility.Collapsed;
+                    if (inverse == 0) return Visibility.Collapsed;
                     return Visibility.Visible;
             }
         }

@@ -10,7 +10,7 @@ using Haley.Utils;
 
 namespace Haley.MVVM.Converters
 {
-    public class EqualityCheckConverter : IValueConverter //Can be used to check if the input parameter and the binded value are similar. Both should match integer.
+    public sealed class EqualityCheckConverter : IValueConverter //Can be used to check if the input parameter and the binded value are similar. Both should match integer.
     {
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
         {

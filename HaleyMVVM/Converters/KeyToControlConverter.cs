@@ -11,7 +11,7 @@ using Haley.Enums;
 
 namespace Haley.MVVM.Converters
 {
-    public class KeyToControlConverter : IValueConverter
+    public sealed class KeyToControlConverter : IValueConverter
     {
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
         {
@@ -33,7 +33,7 @@ namespace Haley.MVVM.Converters
                         break;
                 }
 
-                return ContainerStore.Singleton.Controls.GenerateViewFromKey(value, mode: _resolve_mode);
+                return ContainerStore.Controls.GenerateViewFromKey(value, mode: _resolve_mode);
             }
             catch (Exception)
             {

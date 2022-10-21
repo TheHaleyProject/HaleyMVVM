@@ -112,12 +112,26 @@ namespace Haley.WPF.Controls
                 // We should not have toast info type. If by some mistake, it was set, it has to be changed to notification.
                 input.Type = DisplayType.ShowInfo;
             }
-            _showDialog(ref input, blurOtherWindows);
 
+            //Prepare the observer
             if (input.Type == DisplayType.CustomView && input.CustomView != null) {
-                //If we are dealing with custom view, then try to get the viewmodel as well
+                if (input.CustomView.DataContext is IHaleyVM hvm) {
+                    hvm.ViewModelClosed += (o, e) => {
+                        input.DialogResult = e.event_result;
+                        input.Message = e.message?.ToString();
+                        input.Close();
+                    };
+                }
                 input.ViewModel = input.CustomView.DataContext; //may be this could be null
             }
+
+            _showDialog(ref input, blurOtherWindows);
+
+            ////Share the datacontext
+            //if (input.Type == DisplayType.CustomView && input.CustomView != null) {
+            //    //If we are dealing with custom view, then try to get the viewmodel as well
+            //    input.ViewModel = input.CustomView.DataContext; //may be this could be null
+            //}
             NotificationResult _result = new NotificationResult();
             try {
                 return input.MapProperties(_result,new MappingInfo() { ComparisonMethod = StringComparison.OrdinalIgnoreCase,IncludeIgnoredMembers=true});

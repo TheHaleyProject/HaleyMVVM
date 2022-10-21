@@ -45,13 +45,19 @@ namespace Haley.Models
         {
             if (e.event_result.HasValue)
             {
-                View.DialogResult = e.event_result; //The event result will be invoked when a user presses a button. When user presses a button, it will invoke the event stored inside the viewmodel with an input value (bool, in our case). Thus, the event inside the viewmodel is invoked with a value which in turn is stored in the dialogresult.
+                View.Dispatcher.Invoke(() => {
+                    View.DialogResult = e.event_result; //The event result will be invoked when a user presses a button. When user presses a button, it will invoke the event stored inside the viewmodel with an input value (bool, in our case). Thus, the event inside the viewmodel is invoked with a value which in turn is stored in the dialogresult.
+                });
+               
                 _unSubscribeAll(); //the moment we get the dialog resut. we can unsubscribe.
             }
             else
             {
                 _unSubscribeAll(); // Under any case, we need to unsubscribe first before closing the dialog window.
-                View.Close(); //If user manages to close the dialog without using the predefined button, then the window is closed.
+                View.Dispatcher.Invoke(() => {
+                    View.Close(); //If user manages to close the dialog without using the predefined button, then the window is closed.
+                });
+                
             }
         }
 

@@ -11,7 +11,9 @@ namespace Haley.IOC
 {
     public class ContainerFactory : IContainerFactory
     {
+        
         public string Id { get; protected set; }
+        public string Name { get; protected set; }
         public IServiceProvider Services { get; protected set; }
         public IControlContainer Controls { get; protected set; }
         public IWindowContainer Windows { get; protected set; }
@@ -23,7 +25,12 @@ namespace Haley.IOC
                 throw new ArgumentException("Service provider cannot be null. Please provide a valid provider");
             }
 
-            Id = Guid.NewGuid().ToString();
+            if (serviceProvider is IMicroContainer basec) {
+                Id = basec.Id;
+            } else {
+                Id = Guid.NewGuid().ToString(); //this should again be overriden 
+            }
+            Services = serviceProvider;
             Controls = new ControlContainer(Services);
             Windows = new WindowContainer(Services); 
         }
@@ -32,7 +39,7 @@ namespace Haley.IOC
         {
         }
 
-        public void Dispose()
+        public virtual void Dispose()
         {
             Controls = null;
             Windows = null;

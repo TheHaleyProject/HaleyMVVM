@@ -12,7 +12,7 @@ using System.Collections;
 
 namespace Haley.MVVM.Converters
 {
-    public class EnumToDescriptionConverter : IValueConverter
+    public sealed class EnumToDescriptionConverter : IValueConverter
     {
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
         {

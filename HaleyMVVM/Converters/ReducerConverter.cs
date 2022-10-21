@@ -9,7 +9,7 @@ using System.ComponentModel;
 
 namespace Haley.MVVM.Converters
 {
-    public class ReducerConverter : IValueConverter //Expecting a width value and a parameter to reduce from it
+    public sealed class ReducerConverter : IValueConverter //Expecting a width value and a parameter to reduce from it
     {
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
         {

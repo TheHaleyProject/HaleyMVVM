@@ -141,7 +141,7 @@ namespace Haley.Models
 
             if (ds == null)
             {
-                ds = ContainerStore.Singleton.DI.Resolve<IDialogService>();
+                ds = ContainerStore.DI.Resolve<IDialogService>();
             }
             return ds;
         }

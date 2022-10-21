@@ -181,7 +181,7 @@ namespace Haley.Services
                 else
                 {
                     //Containerstore resolve the controls to get the control
-                    _view = ContainerStore.Singleton.Controls.GenerateViewFromKey(key, InputViewModel, mode) as UserControl;
+                    _view = ContainerStore.Controls.GenerateViewFromKey(key, InputViewModel, mode) as UserControl;
                 }
                
             }

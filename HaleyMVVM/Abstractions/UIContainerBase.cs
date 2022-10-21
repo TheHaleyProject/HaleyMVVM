@@ -136,7 +136,7 @@ namespace Haley.Abstractions
 
                 //If service provider is of type base provider then we can register it aswell (as it will have an implementation)
 
-                if(!(service_provider is IBaseContainer baseContainer))return key;
+                if(!(service_provider is IMicroContainer baseContainer))return key;
                 //If registermode is anything other than singleton or weaksingleton, do not validate.
 
                 if (mode == RegisterMode.UniversalSingleton)
@@ -223,7 +223,7 @@ namespace Haley.Abstractions
                 object resultcontrol;
                 object _baseView = null;
 
-                if (service_provider is IBaseContainer baseContainer)
+                if (service_provider is IMicroContainer baseContainer)
                 {
                     _baseView = baseContainer.Resolve(viewType, mode);
                 }
@@ -258,9 +258,9 @@ namespace Haley.Abstractions
                 if (viewModelType == null) return default(BaseViewModelType);
                 //If the viewmodel is registered in DI as a singleton, then it willbe returned, else, DI will resolve it as a transient and will return the result.
                 object _baseVm = null;
-                if (service_provider is IBaseContainer)
+                if (service_provider is IMicroContainer)
                 {
-                    _baseVm = ((IBaseContainer) service_provider).Resolve(viewModelType, mode);
+                    _baseVm = ((IMicroContainer) service_provider).Resolve(viewModelType, mode);
                 }
                 else
                 {
@@ -314,7 +314,7 @@ namespace Haley.Abstractions
             if (main_mapping.Count == 0 || !main_mapping.ContainsKey(key))
             {
                 throw new ArgumentException($"Key {key} is not registered to any controls. Please check.");
-            }
+            } 
 
             (Type _viewmodel_type, Type _view_type, RegisterMode _mode) _registered_tuple = (null, null, RegisterMode.ContainerSingleton);
             main_mapping.TryGetValue(key, out _registered_tuple);

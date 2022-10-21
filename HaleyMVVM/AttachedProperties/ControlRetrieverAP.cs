@@ -140,7 +140,7 @@ namespace Haley.Models
 
                 if (_container == null)
                 {
-                    _container = ContainerStore.Singleton.Controls;
+                    _container = ContainerStore.Controls;
                 }
 
                 //Get control

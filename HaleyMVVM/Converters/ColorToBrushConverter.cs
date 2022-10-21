@@ -10,7 +10,7 @@ using System.Windows.Media;
 
 namespace Haley.MVVM.Converters
 {
-    public class ColorToBrushConverter : IValueConverter
+    public sealed class ColorToBrushConverter : IValueConverter
     {
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
         {
