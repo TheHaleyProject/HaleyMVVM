@@ -12,6 +12,7 @@ using System.Windows.Media.Imaging;
 using Haley.Abstractions;
 using Haley.Enums;
 using System.Windows.Media;
+using Internal.Haley.MVVM;
 using static System.Net.WebRequestMethods;
 
 //STRIDE: The stride is the width of a single row of pixels (a scan line), rounded up to a four-byte boundary. If the stride is positive, the bitmap is top-down. If the stride is negative, the bitmap is bottom-up.
@@ -140,164 +141,33 @@ namespace Haley.Utils
                 throw;
             }
         }
-    #endregion
+        #endregion
 
-    #region CONVERSION
-        public static byte[] ImageToByte(Image input_image)
-        {
-            try
-            {
-                using(MemoryStream mstream = new MemoryStream())
-                {
-                    input_image.Save(mstream, input_image.RawFormat);
-                    return mstream.ToArray();
-                }
-            } catch(Exception ex)
-            {
-                throw;
-            }
-        }
-
-        public static byte[] ImageSourceToByte(ImageSource input_image)
-        {
-            try
-            {
-                BitmapSource base_source = input_image as BitmapSource; //Bitmap source is the base of all imagesources. So, we can convert them to bitmapsource without issue.
-                if(base_source != null)
-                {
-                    using(MemoryStream mstream = new MemoryStream())
-                    {
-                        BitmapEncoder encoder = new PngBitmapEncoder(); //Whatever the input file format is, we are trying to decode it using png encoder. Check if it will work.
-                        encoder.Frames.Add(BitmapFrame.Create(base_source));
-                        encoder.Save(mstream);
-                        return mstream.ToArray();
-                    }
-                }
-                return null;
-            } catch(Exception ex)
-            {
-                throw;
-            }
-        }
-
-        public static Image ByteToImage(byte[] input_byte_array)
-        {
-            try
-            {
-                Image result;
-
-                using(MemoryStream memstream = new MemoryStream(input_byte_array))
-                {
-                    result = Image.FromStream(memstream);
-                }
-                return result;
-            } catch(Exception ex)
-            {
-                throw;
-            }
-        }
-
-        public static ImageSource ByteToImageSource(byte[] input_byte_array)
-        {
-            try
-            {
-                BitmapImage result = new BitmapImage();
-                using(MemoryStream memstream = new MemoryStream(input_byte_array))
-                {
-                    result.BeginInit();
-                    result.StreamSource = memstream;
-                    result.EndInit();
-                    result.Freeze(); //FREEZING
-                }
-                return result;
-            } catch(Exception ex)
-            {
-                throw;
-            }
-        }
-
-        public static string ImageToBase64(Image input_image)
-        {
-            try
-            {
-                byte[] _byte_array = ImageToByte(input_image);
-                return Convert.ToBase64String(_byte_array);
-            } catch(Exception ex)
-            {
-                throw;
-            }
-        }
-
-        public static string ImageSourceToBase64(ImageSource input_image_source)
-        {
-            try
-            {
-                byte[] _byte_array = ImageSourceToByte(input_image_source);
-                return Convert.ToBase64String(_byte_array);
-            } catch(Exception ex)
-            {
-                throw;
-            }
-        }
-
-        public static Image Base64ToImage(string input_string)
-        {
-            try
-            {
-                if(!IsBase64(input_string))
+        #region CONVERSION
+        public static Image Base64ToImage(string input_string) {
+            try {
+                if (!IsBase64(input_string))
                     return null; //If not a base 64 string, return null.
                 byte[] _byte_array = Convert.FromBase64String(input_string);
                 return ByteToImage(_byte_array);
-            } catch(Exception ex)
-            {
+            } catch (Exception ex) {
                 throw;
             }
         }
 
-        public static ImageSource Base64ToImageSource(string input_string)
-        {
-            try
-            {
-                if(!IsBase64(input_string))
+        public static ImageSource Base64ToImageSource(string input_string) {
+            try {
+                if (!IsBase64(input_string))
                     return null; //If not a base 64 string, return null.
                 byte[] byte_array = Convert.FromBase64String(input_string);
                 return ByteToImageSource(byte_array);
-            } catch(Exception ex)
-            {
+            } catch (Exception ex) {
                 throw;
             }
         }
 
-        public static Image ImageSourceToImage(ImageSource input_image_source)
-        {
-            try
-            {
-                byte[] byte_array = ImageSourceToByte(input_image_source);
-                return ByteToImage(byte_array);
-            } catch(Exception ex)
-            {
-                throw;
-            }
-        }
-
-        public static ImageSource ImageToImageSource(Image input_image)
-        {
-            try
-            {
-                byte[] byte_array = ImageToByte(input_image);
-                ImageSource result = ByteToImageSource(byte_array);
-                result.Freeze();
-                return result;
-            } catch(Exception ex)
-            {
-                throw;
-            }
-        }
-
-        public static ImageSource BitmapToImageSource(Bitmap input_bitmap)
-        {
-            try
-            {
+        public static ImageSource BitmapToImageSource(Bitmap input_bitmap) {
+            try {
                 var bitmap_data = input_bitmap.LockBits(
                     new Rectangle(0, 0, input_bitmap.Width, input_bitmap.Height),
                     ImageLockMode.ReadOnly,
@@ -314,16 +184,76 @@ namespace Haley.Utils
                     bitmap_data.Stride);
                 input_bitmap.UnlockBits(bitmap_data);
                 return _result;
-            } catch(Exception ex)
-            {
+            } catch (Exception ex) {
                 throw;
             }
         }
 
-        public static byte[] ImageSourceToPixels(ImageSource input_image)
-        {
-            try
-            {
+        public static Image ByteToImage(byte[] input_byte_array) {
+            try {
+                Image result;
+
+                using (MemoryStream memstream = new MemoryStream(input_byte_array)) {
+                    result = Image.FromStream(memstream);
+                }
+                return result;
+            } catch (Exception ex) {
+                throw;
+            }
+        }
+
+        public static ImageSource ByteToImageSource(byte[] input_byte_array) {
+            try {
+                BitmapImage result = new BitmapImage();
+                using (MemoryStream memstream = new MemoryStream(input_byte_array)) {
+                    result.BeginInit();
+                    result.StreamSource = memstream;
+                    result.EndInit();
+                    result.Freeze(); //FREEZING
+                }
+                return result;
+            } catch (Exception ex) {
+                throw;
+            }
+        }
+
+        public static string ImageSourceToBase64(ImageSource input_image_source) {
+            try {
+                byte[] _byte_array = ImageSourceToByte(input_image_source);
+                return Convert.ToBase64String(_byte_array);
+            } catch (Exception ex) {
+                throw;
+            }
+        }
+
+        public static byte[] ImageSourceToByte(ImageSource input_image) {
+            try {
+                BitmapSource base_source = input_image as BitmapSource; //Bitmap source is the base of all imagesources. So, we can convert them to bitmapsource without issue.
+                if (base_source != null) {
+                    using (MemoryStream mstream = new MemoryStream()) {
+                        BitmapEncoder encoder = new PngBitmapEncoder(); //Whatever the input file format is, we are trying to decode it using png encoder. Check if it will work.
+                        encoder.Frames.Add(BitmapFrame.Create(base_source));
+                        encoder.Save(mstream);
+                        return mstream.ToArray();
+                    }
+                }
+                return null;
+            } catch (Exception ex) {
+                throw;
+            }
+        }
+
+        public static Image ImageSourceToImage(ImageSource input_image_source) {
+            try {
+                byte[] byte_array = ImageSourceToByte(input_image_source);
+                return ByteToImage(byte_array);
+            } catch (Exception ex) {
+                throw;
+            }
+        }
+
+        public static byte[] ImageSourceToPixels(ImageSource input_image) {
+            try {
                 BitmapSource bmap_source = (BitmapSource)input_image;
                 BitmapImage bmap_image = (BitmapImage)bmap_source;
                 int bytes_per_pixel = (bmap_image.Format.BitsPerPixel + 7) / 8; //See notes to understand how this is calculated
@@ -331,12 +261,46 @@ namespace Haley.Utils
                 byte[] pixel_array = new byte[bmap_image.PixelHeight * _stride]; //array should be sufficient to copy all pixel value from the bitmap image
                 bmap_image.CopyPixels(pixel_array, _stride, 0);
                 return pixel_array;
+            } catch (Exception ex) {
+                throw;
+            }
+        }
+
+        public static string ImageToBase64(Image input_image) {
+            try {
+                byte[] _byte_array = ImageToByte(input_image);
+                return Convert.ToBase64String(_byte_array);
+            } catch (Exception ex) {
+                throw;
+            }
+        }
+
+        public static byte[] ImageToByte(Image input_image) {
+            try
+            {
+                using(MemoryStream mstream = new MemoryStream())
+                {
+                    input_image.Save(mstream, input_image.RawFormat);
+                    return mstream.ToArray();
+                }
             } catch(Exception ex)
             {
                 throw;
             }
         }
-
+        public static ImageSource ImageToImageSource(Image input_image)
+        {
+            try
+            {
+                byte[] byte_array = ImageToByte(input_image);
+                ImageSource result = ByteToImageSource(byte_array);
+                result.Freeze();
+                return result;
+            } catch(Exception ex)
+            {
+                throw;
+            }
+        }
         public static ImageSource PixelsToImageSource(
             int _pixel_width,
             int _pixel_height,
@@ -370,58 +334,8 @@ namespace Haley.Utils
         #endregion
 
         #region ColorChanger
-        public static ImageInfo GetImageInfo(ImageSource source)
-        {
-            try
-            {
-                BitmapSource _input = source as BitmapSource;
-                ImageInfo res = new ImageInfo();
-                res.source = _input;
-                res.stride = _input.PixelWidth * ((_input.Format.BitsPerPixel + 7) / 8);
-                res.length = res.stride * _input.PixelHeight; //Width  * height ( in pixel)
-                res.pixel_height = _input.PixelHeight;
-                res.pixel_width = _input.PixelWidth;
-                res.dpiX = _input.DpiX;
-                res.dpiY = _input.DpiY;
-                res.format = _input.Format;
-                //res.metadata = _input?.Metadata as BitmapMetadata;
-                return res;
-            }
-            catch (Exception ex)
-            {
-                throw;
-            }
-        }
-
-        public static ImageSource CloneImage(ImageSource source, byte[] new_array = null)
-        {
-            //we can use better clone directly
-            //return source.Clone(); //Check if it has any side effects.
-            return CloneImage(GetImageInfo(source), new_array);
-        }
-
-        public static ImageSource CloneImage(ImageInfo source, byte[] new_array = null)
-        {
-            try
-            {
-                if (new_array == null)
-                {
-                    new_array = new byte[source.length]; //matching the length of the source. //THIS IS AN EMPTY ARRAY
-                }
-                //The new array should match the length of the source. if not throw exception.
-                BitmapSource res = BitmapSource.Create(source.pixel_width, source.pixel_height, source.dpiX, source.dpiY, source.format, null, new_array, source.stride);
-                return res;
-            }
-            catch (Exception ex)
-            {
-                throw;
-            }
-        }
-
-        public static ImageSource ChangeImageColor(ImageInfo source, int red,int green, int blue)
-        {
-            try
-            {
+        public static ImageSource ChangeImageColor(ImageInfo source, int red, int green, int blue) {
+            try {
                 //Ensure that the color values are with in the allowed range.
                 ColorUtils.ClampLimits(ref red);
                 ColorUtils.ClampLimits(ref green);
@@ -434,7 +348,7 @@ namespace Haley.Utils
 
                 source.source.CopyPixels(newimage, source.stride, 0); //This copies all values. but we replace all the colors below.
 
-                for (int i = 0; i < newimage.Length; i+=4) //increment by 4 number
+                for (int i = 0; i < newimage.Length; i += 4) //increment by 4 number
                 {
                     newimage[i + (int)RGB.Red] = Convert.ToByte(red);
                     newimage[i + (int)RGB.Green] = Convert.ToByte(green);
@@ -444,17 +358,13 @@ namespace Haley.Utils
                 //At this point, we have obtained an array with transparency (if available).
 
                 return CloneImage(source, newimage);
-            }
-            catch (Exception ex)
-            {
+            } catch (Exception ex) {
                 throw;
             }
         }
 
-        public static ImageSource ChangeImageColor(ImageSource source, System.Windows.Media.Brush brush)
-        {
-            try
-            {
+        public static ImageSource ChangeImageColor(ImageSource source, System.Windows.Media.Brush brush) {
+            try {
                 ImageSource result = null;
                 if (source is BitmapSource) {
                     var scb = brush as SolidColorBrush;
@@ -467,9 +377,7 @@ namespace Haley.Utils
                     return ChangeImageColor(dwgImage, brush);
                 }
                 return result;
-            }
-            catch (Exception)
-            {
+            } catch (Exception) {
                 return source; //In case of error, just reuse the source image itself.
             }
         }
@@ -495,38 +403,52 @@ namespace Haley.Utils
             return target;
         }
 
-        #endregion
+        public static ImageSource CloneImage(ImageSource source, byte[] new_array = null) {
+            //we can use better clone directly
+            //return source.Clone(); //Check if it has any side effects.
+            return CloneImage(GetImageInfo(source), new_array);
+        }
 
-
-        public static bool SaveImageSource(ImageSource input_image, string file_path, BitmapEncoder encoder = null)
-        {
-            try
-            {
-                BitmapSource base_source = input_image as BitmapSource; //Bitmap source is the base of all imagesources. So, we can convert them to bitmapsource without issue.
-                base_source.Freeze();
-                if(base_source != null)
-                {
-                    using(FileStream file_stream = new FileStream(file_path, FileMode.Create))
-                    {
-                        if(encoder == null)
-                            encoder = new PngBitmapEncoder(); //Whatever the input file format is, we are trying to decode it using png encoder. Check if it will work.
-                        encoder.Frames.Add(BitmapFrame.Create(base_source));
-                        encoder.Save(file_stream);
-                    }
+        public static ImageSource CloneImage(ImageInfo source, byte[] new_array = null) {
+            try {
+                if (new_array == null) {
+                    new_array = new byte[source.length]; //matching the length of the source. //THIS IS AN EMPTY ARRAY
                 }
-                return true;
-            } catch(Exception ex)
-            {
+                //The new array should match the length of the source. if not throw exception.
+                BitmapSource res = BitmapSource.Create(source.pixel_width, source.pixel_height, source.dpiX, source.dpiY, source.format, null, new_array, source.stride);
+                return res;
+            } catch (Exception ex) {
                 throw;
             }
         }
 
-        public static bool IsBase64(string input_string)
-        {
+       public static ImageInfo GetImageInfo(ImageSource source) {
             try
             {
+                BitmapSource _input = source as BitmapSource;
+                ImageInfo res = new ImageInfo();
+                res.source = _input;
+                res.stride = _input.PixelWidth * ((_input.Format.BitsPerPixel + 7) / 8);
+                res.length = res.stride * _input.PixelHeight; //Width  * height ( in pixel)
+                res.pixel_height = _input.PixelHeight;
+                res.pixel_width = _input.PixelWidth;
+                res.dpiX = _input.DpiX;
+                res.dpiY = _input.DpiY;
+                res.format = _input.Format;
+                //res.metadata = _input?.Metadata as BitmapMetadata;
+                return res;
+            }
+            catch (Exception ex)
+            {
+                throw;
+            }
+        }
+        #endregion
+
+        public static bool IsBase64(string input_string) {
+            try {
                 //Step 1: Check basic items.
-                if(string.IsNullOrEmpty(input_string) ||
+                if (string.IsNullOrEmpty(input_string) ||
                     input_string.Length % 4 != 0 ||
                     input_string.Contains(" ") ||
                     input_string.Contains("\t") ||
@@ -535,24 +457,129 @@ namespace Haley.Utils
                     return false;
 
                 //Step 2 : Try to convert it to base 64. It if fails, return false.
-                try
-                {
+                try {
                     Convert.FromBase64String(input_string);
                     return true;
-                } catch(Exception)
-                {
+                } catch (Exception) {
                     return false;
                 }
-            } catch(Exception ex)
-            {
+            } catch (Exception ex) {
+                throw;
+            }
+        }
+
+        public static bool SaveImageSource(ImageSource input_image, string file_path, BitmapEncoder encoder = null) {
+            try {
+                BitmapSource base_source = input_image as BitmapSource; //Bitmap source is the base of all imagesources. So, we can convert them to bitmapsource without issue.
+                base_source.Freeze();
+                if (base_source != null) {
+                    using (FileStream file_stream = new FileStream(file_path, FileMode.Create)) {
+                        if (encoder == null)
+                            encoder = new PngBitmapEncoder(); //Whatever the input file format is, we are trying to decode it using png encoder. Check if it will work.
+                        encoder.Frames.Add(BitmapFrame.Create(base_source));
+                        encoder.Save(file_stream);
+                    }
+                }
+                return true;
+            } catch (Exception ex) {
                 throw;
             }
         }
         #endregion
 
         #region Private Methods
-        private static ImageSource resizePixelOnly(
+        private static ImageSource resizePixelAndDpi(
             BitmapSource base_source,
+            int pixel_height,
+            int pixel_width,
+            bool fit_width,
+            double dpi,
+            bool maintain_ratio = true) {
+            try {
+                //CHANGE PIXEL SIZE FIRST AND COPY THE DATA EXCEPT DPI
+                BitmapSource pixel_modified_source = resizePixelOnly(
+                    base_source as BitmapSource,
+                    pixel_height,
+                    pixel_width,
+                    fit_width) as BitmapSource;
+
+                //COPYING ALL VALUES, EXCEPT THE DPI.
+                if (dpi == 0)
+                    dpi = base_source.DpiX;
+                int _stride = (pixel_modified_source.PixelWidth * pixel_modified_source.Format.BitsPerPixel + 7) / 8;
+                byte[] empty_pixel_array = new byte[pixel_modified_source.PixelHeight * _stride]; //This has same number of bytes as that of the input base image to hold the new pixel with modified dpi
+                pixel_modified_source.CopyPixels(empty_pixel_array, _stride, 0);
+                //ImageSource dpi_adjusted_image_source = BitmapSource.Create(base_source.PixelWidth, base_source.PixelHeight, dpi, dpi, base_source.Format, null, empty_pixel_array, _stride);
+
+                ImageSource result = BitmapSource.Create(
+                    pixel_modified_source.PixelWidth,
+                    pixel_modified_source.PixelHeight,
+                    dpi,
+                    dpi,
+                    pixel_modified_source.Format,
+                    null,
+                    empty_pixel_array,
+                    _stride);
+                return result;
+            } catch (Exception ex) {
+                throw;
+            }
+        }
+
+        private static ImageSource resizePixelAndImage(
+            BitmapSource base_source,
+            int pixel_height,
+            int pixel_width,
+            bool fit_width,
+            double dpi,
+            bool maintain_ratio = true) {
+            //REMEMBER, IF WE TRY TO SET DPI, HEIGHT/WIDTH, PIXELHEIGHT/PIXELWIDTH, we are no constraints. We are explicitly setting values for all.
+            //We need to create the empty frame to suit the pixels
+            try {
+                if (dpi == 0)
+                    dpi = base_source.DpiX; //Dpi cannot be zero.
+
+                //SET IMAGESIZE
+                double adjusted_height = pixel_height;
+                double adjusted_width = pixel_width;
+                switch (fit_width) {
+                    case true:
+                        //Meaning that the image width is longer than the image height. So, we need to modify our new width,height, accordingly.
+                        adjusted_width = pixel_width;
+                        adjusted_height = (base_source.PixelHeight * adjusted_width) / base_source.PixelWidth;
+                        break;
+                    case false: //Height is longer. So modify width
+                        adjusted_height = pixel_height;
+                        adjusted_width = (adjusted_height * base_source.PixelWidth) / base_source.PixelHeight;
+                        break;
+                }
+
+                Rect empty_rectangle_frame = new Rect(0, 0, adjusted_width, adjusted_height);
+                DrawingVisual drawing_visual = new DrawingVisual();
+                using (DrawingContext drawing_context = drawing_visual.RenderOpen()) {
+                    drawing_context.DrawImage(base_source, empty_rectangle_frame); //Draw the input image inside the empty rectangular frame.
+                }
+
+                //SET DPI, PixelOnly
+                RenderTargetBitmap render_bitmap = new RenderTargetBitmap(
+                    (int)Math.Round(adjusted_width),
+                    (int)Math.Round(adjusted_height),
+                    0,
+                    0,
+                    PixelFormats.Default);
+                //RenderTargetBitmap render_bitmap = new RenderTargetBitmap(base_source.PixelWidth, base_source.PixelHeight, dpi, dpi, PixelFormats.Default);
+
+                render_bitmap.Render(drawing_visual);
+                var dpi_adjusted_image_source = (BitmapSource)render_bitmap;
+
+                return dpi_adjusted_image_source;
+            } catch (Exception ex) {
+                throw;
+            }
+        }
+
+        private static ImageSource resizePixelOnly(
+                            BitmapSource base_source,
             int pixel_height,
             int pixel_width,
             bool fit_width,
@@ -585,105 +612,6 @@ namespace Haley.Utils
                 throw;
             }
         }
-
-        private static ImageSource resizePixelAndImage(
-            BitmapSource base_source,
-            int pixel_height,
-            int pixel_width,
-            bool fit_width,
-            double dpi,
-            bool maintain_ratio = true)
-        {
-            //REMEMBER, IF WE TRY TO SET DPI, HEIGHT/WIDTH, PIXELHEIGHT/PIXELWIDTH, we are no constraints. We are explicitly setting values for all.
-            //We need to create the empty frame to suit the pixels
-            try
-            {
-                if(dpi == 0)
-                    dpi = base_source.DpiX; //Dpi cannot be zero.
-
-                //SET IMAGESIZE
-                double adjusted_height = pixel_height;
-                double adjusted_width = pixel_width;
-                switch(fit_width)
-                {
-                    case true:
-                        //Meaning that the image width is longer than the image height. So, we need to modify our new width,height, accordingly.
-                        adjusted_width = pixel_width;
-                        adjusted_height = (base_source.PixelHeight * adjusted_width) / base_source.PixelWidth;
-                        break;
-                    case false: //Height is longer. So modify width
-                        adjusted_height = pixel_height;
-                        adjusted_width = (adjusted_height * base_source.PixelWidth) / base_source.PixelHeight;
-                        break;
-                }
-
-                Rect empty_rectangle_frame = new Rect(0, 0, adjusted_width, adjusted_height);
-                DrawingVisual drawing_visual = new DrawingVisual();
-                using(DrawingContext drawing_context = drawing_visual.RenderOpen())
-                {
-                    drawing_context.DrawImage(base_source, empty_rectangle_frame); //Draw the input image inside the empty rectangular frame.
-                }
-
-                //SET DPI, PixelOnly
-                RenderTargetBitmap render_bitmap = new RenderTargetBitmap(
-                    (int)Math.Round(adjusted_width),
-                    (int)Math.Round(adjusted_height),
-                    0,
-                    0,
-                    PixelFormats.Default);
-                //RenderTargetBitmap render_bitmap = new RenderTargetBitmap(base_source.PixelWidth, base_source.PixelHeight, dpi, dpi, PixelFormats.Default);
-
-                render_bitmap.Render(drawing_visual);
-                var dpi_adjusted_image_source = (BitmapSource)render_bitmap;
-
-                return dpi_adjusted_image_source;
-            } catch(Exception ex)
-            {
-                throw;
-            }
-        }
-
-        private static ImageSource resizePixelAndDpi(
-            BitmapSource base_source,
-            int pixel_height,
-            int pixel_width,
-            bool fit_width,
-            double dpi,
-            bool maintain_ratio = true)
-        {
-            try
-            {
-                //CHANGE PIXEL SIZE FIRST AND COPY THE DATA EXCEPT DPI
-                BitmapSource pixel_modified_source = resizePixelOnly(
-                    base_source as BitmapSource,
-                    pixel_height,
-                    pixel_width,
-                    fit_width) as BitmapSource;
-
-                //COPYING ALL VALUES, EXCEPT THE DPI.
-                if(dpi == 0)
-                    dpi = base_source.DpiX;
-                int _stride = (pixel_modified_source.PixelWidth * pixel_modified_source.Format.BitsPerPixel + 7) / 8;
-                byte[] empty_pixel_array = new byte[pixel_modified_source.PixelHeight * _stride]; //This has same number of bytes as that of the input base image to hold the new pixel with modified dpi
-                pixel_modified_source.CopyPixels(empty_pixel_array, _stride, 0);
-                //ImageSource dpi_adjusted_image_source = BitmapSource.Create(base_source.PixelWidth, base_source.PixelHeight, dpi, dpi, base_source.Format, null, empty_pixel_array, _stride);
-
-                ImageSource result = BitmapSource.Create(
-                    pixel_modified_source.PixelWidth,
-                    pixel_modified_source.PixelHeight,
-                    dpi,
-                    dpi,
-                    pixel_modified_source.Format,
-                    null,
-                    empty_pixel_array,
-                    _stride);
-                return result;
-            } catch(Exception ex)
-            {
-                throw;
-            }
-        }
-
         private static bool shouldFitWidth(double source_image_height, double source_image_width)
         {
             try
