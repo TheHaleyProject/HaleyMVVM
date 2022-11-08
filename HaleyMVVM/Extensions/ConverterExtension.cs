@@ -24,54 +24,38 @@ namespace Haley.Utils
     public class ConverterExtension : MarkupExtension {
 
         private StaticResourceExtension _internalExtension;
-        private ConverterKind _resourceKey = ConverterKind.Verification;
+        private ConverterKind _kind = ConverterKind.Verification;
         public ConverterExtension(ConverterKind kind) {
-            _resourceKey = kind;
+            _kind = kind;
             _internalExtension = new StaticResourceExtension(GetConverterName());
         }
         public ConverterExtension() { }
 
         [ConstructorArgument("kind")]
-        public ConverterKind ResourceKey {
-            get { return _resourceKey; }
-            set { _resourceKey = value; }
+        public ConverterKind Kind {
+            get { return _kind; }
+            set { _kind = value; }
         }
-        public string GetConverterClassName() {
-            switch (ResourceKey) {
-                case ConverterKind.BooltoVisibility:
-                    return nameof(Conv.BoolToVisibilityConverter);
-                case ConverterKind.ColorToBrush:
-                    return nameof(Conv.ColorToBrushConverter);
-                case ConverterKind.EnumListoStringList:
-                    return nameof(Conv.EnumListToDescriptionListConverter);
-                case ConverterKind.EnumtoDescription:
-                    return nameof(Conv.EnumToDescriptionConverter);
-                case ConverterKind.EnumTypeToDescriptionList:
-                    return nameof(Conv.EnumTypeToDescriptionListConverter);
-                case ConverterKind.EnumTypeToValues:
-                    return nameof(Conv.EnumTypeToValuesConverter);
-                case ConverterKind.EqualityCheck:
-                    return nameof(Conv.EqualityCheckConverter);
-                case ConverterKind.EqualityToVisibility:
-                    return nameof(Conv.EqualityCheckToVisibilityConverter);
-                case ConverterKind.HalfValue:
-                    return nameof(Conv.HalfValueConverter);
-                case ConverterKind.InverseBoolean:
-                    return nameof(Conv.InverseBooleanConverter);
-                case ConverterKind.KeytoControl:
-                    return nameof(Conv.KeyToControlConverter);
-                case ConverterKind.NegateValue:
-                    return nameof(Conv.NegateValueConverter);
-                case ConverterKind.LengthReducer:
-                    return nameof(Conv.ReducerConverter);
-                case ConverterKind.Verification:
-                    return nameof(Conv.VerificationConverter);
-                case ConverterKind.MultiBinder:
-                    return nameof(Conv.MultiValueBinderConverter);
-                case ConverterKind.MultiBindingEqualityCheck:
-                    return nameof(Conv.MultiBindingEqualityCheckConverter);
-            }
-            return string.Empty;
+        public void EmptyConverterLists() {
+            List<string> converterslist = new List<string>() {
+                nameof(Conv.BoolToVisibilityConverter),
+                nameof(Conv.ColorToBrushConverter),
+                nameof(Conv.EnumToDescriptionConverter),
+                nameof(Conv.EnumListToDescriptionListConverter),
+                nameof(Conv.EnumTypeToDescriptionListConverter),
+                nameof(Conv.EnumTypeToValuesConverter),
+                nameof(Conv.EqualityCheckConverter),
+                nameof(Conv.EqualityCheckToVisibilityConverter),
+                nameof(Conv.EqualityCheckToVisibilityConverter),
+                nameof(Conv.HalfValueConverter),
+                nameof(Conv.InverseBooleanConverter),
+                nameof(Conv.KeyToControlConverter),
+                nameof(Conv.NegateValueConverter),
+                nameof(Conv.ReducerConverter),
+                nameof(Conv.VerificationConverter),
+                nameof(Conv.MultiValueBinderConverter),
+                nameof(Conv.MultiBindingEqualityCheckConverter),
+                };
         }
 
         public override object ProvideValue(IServiceProvider serviceProvider) {
@@ -80,7 +64,7 @@ namespace Haley.Utils
         }
 
         private string GetConverterName() {
-            return ResourceKey.ToString();
+            return Kind.ToString();
         }
 
         private StaticResourceExtension getInternalResource() {

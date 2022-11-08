@@ -15,7 +15,7 @@
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <Copyright>Haley @ 2020</Copyright>
     <PackageReleaseNotes>Theme Service updated</PackageReleaseNotes>
-    <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
+    <GeneratePackageOnBuild>False</GeneratePackageOnBuild>
     <AssemblyVersion>4.0.2.0</AssemblyVersion>
     <FileVersion>4.0.2.0</FileVersion>
     <PackageIcon>Haley.png</PackageIcon>
@@ -39,6 +39,10 @@
   </PropertyGroup>
   
   <ItemGroup>
+    <Compile Remove="Models\Base\CommonDictionary.cs" />
+  </ItemGroup>
+  
+  <ItemGroup>
     <None Remove="Images\notify_error.png" />
     <None Remove="Images\notify_error_medium.png" />
     <None Remove="Images\notify_info.png" />
@@ -55,6 +59,7 @@
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
   </ItemGroup>
+  
   <ItemGroup>
     <PackageReference Include="Microsoft.Xaml.Behaviors.Wpf" Version="1.1.39" />
     <PackageReference Include="System.Drawing.Common" Version="6.0.0" />
@@ -113,7 +118,6 @@
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
     </EmbeddedResource>
   </ItemGroup>
-
   <Import Project="$(SolutionDir)ProjectReferences_$(SolutionName).txt" Condition="Exists('$(SolutionDir)ProjectReferences_$(SolutionName).txt')" />
 
 	<Choose>
@@ -171,7 +175,7 @@
     </When>
     <Otherwise>
      <ItemGroup>
-       <PackageReference Include="Haley.Extensions" Version="2.1.15" />
+       <PackageReference Include="Haley.Extensions" Version="2.1.15.1" />
 	 </ItemGroup>
     </Otherwise>
 </Choose>  

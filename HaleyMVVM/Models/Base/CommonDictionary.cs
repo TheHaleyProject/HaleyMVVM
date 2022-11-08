@@ -2,7 +2,7 @@
 using System.Collections.Concurrent;
 using System.Linq;
 using System.Windows;
-
+using System.Windows.Input;
 
 namespace Haley.Models
 {
@@ -40,18 +40,18 @@ namespace Haley.Models
                 if (!DictionaryStore.ContainsKey(value))
                 {
                     DictionaryStore.TryAdd(value, this);
+                    //And finally, we assign the source value to this resource dictionary.
+                    //We are also adding the value to the source to generate the dictionary
                 }
                 else
                 {
                     ResourceDictionary result;
                     DictionaryStore.TryGetValue(value, out result);
-                    MergedDictionaries.Add(DictionaryStore[value]);
+                    MergedDictionaries.Add(result);
                 }
-
-                //And finally, we assign the source value to this resource dictionary.
-                //We are also adding the value to the source to generate the dictionary
                 base.Source = value;
                 _source = value;
+
             }
         }
 

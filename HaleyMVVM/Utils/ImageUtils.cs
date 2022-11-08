@@ -7,10 +7,12 @@ using System.Windows;
 using System.IO;
 using System.Drawing;
 using System.Drawing.Imaging;
-using Haley.Enums;
 using Haley.Models;
 using System.Windows.Media.Imaging;
+using Haley.Abstractions;
+using Haley.Enums;
 using System.Windows.Media;
+using static System.Net.WebRequestMethods;
 
 //STRIDE: The stride is the width of a single row of pixels (a scan line), rounded up to a four-byte boundary. If the stride is positive, the bitmap is top-down. If the stride is negative, the bitmap is bottom-up.
 
@@ -34,7 +36,7 @@ namespace Haley.Utils
         #region Public Methods
 
     #region RESIZE
-        public static ImageSource resizeImage(
+        public static ImageSource ResizeImage(
             string path,
             int pixel_height,
             int pixel_width,
@@ -44,14 +46,14 @@ namespace Haley.Utils
             try
             {
                 Uri image_uri = new Uri(path, UriKind.RelativeOrAbsolute);
-                return resizeImage(image_uri, pixel_height, pixel_width, resize_mode, dpi);
+                return ResizeImage(image_uri, pixel_height, pixel_width, resize_mode, dpi);
             } catch(Exception ex)
             {
                 throw;
             }
         }
 
-        public static ImageSource resizeImage(
+        public static ImageSource ResizeImage(
             Uri path_URI,
             int pixel_height,
             int pixel_width,
@@ -61,14 +63,14 @@ namespace Haley.Utils
             try
             {
                 BitmapImage image = new BitmapImage(path_URI);
-                return resizeImage(image, pixel_height, pixel_width, resize_mode, dpi);
+                return ResizeImage(image, pixel_height, pixel_width, resize_mode, dpi);
             } catch(Exception ex)
             {
                 throw;
             }
         }
 
-        public static ImageSource resizeImage(
+        public static ImageSource ResizeImage(
             Image image,
             int pixel_height,
             int pixel_width,
@@ -77,15 +79,15 @@ namespace Haley.Utils
         {
             try
             {
-                bool fit_width = _shouldFitWidth(Convert.ToDouble(image.Height), Convert.ToDouble(image.Width));
-                return resizeImage(imageToByte(image), pixel_height, pixel_width, resize_mode, dpi);
+                bool fit_width = shouldFitWidth(Convert.ToDouble(image.Height), Convert.ToDouble(image.Width));
+                return ResizeImage(ImageToByte(image), pixel_height, pixel_width, resize_mode, dpi);
             } catch(Exception ex)
             {
                 throw;
             }
         }
 
-        public static ImageSource resizeImage(
+        public static ImageSource ResizeImage(
             byte[] image_byte_array,
             int pixel_height,
             int pixel_width,
@@ -101,14 +103,14 @@ namespace Haley.Utils
                     result_image.StreamSource = mstream;
                     result_image.EndInit();
                 }
-                return resizeImage((ImageSource)result_image, pixel_height, pixel_width, resize_mode, dpi);
+                return ResizeImage((ImageSource)result_image, pixel_height, pixel_width, resize_mode, dpi);
             } catch(Exception ex)
             {
                 throw;
             }
         }
 
-        public static ImageSource resizeImage(
+        public static ImageSource ResizeImage(
             ImageSource input_image,
             int pixel_height,
             int pixel_width,
@@ -117,7 +119,7 @@ namespace Haley.Utils
         {
             try
             {
-                bool fit_width = _shouldFitWidth(input_image.Height, input_image.Width);
+                bool fit_width = shouldFitWidth(input_image.Height, input_image.Width);
 
                 BitmapSource base_source = input_image as BitmapSource; //Bitmap source is the base of all imagesources. So, we can convert them to bitmapsource without issue.
                 if(base_source == null)
@@ -126,11 +128,11 @@ namespace Haley.Utils
                 switch(resize_mode)
                 {
                     case ResizeAffectMode.PixelOnly:
-                        return _resizeImage_pixelOnly(base_source, pixel_height, pixel_width, fit_width);
+                        return resizePixelOnly(base_source, pixel_height, pixel_width, fit_width);
                     case ResizeAffectMode.PixelAndImage:
-                        return _resizeImage_pixelImage(base_source, pixel_height, pixel_width, fit_width, dpi);
+                        return resizePixelAndImage(base_source, pixel_height, pixel_width, fit_width, dpi);
                     case ResizeAffectMode.PixelAndDPI:
-                        return _resizeImage_pixelDpi(base_source, pixel_height, pixel_width, fit_width, dpi);
+                        return resizePixelAndDpi(base_source, pixel_height, pixel_width, fit_width, dpi);
                 }
                 return null;
             } catch(Exception ex)
@@ -141,7 +143,7 @@ namespace Haley.Utils
     #endregion
 
     #region CONVERSION
-        public static byte[] imageToByte(Image input_image)
+        public static byte[] ImageToByte(Image input_image)
         {
             try
             {
@@ -156,7 +158,7 @@ namespace Haley.Utils
             }
         }
 
-        public static byte[] imageSourceToByte(ImageSource input_image)
+        public static byte[] ImageSourceToByte(ImageSource input_image)
         {
             try
             {
@@ -178,7 +180,7 @@ namespace Haley.Utils
             }
         }
 
-        public static Image byteToImage(byte[] input_byte_array)
+        public static Image ByteToImage(byte[] input_byte_array)
         {
             try
             {
@@ -195,7 +197,7 @@ namespace Haley.Utils
             }
         }
 
-        public static ImageSource byteToImageSource(byte[] input_byte_array)
+        public static ImageSource ByteToImageSource(byte[] input_byte_array)
         {
             try
             {
@@ -214,11 +216,11 @@ namespace Haley.Utils
             }
         }
 
-        public static string imageToBase64(Image input_image)
+        public static string ImageToBase64(Image input_image)
         {
             try
             {
-                byte[] _byte_array = imageToByte(input_image);
+                byte[] _byte_array = ImageToByte(input_image);
                 return Convert.ToBase64String(_byte_array);
             } catch(Exception ex)
             {
@@ -226,11 +228,11 @@ namespace Haley.Utils
             }
         }
 
-        public static string imageSourceToBase64(ImageSource input_image_source)
+        public static string ImageSourceToBase64(ImageSource input_image_source)
         {
             try
             {
-                byte[] _byte_array = imageSourceToByte(input_image_source);
+                byte[] _byte_array = ImageSourceToByte(input_image_source);
                 return Convert.ToBase64String(_byte_array);
             } catch(Exception ex)
             {
@@ -238,52 +240,52 @@ namespace Haley.Utils
             }
         }
 
-        public static Image base64ToImage(string input_string)
+        public static Image Base64ToImage(string input_string)
         {
             try
             {
-                if(!isBase64(input_string))
+                if(!IsBase64(input_string))
                     return null; //If not a base 64 string, return null.
                 byte[] _byte_array = Convert.FromBase64String(input_string);
-                return byteToImage(_byte_array);
+                return ByteToImage(_byte_array);
             } catch(Exception ex)
             {
                 throw;
             }
         }
 
-        public static ImageSource base64ToImageSource(string input_string)
+        public static ImageSource Base64ToImageSource(string input_string)
         {
             try
             {
-                if(!isBase64(input_string))
+                if(!IsBase64(input_string))
                     return null; //If not a base 64 string, return null.
                 byte[] byte_array = Convert.FromBase64String(input_string);
-                return byteToImageSource(byte_array);
+                return ByteToImageSource(byte_array);
             } catch(Exception ex)
             {
                 throw;
             }
         }
 
-        public static Image imageSourceToImage(ImageSource input_image_source)
+        public static Image ImageSourceToImage(ImageSource input_image_source)
         {
             try
             {
-                byte[] byte_array = imageSourceToByte(input_image_source);
-                return byteToImage(byte_array);
+                byte[] byte_array = ImageSourceToByte(input_image_source);
+                return ByteToImage(byte_array);
             } catch(Exception ex)
             {
                 throw;
             }
         }
 
-        public static ImageSource imageToImageSource(Image input_image)
+        public static ImageSource ImageToImageSource(Image input_image)
         {
             try
             {
-                byte[] byte_array = imageToByte(input_image);
-                ImageSource result = byteToImageSource(byte_array);
+                byte[] byte_array = ImageToByte(input_image);
+                ImageSource result = ByteToImageSource(byte_array);
                 result.Freeze();
                 return result;
             } catch(Exception ex)
@@ -292,7 +294,7 @@ namespace Haley.Utils
             }
         }
 
-        public static ImageSource bitmapToImageSource(Bitmap input_bitmap)
+        public static ImageSource BitmapToImageSource(Bitmap input_bitmap)
         {
             try
             {
@@ -318,7 +320,7 @@ namespace Haley.Utils
             }
         }
 
-        public static byte[] imageSourceToPixels(ImageSource input_image)
+        public static byte[] ImageSourceToPixels(ImageSource input_image)
         {
             try
             {
@@ -335,7 +337,7 @@ namespace Haley.Utils
             }
         }
 
-        public static ImageSource pixelsToImageSource(
+        public static ImageSource PixelsToImageSource(
             int _pixel_width,
             int _pixel_height,
             byte[] _pixels,
@@ -368,7 +370,7 @@ namespace Haley.Utils
         #endregion
 
         #region ColorChanger
-        public static ImageInfo getImageInfo(ImageSource source)
+        public static ImageInfo GetImageInfo(ImageSource source)
         {
             try
             {
@@ -391,12 +393,14 @@ namespace Haley.Utils
             }
         }
 
-        public static ImageSource cloneImage(ImageSource source, byte[] new_array = null)
+        public static ImageSource CloneImage(ImageSource source, byte[] new_array = null)
         {
-            return cloneImage(getImageInfo(source), new_array);
+            //we can use better clone directly
+            //return source.Clone(); //Check if it has any side effects.
+            return CloneImage(GetImageInfo(source), new_array);
         }
 
-        public static ImageSource cloneImage(ImageInfo source, byte[] new_array = null)
+        public static ImageSource CloneImage(ImageInfo source, byte[] new_array = null)
         {
             try
             {
@@ -405,7 +409,6 @@ namespace Haley.Utils
                     new_array = new byte[source.length]; //matching the length of the source. //THIS IS AN EMPTY ARRAY
                 }
                 //The new array should match the length of the source. if not throw exception.
-
                 BitmapSource res = BitmapSource.Create(source.pixel_width, source.pixel_height, source.dpiX, source.dpiY, source.format, null, new_array, source.stride);
                 return res;
             }
@@ -415,7 +418,7 @@ namespace Haley.Utils
             }
         }
 
-        public static ImageSource changeImageColor(ImageInfo source, int red,int green, int blue)
+        public static ImageSource ChangeImageColor(ImageInfo source, int red,int green, int blue)
         {
             try
             {
@@ -440,7 +443,7 @@ namespace Haley.Utils
 
                 //At this point, we have obtained an array with transparency (if available).
 
-                return cloneImage(source, newimage);
+                return CloneImage(source, newimage);
             }
             catch (Exception ex)
             {
@@ -448,14 +451,22 @@ namespace Haley.Utils
             }
         }
 
-        public static ImageSource changeImageColor(ImageSource source, SolidColorBrush brush)
+        public static ImageSource ChangeImageColor(ImageSource source, System.Windows.Media.Brush brush)
         {
             try
             {
-                var newcolor = brush.Color;
-                var imageinfo = getImageInfo(source);
-                var res = changeImageColor(imageinfo, int.Parse(newcolor.R.ToString()), int.Parse(newcolor.G.ToString()), int.Parse(newcolor.B.ToString()));
-                return res;
+                ImageSource result = null;
+                if (source is BitmapSource) {
+                    var scb = brush as SolidColorBrush;
+                    if (scb == null) return source; //for direclty color change on the bitmap we can only process the solid color brush
+                    var newcolor = scb.Color;
+                    var imageinfo = GetImageInfo(source);
+                    result = ChangeImageColor(imageinfo, int.Parse(newcolor.R.ToString()), int.Parse(newcolor.G.ToString()), int.Parse(newcolor.B.ToString()));
+                } else if (source is DrawingImage dwgImage) {
+                    //Handle drawing image differently
+                    return ChangeImageColor(dwgImage, brush);
+                }
+                return result;
             }
             catch (Exception)
             {
@@ -463,10 +474,31 @@ namespace Haley.Utils
             }
         }
 
+        public static ImageSource ChangeImageColor(DrawingImage source, System.Windows.Media.Brush brush) {
+            //We return a new image source.
+            DrawingImage target = source;
+            if (source.IsFrozen) {
+                target = source.Clone();
+            }
+            if (target.Drawing is DrawingGroup dgroup) {
+                foreach (var child in dgroup.Children) {
+                    if (child is GeometryDrawing geo_dwg) {
+                        if (geo_dwg.Brush.IsFrozen) {
+                            geo_dwg.Brush = geo_dwg.Brush.Clone();
+                        }
+
+                        geo_dwg.SetCurrentValue(GeometryDrawing.BrushProperty, brush);
+                        //dgroup.Children[i] = _clone;
+                    }
+                }
+            }
+            return target;
+        }
+
         #endregion
 
 
-        public static bool saveImageSource(ImageSource input_image, string file_path, BitmapEncoder encoder = null)
+        public static bool SaveImageSource(ImageSource input_image, string file_path, BitmapEncoder encoder = null)
         {
             try
             {
@@ -489,7 +521,7 @@ namespace Haley.Utils
             }
         }
 
-        public static bool isBase64(string input_string)
+        public static bool IsBase64(string input_string)
         {
             try
             {
@@ -519,7 +551,7 @@ namespace Haley.Utils
         #endregion
 
         #region Private Methods
-        private static ImageSource _resizeImage_pixelOnly(
+        private static ImageSource resizePixelOnly(
             BitmapSource base_source,
             int pixel_height,
             int pixel_width,
@@ -554,7 +586,7 @@ namespace Haley.Utils
             }
         }
 
-        private static ImageSource _resizeImage_pixelImage(
+        private static ImageSource resizePixelAndImage(
             BitmapSource base_source,
             int pixel_height,
             int pixel_width,
@@ -611,7 +643,7 @@ namespace Haley.Utils
             }
         }
 
-        private static ImageSource _resizeImage_pixelDpi(
+        private static ImageSource resizePixelAndDpi(
             BitmapSource base_source,
             int pixel_height,
             int pixel_width,
@@ -622,7 +654,7 @@ namespace Haley.Utils
             try
             {
                 //CHANGE PIXEL SIZE FIRST AND COPY THE DATA EXCEPT DPI
-                BitmapSource pixel_modified_source = _resizeImage_pixelOnly(
+                BitmapSource pixel_modified_source = resizePixelOnly(
                     base_source as BitmapSource,
                     pixel_height,
                     pixel_width,
@@ -652,7 +684,7 @@ namespace Haley.Utils
             }
         }
 
-        private static bool _shouldFitWidth(double source_image_height, double source_image_width)
+        private static bool shouldFitWidth(double source_image_height, double source_image_width)
         {
             try
             {
