@@ -176,7 +176,7 @@ namespace Haley.Abstractions
             }
             catch (Exception ex)
             {
-                throw ex;
+                throw;
             }
         }
 
@@ -246,7 +246,7 @@ namespace Haley.Abstractions
             }
             catch (Exception ex)
             {
-                throw ex;
+                throw;
             }
         }
 
@@ -277,7 +277,7 @@ namespace Haley.Abstractions
             }
             catch (Exception ex)
             {
-                throw ex;
+                throw;
             }
         }
 

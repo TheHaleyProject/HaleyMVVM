@@ -121,7 +121,7 @@ namespace Haley.Utils
                 }
                 return _converted_string;
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 return resource_key;
             }

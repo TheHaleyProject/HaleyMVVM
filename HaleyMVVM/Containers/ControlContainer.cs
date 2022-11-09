@@ -43,9 +43,9 @@ namespace Haley.IOC
                 var _observer = new ControlObserver(_view, _vm);
                 return _view;
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                throw ex;
+                throw;
             }
         }
     }
