@@ -14,7 +14,7 @@ using Haley.Enums;
 using System.Windows.Media;
 
 #if HMVVM
-using Shared.Haley.MVVM;
+using Isolated.Haley.MVVM;
 #endif
 using static System.Net.WebRequestMethods;
 
