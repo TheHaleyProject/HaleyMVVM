@@ -22,6 +22,7 @@ namespace Haley.Utils
 {
     public class LangExtension : MarkupExtension
     {
+        DependencyElement _target;
         private string _resourceKey;
         //[ConstructorArgument("key")] //This attribute has no value. It is not affected by any means.
         public string ResourceKey
@@ -37,16 +38,25 @@ namespace Haley.Utils
             _resourceKey = key;
         }
 
+        public string BindingSource { get; set; }
+
         public override object ProvideValue(IServiceProvider serviceProvider)
         {
             //THIS WHOLE PART IS JUST A MIDDLE WARE. WHEN THE XAML REQUESTS FOR A VALUE USING "PROVIDE VALUE" METHOD OF THE EXTENSION, WE MERELY CREATE A NEW PROPERTY BINDING AND USE THE NEW BINDING'S PROVIDE VALUE.
 
             #region Option 1
-            //We can even create an attached property on the target element and fetch that data here (one alternative)
-            ////If we wish to get datacontext of the binding element (like textbloc or box, use below methods to get the prop and then the property where it is bounded)
-            //var targetProvider = (IProvideValueTarget)serviceProvider.GetService(typeof(IProvideValueTarget));
-            //var targetElement = targetProvider.TargetObject as FrameworkElement; //This element will have a Tag value (which can be used to store the required data)
-            //var targetProperty = targetProvider.TargetProperty as DependencyProperty;
+            if (!string.IsNullOrWhiteSpace(BindingSource)) {
+                //Binding takes top most priority
+                //If binding is not null, we try to fetch the datacontext of the target element and then bind to the changes.
+                if (HelperUtilsInternal.GetTargetElement(serviceProvider, out var target)) {
+                    //create binding and then return the binding expression, rather than directly returning the value.
+                    _target = target;
+                    //_target.TargetObject.DataContextChanged += TargetDataChanged; //To receive the property changes during runtime
+                    //var binding = CreateBinding();
+                    //return binding.ProvideValue(serviceProvider); //This will provide the value of IconSource Property
+                    ////If we directly add a binding to the property name, then whenever the value of that property changes, we will 
+                }
+            }
             #endregion
 
             string provider_key = ProviderKey;
@@ -80,13 +90,19 @@ namespace Haley.Utils
                     }
                 }
             }
-            
-           //NOW CREATE A NEW BINDING AND SET A NEW PROVIDE VALUE.
+
+            //NOW CREATE A NEW BINDING AND SET A NEW PROVIDE VALUE.
+            var binding = CreateBinding(serviceProvider, provider_key);
+            return binding.ProvideValue(serviceProvider);
+        }
+
+        Binding CreateBinding(IServiceProvider serviceProvider,string provider_key) {
+            //NOW CREATE A NEW BINDING AND SET A NEW PROVIDE VALUE.
             var binding = new Binding("Value") //ResourceData contains the property "Value" which will return the translated value for the given key.
             {
                 Source = new ResourceData(_resourceKey, provider_key)
             };
-            return binding.ProvideValue(serviceProvider);
+            return binding;
         }
     }
 }

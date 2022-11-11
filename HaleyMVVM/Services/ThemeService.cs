@@ -40,16 +40,17 @@ namespace Haley.Services
 
         #region Attributes
         InternalThemeProvider InternalThemes;
-        private object internalLock = new object(); //This internal lock is a REENTRANT (for samethread, meaning it can be locked multiple times inside the same thread).
-        private object _activeTheme;
-        private IDialogService _ds = new DialogService();
-        private bool _internalThemeInitialized = false;
-        private List<string> _failedGroups = new List<string>();
-        private bool _registrationsValidated = false;
-
+        object internalLock = new object(); //This internal lock is a REENTRANT (for samethread, meaning it can be locked multiple times inside the same thread).
+        object uriLock = new object();
+        object _activeTheme;
+        IDialogService _ds = new DialogService();
+        bool _internalThemeInitialized = false;
+        List<string> _failedGroups = new List<string>();
+        bool _registrationsValidated = false;
+        List<Uri> _ignoredPaths = new List<Uri>();
         #region Dictionaries
-        private ConcurrentDictionary<object, List<ThemeInfoEx>> _externalThemes = new ConcurrentDictionary<object, List<ThemeInfoEx>>();
-        private ConcurrentDictionary<object, List<ThemeInfo>> _globalThemes = new ConcurrentDictionary<object, List<ThemeInfo>>();
+        ConcurrentDictionary<object, List<ThemeInfoEx>> _externalThemes = new ConcurrentDictionary<object, List<ThemeInfoEx>>();
+        ConcurrentDictionary<object, List<ThemeInfo>> _globalThemes = new ConcurrentDictionary<object, List<ThemeInfo>>();
         #endregion
 
         #endregion
@@ -72,6 +73,35 @@ namespace Haley.Services
         #endregion
 
         #region Public Methods
+        public bool IgnoreUriPath(Uri path) {
+            try {
+                if (path == null) return false;
+                lock (uriLock) {
+                    _ignoredPaths.Add(path);
+                    _ignoredPaths = _ignoredPaths.Distinct().ToList();
+                }
+                return true;
+            } catch (Exception) {
+                return false;
+            }
+        }
+
+        public void IgnoreUriPaths(List<Uri> paths) {
+            try {
+                if (paths == null || paths.Count < 1) return;
+                lock (uriLock) {
+                    _ignoredPaths.AddRange(paths);
+                    _ignoredPaths = _ignoredPaths.Distinct().ToList();
+                }
+            } catch (Exception) {
+            }
+        }
+
+        public void ClearIgnoredUriPaths() {
+            lock (uriLock) {
+                _ignoredPaths.Clear();
+            }
+        }
         public bool BuildAndFillMissing()
         {
             try
@@ -482,7 +512,7 @@ namespace Haley.Services
             //Each assembly might have registered it's own version of theme, if not we try to get the global version.
             //Since we are here at this point, we are sure that the theme is already registered in some dictionary.
 
-            //IF A CROSS GROUP REFERENCE IS PRESENT, AND THE CROSS REF DATA IS VALID AND PRESENT IN THE GLOBAL, THEN WE WILL NOT GET ANY NULL VALUES. ELSE, WE WILL GET NULL NUEWTHEMEINFOS OR OLDTHEMEINFOS. 
+            //IF A CROSS GROUP REFERENCE IS PRESENT, AND THE CROSS REF DATA IS VALID AND PRESENT IN THE GLOBAL, THEN WE WILL NOT GET ANY NULL VALUES. ELSE, WE WILL GET NULL NEWTHEMEINFOS OR OLDTHEMEINFOS. 
 
             List<ThemeInfo> newThemeInfos = FetchThemes(newThemeKey, targetAssembly);
             if (newThemeInfos == null || newThemeInfos.Count == 0)
@@ -502,7 +532,7 @@ namespace Haley.Services
             {
                 if (changeData.Sender == null && changeData.SearchMode == ThemeSearchMode.FrameworkElement)
                 {
-                    var _msg = "The (sender) framework element is null. But the search mode is for frameworke element. Cannot change proceed further.";
+                    var _msg = "The (sender) framework element is null. But the search mode is for framework element. Cannot change proceed further.";
                     //We cannot get Frameworkelement resources since it is null, do not change anything. return.
                     Debug.WriteLine(_msg);
 
@@ -527,6 +557,7 @@ namespace Haley.Services
                 return false;
             }
         }
+
         private bool InitiateChangeTheme(ResourceDictionary rootDictionary, List<GroupChangeData> groupDatas)
         {
             if (rootDictionary == null) return false; //Sometimes when the object is getting loaded, the RD might not have been loaded and it might result in null
@@ -550,13 +581,15 @@ namespace Haley.Services
             //Irrespective of whether we found and replace, we handle copies at root
             HandleRootCopies(AllMergedDictionaries, groupDatas);
 
-            List<ResourceDictionary> oldItems = rootDictionary.MergedDictionaries.ToList();
+            List<ResourceDictionary> oldItems = rootDictionary.MergedDictionaries.ToList(); 
 
+            //Add new dictionaries,
             foreach (var baseDic in AllMergedDictionaries)
             {
                 rootDictionary.MergedDictionaries.Insert(0,baseDic);
             }
 
+            //Remove old dictionaries
             foreach (var oldDic in oldItems)
             {
                 rootDictionary.MergedDictionaries.Remove(oldDic);
