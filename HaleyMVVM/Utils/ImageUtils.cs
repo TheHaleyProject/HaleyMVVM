@@ -12,10 +12,6 @@ using System.Windows.Media.Imaging;
 using Haley.Abstractions;
 using Haley.Enums;
 using System.Windows.Media;
-
-#if HMVVM
-using Isolated.Haley.MVVM;
-#endif
 using static System.Net.WebRequestMethods;
 
 //STRIDE: The stride is the width of a single row of pixels (a scan line), rounded up to a four-byte boundary. If the stride is positive, the bitmap is top-down. If the stride is negative, the bitmap is bottom-up.
