@@ -44,63 +44,58 @@ namespace Haley.Utils
         {
             //THIS WHOLE PART IS JUST A MIDDLE WARE. WHEN THE XAML REQUESTS FOR A VALUE USING "PROVIDE VALUE" METHOD OF THE EXTENSION, WE MERELY CREATE A NEW PROPERTY BINDING AND USE THE NEW BINDING'S PROVIDE VALUE.
 
-            #region Option 1
-            if (!string.IsNullOrWhiteSpace(BindingSource)) {
-                //Binding takes top most priority
-                //If binding is not null, we try to fetch the datacontext of the target element and then bind to the changes.
-                if (HelperUtilsInternal.GetTargetElement(serviceProvider, out var target)) {
-                    //create binding and then return the binding expression, rather than directly returning the value.
-                    _target = target;
-                    //_target.TargetObject.DataContextChanged += TargetDataChanged; //To receive the property changes during runtime
-                    //var binding = CreateBinding();
-                    //return binding.ProvideValue(serviceProvider); //This will provide the value of IconSource Property
-                    ////If we directly add a binding to the property name, then whenever the value of that property changes, we will 
-                }
-            }
-            #endregion
-
+            //PROCESS PROVIDER KEY
             string provider_key = ProviderKey;
+            string resource_key = _resourceKey;
 
-            if (string.IsNullOrWhiteSpace(provider_key))
-            {
+            if (string.IsNullOrWhiteSpace(provider_key)) {
                 //It should always be left null. But in case, it is not left null, then use this.
                 Uri callerUri = ((IUriContext)serviceProvider.GetService(typeof(IUriContext)))?.BaseUri;
-                if (callerUri != null)
-                {
-                    //var _splitted = callerUri.AbsolutePath.Split(new string[] { ";component" }, StringSplitOptions.None); //It will be in FullPack URI format.
-                    //if (_splitted.Length > 1)
-                    //{
-                    //    //We need more than one
-                    //    var _asmName = _splitted[0].Substring(1, _splitted[0].Length - 1); //Remove the backslash.
-                    //    if (!string.IsNullOrWhiteSpace(_asmName))
-                    //    {
-                    //        provider_key = _asmName;
-                    //    }
-                    //}
-
-                    var _splitted = callerUri.Segments[1].Split(new string[] { ";component" }, StringSplitOptions.None); 
-                    if (_splitted.Length > 1)
-                    {
+                if (callerUri != null) {
+                    var _splitted = callerUri.Segments[1].Split(new string[] { ";component" }, StringSplitOptions.None);
+                    if (_splitted.Length > 1) {
                         //We need more than one
                         var _asmName = _splitted[0]; //Remove the backslash.
-                        if (!string.IsNullOrWhiteSpace(_asmName))
-                        {
+                        if (!string.IsNullOrWhiteSpace(_asmName)) {
                             provider_key = _asmName;
                         }
                     }
                 }
             }
 
+            //VALIDATE BINDING SOURCE
+            if (!string.IsNullOrWhiteSpace(BindingSource)) {
+                if (InternalUtilsCommon.GetTargetElement(serviceProvider, out var target)) {
+                    target.TargetObject.DataContextChanged -= TargetDataChanged;
+                    target.TargetObject.DataContextChanged += TargetDataChanged; //To receive the property changes during runtime
+                    //Change resource_key based on the binding value.
+                }
+            }
+
+
             //NOW CREATE A NEW BINDING AND SET A NEW PROVIDE VALUE.
-            var binding = CreateBinding(serviceProvider, provider_key);
+            var binding = CreateBinding(serviceProvider, provider_key,resource_key);
             return binding.ProvideValue(serviceProvider);
         }
 
-        Binding CreateBinding(IServiceProvider serviceProvider,string provider_key) {
+        private void TargetDataChanged(object sender, DependencyPropertyChangedEventArgs e) {
+            //object propValue = e.NewValue;
+            //try {
+            //    //To receive message whenever the property value is changed.
+            //    //Since we are dealing with DataContextChange, we will always get DataContext Property
+            //    //If Binding Source is "." then we directly bind the property. So, don't process or validate.
+            //    if (e.NewValue != null && !(e.NewValue is string || e.NewValue is Enum) && BindingSource != ".") {
+            //        propValue = InternalUtilsCommon.FetchValueAndMonitor(e.NewValue, BindingSource, ObjectPropertyChanged);
+            //    }
+            //} catch (Exception) { }
+            //_sourceProvider.OnDataChanged(propValue); //this will be the new data.
+        }
+
+        Binding CreateBinding(IServiceProvider serviceProvider,string provider_key,string resource_key) {
             //NOW CREATE A NEW BINDING AND SET A NEW PROVIDE VALUE.
             var binding = new Binding("Value") //ResourceData contains the property "Value" which will return the translated value for the given key.
             {
-                Source = new ResourceData(_resourceKey, provider_key)
+                Source = new ResourceData(resource_key, provider_key)
             };
             return binding;
         }

@@ -338,23 +338,23 @@ namespace Haley.Utils
 
         #region ColorChanger
         public static ImageSource ChangeImageColor(ImageInfo source, int red, int green, int blue) {
-           return ImageUtilsInternal.ChangeImageColor(source, red, green, blue);
+           return InternalUtilsColor.ChangeImageColor(source, red, green, blue);
         }
 
         public static ImageSource ChangeDrawingColor(DrawingImage source, System.Windows.Media.Brush brush) {
-            return ImageUtilsInternal.ChangeDrawingColor(source, brush);
+            return InternalUtilsColor.ChangeDrawingColor(source, brush);
         }
 
         public static ImageSource ChangeImageColor(ImageSource source, System.Windows.Media.Brush brush) {
-            return ImageUtilsInternal.ChangeImageColor(source, brush);
+            return InternalUtilsColor.ChangeImageColor(source, brush);
         }
 
         public static ImageSource CloneImage(ImageSource source, byte[] new_array = null) {
-            return ImageUtilsInternal.CloneImage(source,new_array);
+            return InternalUtilsColor.CloneImage(source,new_array);
         }
 
        public static ImageInfo GetImageInfo(ImageSource source) {
-            return ImageUtilsInternal.GetImageInfo(source);
+            return InternalUtilsColor.GetImageInfo(source);
         }
         #endregion
 

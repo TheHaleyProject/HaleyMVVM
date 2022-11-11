@@ -23,12 +23,12 @@ namespace Haley.Utils
         private static Dictionary<string, Color> _systemColors = new Dictionary<string, Color>();
         public static void ClampLimits(ref int actual,int min = 0, int max = 255)
         {
-           HelperUtilsInternal.ClampLimits(ref actual, min, max);
+           InternalUtilsCommon.ClampLimits(ref actual, min, max);
         }
 
         public static double ClampLimits(double input, double min, double max)
         {
-            return HelperUtilsInternal.ClampLimits(input, min, max);
+            return InternalUtilsCommon.ClampLimits(input, min, max);
         }
 
         public static Dictionary<string,Color> GetSystemColors()
