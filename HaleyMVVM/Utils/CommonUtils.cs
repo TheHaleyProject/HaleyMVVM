@@ -18,6 +18,7 @@ using dwg = System.Drawing;
 using System.Windows.Markup;
 using System.ComponentModel;
 using System.Reflection;
+using Haley.Abstractions;
 
 namespace Haley.Utils
 {
@@ -26,8 +27,8 @@ namespace Haley.Utils
            return InternalUtilsCommon.GetTargetElement(serviceProvider,out target);   
         }
 
-        public static object FetchValueAndMonitor(object sourceObject, string prop_name, PropertyChangedEventHandler PropChangeHandler) {
-            return InternalUtilsCommon.FetchValueAndMonitor(sourceObject, prop_name, PropChangeHandler);    
+        public static void FetchValueAndMonitor(object sourceObject, string prop_name, PropertyChangedEventHandler PropChangeHandler,IIconSourceProvider sourceProvider) {
+            InternalUtilsCommon.FetchValueAndMonitor(sourceObject, prop_name, PropChangeHandler, sourceProvider);    
         }
     }
 }
