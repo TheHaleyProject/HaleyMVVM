@@ -4,7 +4,7 @@
     <UseWPF>true</UseWPF>
     <AssemblyName>Haley.MVVM</AssemblyName>
     <RootNamespace>Haley.MVVM</RootNamespace>
-    <Version>6.3.0-beta6</Version>
+    <Version>6.3.1-beta2</Version>
     <Authors>The Haley Project</Authors>
     <Product>Haley MVVM Core</Product>
     <Company>TheHaleyProject</Company>
@@ -23,6 +23,7 @@
 	<SymbolPackageFormat>snupkg</SymbolPackageFormat>
 	<SignAssembly>true</SignAssembly>
 	<AssemblyOriginatorKeyFile>HaleyProject.snk</AssemblyOriginatorKeyFile>
+	<Configurations>Debug;Release;DebugWB</Configurations>
   </PropertyGroup>
 
 	<!--<PropertyGroup>
@@ -36,6 +37,10 @@
 	</PropertyGroup>
   
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <DefineConstants>TRACE;HMVVM</DefineConstants>
+  </PropertyGroup>
+  
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='DebugWB|AnyCPU'">
     <DefineConstants>TRACE;HMVVM</DefineConstants>
   </PropertyGroup>
   
