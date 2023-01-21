@@ -29,7 +29,7 @@ namespace Haley.Utils {
 
         public override object ProvideValue(IServiceProvider serviceProvider) {
 
-            if (!GetTarget(serviceProvider)) return FallBack;
+            if (!GetTarget(serviceProvider) || Path == null) return FallBack;
 
             if (FallBack == null) {
                 //Try to get the default value
@@ -37,6 +37,11 @@ namespace Haley.Utils {
             }
 
             InitiateValueProvider();
+
+            //Set updatesource trigger
+            Path.NotifyOnSourceUpdated = true;
+            Path.NotifyOnTargetUpdated = true;
+            Path.UpdateSourceTrigger = UpdateSourceTrigger.PropertyChanged;
 
             var dpTupple = GetDependencyProperty(_target.TargetProperty.Name);
             if (dpTupple.dp == null) return FallBack;
@@ -52,19 +57,12 @@ namespace Haley.Utils {
         }
 
         private void HandleCallback(object obj) {
-            //In this context, the target object might be valid for all calls but property might not be valid. So handle with care.
-            bool? compare = obj?.ToString().Equals(Value?.ToString(), ValueComparision);
-            if (compare.HasValue && compare.Value) {
-                _valueProvider.ChangeValue(OnSuccess);
-            } else {
-                _valueProvider.ChangeValue(FallBack);
-            }
+            _valueProvider.ChangeValue(GetReturnValue(obj));
         }
 
         object FirstCompare(DependencyProperty dp) {
-            bool? compare = _target.TargetObject.GetValue(dp).ToString().Equals(Value?.ToString(),ValueComparision);
-            if (compare.HasValue && compare.Value) return OnSuccess;
-            return FallBack;
+            var source = _target.TargetObject.GetValue(dp);
+            return GetReturnValue(source);
         }
 
         (DependencyProperty dp, DependencyProperty dpCB)  GetDependencyProperty(string propname) {

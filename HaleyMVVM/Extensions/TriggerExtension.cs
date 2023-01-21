@@ -17,13 +17,20 @@ using System.Windows.Data;
 using System.Windows.Markup;
 using System.ComponentModel;
 using Haley.Abstractions;
+using Dwg = System.Drawing;
 
 namespace Haley.Utils {
     public class TriggerExtension : MarkupExtension {
         protected MarkupValueProvider _valueProvider;
         protected DependencyElement _target;
-
+        
         PropertyInfo _sourceProp; //Only for trigger. For datatrigger, we use another element's prop as source
+
+        private CompareValueType _compareType = CompareValueType.Object;
+        public CompareValueType CompareType {
+            get { return _compareType; }
+            set { _compareType = value; }
+        }
 
         public string Path { get; set; }
         public object Value { get; set; }
@@ -90,7 +97,32 @@ namespace Haley.Utils {
         }
 
         object CompareAndGet(object sender) {
-            bool? compare = _sourceProp?.GetValue(sender)?.ToString().Equals(Value?.ToString(), ValueComparision);
+            var source_val = _sourceProp?.GetValue(sender);
+            return GetReturnValue(source_val);
+        }
+
+        protected object GetReturnValue(object source) {
+            if (source == null) return FallBack;
+            bool? compare = null;
+            object checking_value = Value;
+
+            //At present Static/Dynamic resources are not parsed since they can only be set on dependency properties.
+            if (Value is DynamicResourceExtension dyRsr) {
+                checking_value = _target.TargetObject.TryFindResource(dyRsr.ResourceKey);
+            } else if (Value is StaticResourceExtension sRsr) {
+                checking_value = _target.TargetObject.TryFindResource(sRsr.ResourceKey);
+            }
+
+            switch (CompareType) {
+                case CompareValueType.Color:
+                    var clr = (Color)ColorConverter.ConvertFromString(checking_value.ToString());
+                    compare = clr.ToString().ToLower().Equals(source.ToString(),StringComparison.OrdinalIgnoreCase); //For color check ignore case
+                    break;
+                default:
+                    compare = source?.ToString().Equals(checking_value?.ToString(), ValueComparision);
+                    break;
+            }
+
             if (compare.HasValue && compare.Value) return OnSuccess;
             return FallBack;
         }
