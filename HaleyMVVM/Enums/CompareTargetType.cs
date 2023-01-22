@@ -3,7 +3,7 @@ using System.Linq;
 
 namespace Haley.Enums
 {
-    public enum CompareValueType {
+    public enum CompareTargetType {
         Object=0,
         String,
         Integer,
