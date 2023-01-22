@@ -48,22 +48,22 @@ namespace Haley.Models
         #endregion
 
         #region Behaviours
-        public static Collection<Behavior> GetBehaviours(DependencyObject obj)
+        public static BehaviourCollection GetBehaviours(DependencyObject obj)
         {
-            return (Collection<Behavior>)obj.GetValue(BehavioursProperty);
+            return (BehaviourCollection)obj.GetValue(BehavioursProperty);
         }
 
-        public static void SetBehaviours(DependencyObject obj, Collection<Behavior> value)
+        public static void SetBehaviours(DependencyObject obj, BehaviourCollection value)
         {
             obj.SetValue(BehavioursProperty, value);
         }
 
         public static readonly DependencyProperty BehavioursProperty =
-            DependencyProperty.RegisterAttached("Behaviours", typeof(Collection<Behavior>), typeof(StyleSetterAP), new FrameworkPropertyMetadata(new Collection<Behavior>(), propertyChangedCallback: OnBehaviorsChanged));
+            DependencyProperty.RegisterAttached("Behaviours", typeof(BehaviourCollection), typeof(StyleSetterAP), new FrameworkPropertyMetadata(default(BehaviourCollection), propertyChangedCallback: OnBehaviorsChanged));
         static void OnBehaviorsChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
         {
             try {
-                if (d is UIElement element && e.NewValue is Collection<Behavior> behCollect) {
+                if (d is UIElement element && e.NewValue is BehaviourCollection behCollect) {
                     foreach (var bhvr in behCollect) {
                         Interaction.GetBehaviors(element).Add(bhvr);
                     }
@@ -77,28 +77,24 @@ namespace Haley.Models
 
         #region Triggers
 
-        public static Collection<beh.TriggerBase> GetTriggers(DependencyObject obj) {
-            return (Collection<beh.TriggerBase>)obj.GetValue(TriggersProperty);
+        public static TriggerCollection GetTriggers(DependencyObject obj) {
+            return (TriggerCollection)obj.GetValue(TriggersProperty);
         }
 
-        public static void SetTriggers(DependencyObject obj, Collection<beh.TriggerBase> value) {
+        public static void SetTriggers(DependencyObject obj, TriggerCollection value) {
             obj.SetValue(TriggersProperty, value);
         }
 
         // Using a DependencyProperty as the backing store for Triggers.  This enables animation, styling, binding, etc...
         public static readonly DependencyProperty TriggersProperty =
-            DependencyProperty.RegisterAttached("Triggers", typeof(Collection<beh.TriggerBase>), typeof(StyleSetterAP), new PropertyMetadata(new Collection<beh.TriggerBase>(),propertyChangedCallback:OnTriggersChanged));
+            DependencyProperty.RegisterAttached("Triggers", typeof(TriggerCollection), typeof(StyleSetterAP), new PropertyMetadata(default(TriggerCollection), propertyChangedCallback: OnTriggersChanged));
 
         private static void OnTriggersChanged(DependencyObject d, DependencyPropertyChangedEventArgs e) {
-            try {
-                if (d is UIElement element && e.NewValue is Collection<beh.TriggerBase> trigColl) {
-                    foreach (var trgr in trigColl) {
-                        Interaction.GetTriggers(element).Add(trgr);
-                    }
+            if (d is UIElement element && e.NewValue is TriggerCollection trigColl) {
+                foreach (var trgr in trigColl) {
+                    Interaction.GetTriggers(element).Add(trgr);
                 }
-            } catch (Exception) {
             }
-            
         }
         #endregion
     }
