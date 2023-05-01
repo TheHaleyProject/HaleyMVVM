@@ -1,10 +1,10 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk.WindowsDesktop">
   <PropertyGroup>
-	<TargetFrameworks>net462;netcoreapp3.1;net5.0-windows</TargetFrameworks>
+	<TargetFrameworks>net462;net6.0-windows</TargetFrameworks>
     <UseWPF>true</UseWPF>
     <AssemblyName>Haley.MVVM</AssemblyName>
     <RootNamespace>Haley.MVVM</RootNamespace>
-    <Version>6.3.3</Version>
+    <Version>6.3.4</Version>
     <Authors>The Haley Project</Authors>
     <Product>Haley MVVM Core</Product>
     <Company>TheHaleyProject</Company>
@@ -68,7 +68,7 @@
   
   <ItemGroup>
     <PackageReference Include="Microsoft.Xaml.Behaviors.Wpf" Version="1.1.39" />
-    <PackageReference Include="System.Drawing.Common" Version="6.0.0" />
+    <PackageReference Include="System.Drawing.Common" Version="7.0.0" />
   </ItemGroup>
 
   <ItemGroup>
@@ -168,7 +168,7 @@
 		</When>
 		<Otherwise>
 			<ItemGroup>
-				<PackageReference Include="Haley.Helpers" Version="2.1.9" />
+				<PackageReference Include="Haley.Helpers" Version="2.1.11" />
 			</ItemGroup>
 		</Otherwise>
 	</Choose>
@@ -183,7 +183,7 @@
     </When>
     <Otherwise>
      <ItemGroup>
-       <PackageReference Include="Haley.Extensions" Version="2.1.15.1" />
+       <PackageReference Include="Haley.Extensions" Version="2.1.17" />
 	 </ItemGroup>
     </Otherwise>
 </Choose>  
@@ -198,7 +198,7 @@
     </When>
     <Otherwise>
      <ItemGroup>
-       <PackageReference Include="Haley.IOC" Version="3.0.13" />
+       <PackageReference Include="Haley.IOC" Version="3.0.14" />
 	 </ItemGroup>
     </Otherwise>
 </Choose>  
