@@ -7,6 +7,7 @@ using Haley.Events;
 using Haley.Utils;
 using System.Collections.Concurrent;
 using Haley.Enums;
+using Haley.Models;
 
 namespace Haley.Abstractions
 {
@@ -30,7 +31,7 @@ namespace Haley.Abstractions
             } 
         }
 
-        protected ConcurrentDictionary<string,(Type VMtype, Type ViewType,RegisterMode mode)> main_mapping { get; set; } //Dictionary to store enumvalue and viewmodel type as key and usercontrol as value
+        protected ConcurrentDictionary<string,UIGroupInfo> main_mapping { get; set; } //Dictionary to store enumvalue and viewmodel type as key and usercontrol as value
 
         public UIContainerBase(IServiceProvider _serviceProvider,Type baseViewType)
         {
@@ -46,7 +47,7 @@ namespace Haley.Abstractions
                 Id = Guid.NewGuid().ToString();
             }
 
-            main_mapping = new ConcurrentDictionary<string, (Type VMtype, Type ViewType, RegisterMode mode)>();
+            main_mapping = new ConcurrentDictionary<string, UIGroupInfo>();
 
             if (_serviceProvider == null)
             {
@@ -64,13 +65,13 @@ namespace Haley.Abstractions
 
         #region Register Methods
 
-        public virtual string RegisterWithKey<viewmodelType, viewType>(object key, viewmodelType InputViewModel = null, RegisterMode mode = RegisterMode.ContainerSingleton)
+        public virtual string RegisterWithKey<viewmodelType, viewType>(object key, viewmodelType InputViewModel = null, RegisterMode mode = RegisterMode.ContainerSingleton, bool groupByKey = false)
             where viewmodelType : class, BaseViewModelType
             where viewType : class
         {
             //Get the enum value and its type name to prepare a string
             getKey(key,out var _key);
-            return RegisterInternal<viewmodelType, viewType>(_key, InputViewModel,null, mode);
+            return RegisterInternal<viewmodelType, viewType>(_key, InputViewModel,null, mode,groupByKey);
         }
 
         public virtual string LazyRegister<viewmodelType, viewType>(Func<viewmodelType> creator, bool use_vm_as_key = true, RegisterMode mode = RegisterMode.ContainerSingleton)
@@ -90,12 +91,12 @@ namespace Haley.Abstractions
             return LazyRegisterWithKey<viewmodelType, viewType>(_key, creator, mode);
         }
 
-        public virtual string LazyRegisterWithKey<viewmodelType, viewType>(object key, Func<viewmodelType> creator, RegisterMode mode = RegisterMode.ContainerSingleton)
+        public virtual string LazyRegisterWithKey<viewmodelType, viewType>(object key, Func<viewmodelType> creator, RegisterMode mode = RegisterMode.ContainerSingleton, bool groupByKey = false)
             where viewmodelType : class, BaseViewModelType
             where viewType : class
         {
             getKey(key, out var _key);
-            return RegisterInternal<viewmodelType, viewType>(_key, null,creator,  mode);
+            return RegisterInternal<viewmodelType, viewType>(_key, null,creator,  mode,groupByKey);
         }
 
         public virtual string Register<viewmodelType, viewType>(viewmodelType InputViewModel = null, bool use_vm_as_key = true, RegisterMode mode = RegisterMode.ContainerSingleton)
@@ -115,7 +116,7 @@ namespace Haley.Abstractions
            return RegisterInternal<viewmodelType, viewType>(_key, InputViewModel,null, mode);
         }
 
-        protected string RegisterInternal<viewmodelType, viewType>(string key, viewmodelType InputViewModel = null, Func<viewmodelType> vmCreator = null, RegisterMode mode = RegisterMode.ContainerSingleton)
+        protected string RegisterInternal<viewmodelType, viewType>(string key, viewmodelType InputViewModel = null, Func<viewmodelType> vmCreator = null, RegisterMode mode = RegisterMode.ContainerSingleton, bool groupByKey = false)
             where viewmodelType : class, BaseViewModelType
             where viewType : class
         {
@@ -128,11 +129,12 @@ namespace Haley.Abstractions
                 //First add the internal main mappings.
                 if (main_mapping.ContainsKey(key) == true)
                 {
-                    throw new ArgumentException($@"Key : {key} is already registered to - VM : {main_mapping[key].VMtype.GetType()} and View : {main_mapping[key].ViewType.GetType()}");
+                    throw new ArgumentException($@"Key : {key} is already registered to - VM : {main_mapping[key].ViewModelType.GetType()} and View : {main_mapping[key].ViewType.GetType()}");
                 }
 
-                var _tuple = (typeof(viewmodelType), typeof(viewType), mode);
-                main_mapping.TryAdd(key, _tuple);
+               
+                var uiGroup = new UIGroupInfo(typeof(viewmodelType), typeof(viewType), groupByKey, mode);
+                main_mapping.TryAdd(key, uiGroup);
 
                 //If service provider is of type base provider then we can register it aswell (as it will have an implementation)
 
@@ -148,28 +150,40 @@ namespace Haley.Abstractions
 
                 //For ContainerSingletonMode, directly register using the view or the viewmodel type as key.
                 //For WeakSingleton, register using (View/Viewmodel-combo key).
-                var vm_status = baseContainer.CheckIfRegistered(typeof(viewmodelType), null);
+                //if a uigroup is key dependent, it means that even in the base IOC container, it is registered with this key. It will allow to ensure that same TYPE of view model can be registered to different Views (with each of them carrying unique View model of their own and sharing the view model with others)
+                var vm_status = baseContainer.CheckIfRegistered(typeof(viewmodelType), groupByKey? key:null);
+              //checking against the key is very essential to ensure that we can also allow registering same viewmodel against different items.
                 if (!vm_status.status)
                 {
-                    if (InputViewModel != null)
-                    {
-                        baseContainer.Register(InputViewModel, GetMode(mode));
-                    }
-                    else if(vmCreator != null)
-                    {
-                        baseContainer.LazyRegister(vmCreator, GetMode(mode));
-                    }
-                    else
-                    {
-                        //Dont send in any instance. It will be created based on the type.
-                        baseContainer.Register<viewmodelType>(null, GetMode(mode));
+                    if (groupByKey) {
+                        if (InputViewModel != null) {
+                            baseContainer.RegisterWithKey(key, InputViewModel, GetMode(mode));
+                        } else if (vmCreator != null) {
+                            baseContainer.LazyRegisterWithKey(key, vmCreator, GetMode(mode));
+                        } else {
+                            //Dont send in any instance. It will be created based on the type.
+                            baseContainer.RegisterWithKey<viewmodelType>(key, null, GetMode(mode));
+                        }
+                    } else {
+                        if (InputViewModel != null) {
+                            baseContainer.Register(InputViewModel, GetMode(mode));
+                        } else if (vmCreator != null) {
+                            baseContainer.LazyRegister(vmCreator, GetMode(mode));
+                        } else {
+                            //Dont send in any instance. It will be created based on the type.
+                            baseContainer.Register<viewmodelType>(null, GetMode(mode));
+                        }
                     }
                 }
 
-                var view_status = baseContainer.CheckIfRegistered(typeof(viewType), null);
+                var view_status = baseContainer.CheckIfRegistered(typeof(viewType), groupByKey ? key : null);
                 if (!view_status.status)
                 {
-                    baseContainer.Register<viewType>(mode);
+                    if (groupByKey) {
+                        baseContainer.RegisterWithKey<viewType>(key, mode);
+                    } else {
+                        baseContainer.Register<viewType>(mode);
+                    }
                 }
 
                 return key;
@@ -209,11 +223,11 @@ namespace Haley.Abstractions
             var _mapping_value = GetMappingValue(key);
 
             //Generate a View
-            object resultcontrol = _generateView(_mapping_value.view_type,mode);
-            BaseViewModelType resultViewModel = _generateViewModel(_mapping_value.viewmodel_type, mode);
+            object resultcontrol = _generateView(key,_mapping_value.ViewType,mode);
+            BaseViewModelType resultViewModel = _generateViewModel(key,_mapping_value.ViewModelType, mode);
             return (resultViewModel, resultcontrol);
         }
-        protected object _generateView(Type viewType, ResolveMode mode = ResolveMode.AsRegistered)
+        protected object _generateView(string key, Type viewType, ResolveMode mode)
         {
             try
             {
@@ -225,7 +239,7 @@ namespace Haley.Abstractions
 
                 if (service_provider is IMicroContainer baseContainer)
                 {
-                    _baseView = baseContainer.Resolve(viewType, mode);
+                    _baseView = baseContainer.Resolve(key,viewType, mode);
                 }
                 else
                 {
@@ -250,7 +264,7 @@ namespace Haley.Abstractions
             }
         }
 
-        protected BaseViewModelType _generateViewModel(Type viewModelType, ResolveMode mode = ResolveMode.AsRegistered) //If required we can even return the actural viewmodel concrete type as well.
+        protected BaseViewModelType _generateViewModel(string key, Type viewModelType, ResolveMode mode) //If required we can even return the actual viewmodel concrete type as well.
         {
             try
             {
@@ -260,7 +274,7 @@ namespace Haley.Abstractions
                 object _baseVm = null;
                 if (service_provider is IMicroContainer)
                 {
-                    _baseVm = ((IMicroContainer) service_provider).Resolve(viewModelType, mode);
+                    _baseVm = ((IMicroContainer) service_provider).Resolve(key,viewModelType, mode);
                 }
                 else
                 {
@@ -303,21 +317,21 @@ namespace Haley.Abstractions
         #endregion
 
         #region VM Retrieval Methods
-        public (Type viewmodel_type, Type view_type, RegisterMode registered_mode) GetMappingValue(Enum @enum)
+        public UIGroupInfo GetMappingValue(Enum @enum)
         {
             //Get the enum value and its type name to prepare a string
             string _key = @enum.GetKey();
             return GetMappingValue(_key);
         }
-        public (Type viewmodel_type, Type view_type, RegisterMode registered_mode) GetMappingValue(string key)
+        public UIGroupInfo GetMappingValue(string key)
         {
             if (main_mapping.Count == 0 || !main_mapping.ContainsKey(key))
             {
                 throw new ArgumentException($"Key {key} is not registered to any controls. Please check.");
             } 
 
-            (Type _viewmodel_type, Type _view_type, RegisterMode _mode) _registered_tuple = (null, null, RegisterMode.ContainerSingleton);
-            main_mapping.TryGetValue(key, out _registered_tuple);
+            //(Type _viewmodel_type, Type _view_type, RegisterMode _mode,bool keyDependent) _registered_tuple = (null, null, RegisterMode.ContainerSingleton);
+            main_mapping.TryGetValue(key, out var _registered_tuple);
 
             //if (_registered_tuple._viewmodel_type == null || _registered_tuple._view_type == null)
             //{
@@ -334,14 +348,14 @@ namespace Haley.Abstractions
         {
             if (!getKey(key, out var _key)) return default(BaseViewModelType);
             var _mapping_value = GetMappingValue(_key);
-            return _generateViewModel(_mapping_value.viewmodel_type, mode);
+            return _generateViewModel(_key, _mapping_value.ViewModelType, mode);
         }
 
         public string FindKey(Type target_type)
         {
             //For the given target type, find if it is present in the mapping values. if found, return the first key.
-            var _kvp = main_mapping.FirstOrDefault(kvp => kvp.Value.VMtype == target_type || kvp.Value.ViewType == target_type);
-            if (_kvp.Value.VMtype == null && _kvp.Value.ViewType == null) return null;
+            var _kvp = main_mapping.FirstOrDefault(kvp => kvp.Value.ViewModelType == target_type || kvp.Value.ViewType == target_type);
+            if (_kvp.Value.ViewModelType == null && _kvp.Value.ViewType == null) return null;
             return _kvp.Key;
         }
 

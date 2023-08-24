@@ -206,7 +206,7 @@ namespace Haley.Services
         public INotification ShowContainerView<ViewOrVMType>(string title, object InputViewModel = null, ResolveMode mode = ResolveMode.AsRegistered, bool blurOtherWindows = false, IControlContainer container = null) where ViewOrVMType : class
         {
             //either this should be from ihaleyvm (for viewmodels) or it should be an usercontrol
-            if (typeof(IHaleyVM).IsAssignableFrom(typeof(ViewOrVMType)) || typeof(ViewOrVMType).BaseType == typeof(UserControl) || typeof(ViewOrVMType) == typeof(UserControl)) {
+            if (typeof(IHaleyVM).IsAssignableFrom(typeof(ViewOrVMType)) || typeof(UserControl).IsAssignableFrom(typeof(ViewOrVMType))) {
                 //this is a viewmodel input
                 string _key = typeof(ViewOrVMType).ToString();
                 return ShowContainerView(title, _key, InputViewModel, mode, blurOtherWindows, container);
@@ -307,7 +307,7 @@ namespace Haley.Services
         {
             var _newWindow = _getNotificationBaseWindow(title, DisplayType.CustomView, showInTaskBar, topMost);
 
-            if (template.GetType().BaseType == typeof(UserControl) || template.GetType() == typeof(UserControl)) {
+            if (typeof(UserControl).IsAssignableFrom(template.GetType())) {
                 //we are dealing with usercontrol. prepare a datatemplate with this usercontrol
                 _newWindow.CustomView = template as UserControl;
                 _newWindow.UseCustomView = true;

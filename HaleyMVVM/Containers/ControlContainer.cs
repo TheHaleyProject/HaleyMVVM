@@ -29,7 +29,7 @@ namespace Haley.IOC
                 if (InputViewModel != null)
                 {
                     var _mapping_value = GetMappingValue(_key);
-                    _view = _generateView(_mapping_value.view_type,mode) as UserControl;
+                    _view = _generateView(_key,_mapping_value.ViewType,mode) as UserControl;
                     _vm = (IHaleyVM)InputViewModel;
                 }
                 else

@@ -30,10 +30,7 @@ namespace Haley.IOC
         {
             //either the type should be a window or it should be of ihaleyvm
             if (!(
-                typeof(ViewOrVMType).BaseType == typeof(Window) || 
-                typeof(ViewOrVMType) == typeof(Window) || 
-                typeof(IHaleyVM).IsAssignableFrom(typeof(ViewOrVMType))
-                )){
+                 typeof(IHaleyVM).IsAssignableFrom(typeof(ViewOrVMType)) ||  typeof(Window).IsAssignableFrom(typeof(ViewOrVMType)))){
                 throw new ArgumentException("Works only for objects with base type Window or for classes which implements IHaleyVM");
             }
             string _key = typeof(ViewOrVMType).ToString();
@@ -55,8 +52,7 @@ namespace Haley.IOC
         {
             //either the type should be a window or it should be of ihaleyvm
             if (!(
-                typeof(ViewOrVMType).BaseType == typeof(Window) ||
-                typeof(ViewOrVMType) == typeof(Window) ||
+               typeof(Window).IsAssignableFrom(typeof(ViewOrVMType)) ||
                 typeof(IHaleyVM).IsAssignableFrom(typeof(ViewOrVMType))
                 )) {
                 throw new ArgumentException("Works only for objects with base type Window or for classes which implements IHaleyVM");
@@ -83,7 +79,7 @@ namespace Haley.IOC
                 if (InputViewModel != null)
                 {
                     var _mapping_value = GetMappingValue(_key);
-                    _view = _generateView(_mapping_value.view_type,mode) as Window;
+                    _view = _generateView(_key,_mapping_value.ViewType,mode) as Window;
                     _vm =  (IHaleyVM) InputViewModel;
                 }
                 else
