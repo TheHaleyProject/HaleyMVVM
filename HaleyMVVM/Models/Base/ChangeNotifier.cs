@@ -58,7 +58,7 @@ namespace Haley.Models
             return true;
         }
 
-        public ChangeNotifier() { }
+         public ChangeNotifier() { }
     }
    
 }

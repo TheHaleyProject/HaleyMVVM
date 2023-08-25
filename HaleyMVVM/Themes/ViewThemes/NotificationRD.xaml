@@ -93,7 +93,7 @@
                 <ColumnDefinition Width="Auto"/>
                 <ColumnDefinition/>
             </Grid.ColumnDefinitions>
-            <Image Margin="5" Width="40" Height="40" HorizontalAlignment="Center" VerticalAlignment="Center" Visibility="{Binding ShowNotificationIcon,RelativeSource={RelativeSource AncestorType={x:Type bc:Notification}},Converter={StaticResource BooltoVisibiliy}}">
+            <Image Margin="5" Width="40" Height="40" HorizontalAlignment="Center" VerticalAlignment="Center" Visibility="{Binding ShowNotificationIcon,RelativeSource={RelativeSource AncestorType={x:Type bc:Notification}},Converter={StaticResource BooltoVisibility}}">
                 <Image.Style>
                     <Style TargetType="{x:Type Image}">
                         <Setter Property="Source" Value="{StaticResource notify_info_medium}"/>
@@ -289,7 +289,7 @@
                     <!--ACTUAL CONTENT-->
                     <ContentControl Margin="5" Grid.Row="1" VerticalAlignment="Top" ContentTemplate="{StaticResource internal_notification_showInfo}"/>
                    
-                    <TextBlock Text="{Binding Path=CountDown, RelativeSource={RelativeSource TemplatedParent},NotifyOnSourceUpdated=True,UpdateSourceTrigger=PropertyChanged}" FontWeight="Bold" Grid.Row="2" VerticalAlignment="Bottom" HorizontalAlignment="Left" Margin="3" Visibility="{TemplateBinding AutoClose,Converter={StaticResource BooltoVisibiliy}}" FontSize="10" />
+                    <TextBlock Text="{Binding Path=CountDown, RelativeSource={RelativeSource TemplatedParent},NotifyOnSourceUpdated=True,UpdateSourceTrigger=PropertyChanged}" FontWeight="Bold" Grid.Row="2" VerticalAlignment="Bottom" HorizontalAlignment="Left" Margin="3" Visibility="{TemplateBinding AutoClose,Converter={StaticResource BooltoVisibility}}" FontSize="10" />
 
                     <!--Close All toasts-->
                     <TextBlock Grid.Row="2" VerticalAlignment="Bottom" HorizontalAlignment="Right" Margin="3">           

@@ -4,7 +4,7 @@
     <UseWPF>true</UseWPF>
     <AssemblyName>Haley.MVVM</AssemblyName>
     <RootNamespace>Haley.MVVM</RootNamespace>
-    <Version>6.3.4.2</Version>
+    <Version>6.3.4.3</Version>
     <Authors>The Haley Project</Authors>
     <Product>Haley MVVM Core</Product>
     <Company>TheHaleyProject</Company>
@@ -168,7 +168,7 @@
 		</When>
 		<Otherwise>
 			<ItemGroup>
-				<PackageReference Include="Haley.Helpers" Version="2.1.12.1" />
+				<PackageReference Include="Haley.Helpers" Version="2.1.12.2" />
 			</ItemGroup>
 		</Otherwise>
 	</Choose>

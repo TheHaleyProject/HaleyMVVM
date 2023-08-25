@@ -3,7 +3,6 @@
     xmlns:cnv="clr-namespace:Haley.MVVM.Converters"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
     <cnv:BoolToVisibilityConverter x:Key="BooltoVisibility"/>
-    <cnv:BoolToVisibilityConverter x:Key="BooltoVisibiliy"/>
     <cnv:ColorToBrushConverter x:Key="ColorToBrush"/>
     <cnv:EnumListToDescriptionListConverter x:Key="EnumListoStringList"/>
     <cnv:EnumToDescriptionConverter x:Key="EnumtoDescription"/>
