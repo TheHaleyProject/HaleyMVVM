@@ -41,7 +41,7 @@ namespace Haley.Models
             {
                 base.Add(item);
             }
-            Items.ForEach(p => p.PropertyChanged += _propertyChanged);
+            Items.ForEach(p => { if (p != null) p.PropertyChanged += _propertyChanged; } );
         }
 
         public NotifiableCollection(IEnumerable<T> Items) : this() //For new initialization
@@ -52,7 +52,7 @@ namespace Haley.Models
             {
                 base.Add(item);
             }
-            Items.ToList().ForEach(p => p.PropertyChanged += _propertyChanged);
+            Items.ToList().ForEach(p => { if (p != null) p.PropertyChanged += _propertyChanged; });
         }
 
         public void AddRange(List<T> Items) //This is add range, which will add the items to the existing values.
@@ -63,13 +63,13 @@ namespace Haley.Models
             {
                 base.Add(item);
             }
-            Items.ForEach(p => p.PropertyChanged += _propertyChanged);
+            Items.ForEach(p => { if (p != null) p.PropertyChanged += _propertyChanged; });
         }
 
         public new void Add(T Item)
         {
             base.Add(Item); //Add to the base observable collection
-            Item.PropertyChanged += _propertyChanged;
+            if (Item != null)Item.PropertyChanged += _propertyChanged;
         }
 
         #endregion
@@ -89,6 +89,7 @@ namespace Haley.Models
             {
                 foreach (var item in e.NewItems)
                 {
+                    if (item == null) continue;
                     ((INotifyPropertyChanged)item).PropertyChanged += _propertyChanged;
                 }
             }
@@ -96,6 +97,7 @@ namespace Haley.Models
             {
                 foreach (var item in e.OldItems)
                 {
+                    if (item == null) continue;
                     ((INotifyPropertyChanged)item).PropertyChanged -= _propertyChanged;
                 }
             }
