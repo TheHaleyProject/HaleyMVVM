@@ -55,6 +55,7 @@ namespace Haley.Utils
                 nameof(Conv.VerificationConverter),
                 nameof(Conv.MultiValueBinderConverter),
                 nameof(Conv.MultiBindingEqualityCheckConverter),
+                nameof(Conv.NullCheckerConverter),
                 };
         }
 

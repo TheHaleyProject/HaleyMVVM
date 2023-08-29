@@ -6,6 +6,7 @@ using System.Windows;
 using System.Windows.Data;
 using System.Reflection;
 using System.ComponentModel;
+using System.Windows.Media;
 
 namespace Haley.MVVM.Converters
 {
@@ -23,37 +24,31 @@ namespace Haley.MVVM.Converters
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
         {
             bool input = (bool)value;
-            int inverse = 0; //Sometimes users can choose not to enter parameter value, in such cases, we make 1 as default.
-            if (parameter != null) int.TryParse((string)parameter,out inverse); 
+            int inverse = 0; //Sometimes users can choose not to enter parameter value, in such cases, we make 0 as default.
+            if (parameter != null) int.TryParse((string)parameter,out inverse);
 
-            switch (input)
-            {
-                case true:
-                    if (inverse == 0) return Visibility.Visible;
-                    return Visibility.Collapsed;
-                case false:
-                default:
-                    if (inverse == 0) return Visibility.Collapsed;
-                    return Visibility.Visible;
-            }
+            //case 1: Input- true , return visible
+            //case 2: Input- false, return collapsed
+            //case 3: Input- true, Inverse, return collapsed.
+            //case 4: Input- false, inverse, return visible.
+
+            if ((input && inverse == 0) || (!input && inverse != 0)) return Visibility.Visible;
+            return Visibility.Collapsed;
         }
 
         public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
         {
-            bool input = (bool)value;
-            int inverse = 0; //Sometimes users can choose not to enter parameter value, in such cases, we make 1 as default.
+            Visibility input = (Visibility)value;
+            int inverse = 0; 
             if (parameter != null) int.TryParse((string)parameter, out inverse);
 
-            switch (input)
-            {
-                case true:
-                    if (inverse == 0) return Visibility.Visible;
-                    return Visibility.Collapsed;
-                case false:
-                default:
-                    if (inverse == 0) return Visibility.Collapsed;
-                    return Visibility.Visible;
-            }
+
+            //case 1: Input- Visible , return true
+            //case 2: Input- Collapsed, return false
+            //case 3: Input- Visible, Inverse, return false.
+            //case 4: Input- Collapsed, inverse, return true.
+            if ((input == Visibility.Visible && inverse == 0) || (!(input == Visibility.Visible) && inverse != 0)) return true;
+            return false;
         }
     }
 }

@@ -20,5 +20,6 @@ namespace Haley.Enums
         MultiBindingEqualityCheck,
         NegateValue,
         Verification,
+        NullChecker
     }
 }

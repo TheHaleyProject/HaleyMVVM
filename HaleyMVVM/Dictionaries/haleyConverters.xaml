@@ -12,8 +12,10 @@
     <cnv:EqualityCheckToVisibilityConverter x:Key="EqualityToVisibility"/>
     <cnv:HalfValueConverter x:Key="HalfValue"/>
     <cnv:InverseBooleanConverter x:Key="InverseBoolean"/>
+    <cnv:NullCheckerConverter x:Key="NullChecker"/>
     <cnv:KeyToControlConverter x:Key="KeytoControl"/>
     <cnv:MultiBindingEqualityCheckConverter x:Key="MultiBindingEqualityCheck"/>
+    <cnv:MultiBindingValueCheckerConverter x:Key="MultiBindingValueCheck"/>
     <cnv:MultiValueBinderConverter x:Key="MultiBinder"/>
     <cnv:NegateValueConverter x:Key="NegateValue"/>
     <cnv:ReducerConverter x:Key="LengthReducer"/>
