@@ -13,6 +13,7 @@
     <cnv:HalfValueConverter x:Key="HalfValue"/>
     <cnv:InverseBooleanConverter x:Key="InverseBoolean"/>
     <cnv:NullCheckerConverter x:Key="NullChecker"/>
+    <cnv:DictionaryValueFetchConveter x:Key="DictionaryValueFetcher"/>
     <cnv:KeyToControlConverter x:Key="KeytoControl"/>
     <cnv:MultiBindingEqualityCheckConverter x:Key="MultiBindingEqualityCheck"/>
     <cnv:MultiBindingValueCheckerConverter x:Key="MultiBindingValueCheck"/>
