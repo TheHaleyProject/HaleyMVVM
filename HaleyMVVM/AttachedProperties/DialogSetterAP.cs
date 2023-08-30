@@ -91,8 +91,8 @@ namespace Haley.Models
             //here subcribe to the events 
             if (d is UIElement uie)
             {
-                uie.MouseLeftButtonDown -= ControlMouseDownEvent; //Remove old subscriptions.
-                uie.MouseLeftButtonDown += ControlMouseDownEvent;
+                uie.PreviewMouseLeftButtonDown -= ControlMouseDownEvent;//Remove old subscriptions
+                uie.PreviewMouseLeftButtonDown += ControlMouseDownEvent; 
             }
         }
 
