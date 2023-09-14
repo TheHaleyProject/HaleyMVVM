@@ -22,4 +22,11 @@
     <cnv:ReducerConverter x:Key="LengthReducer"/>
     <cnv:ScrollLimitConverter x:Key="ScrollLimit"/>
     <cnv:VerificationConverter x:Key="Verification"/>
+
+    <cnv:ToStringConverter x:Key="ToString"/>
+    <cnv:ValueToVisibilityConverter x:Key="Value2Visibility"/>
+    <cnv:InverseValueToVisbilityConverter x:Key="InverseValue2Visibility"/>
+    <cnv:Null2VisibilityConverter x:Key="Null2Visibility"/>
+    <cnv:BoolToIntConverter x:Key="Bool2Int"/>
+    <cnv:IntToBoolConverter x:Key="Int2Bool"/>
 </ResourceDictionary>
