@@ -36,28 +36,6 @@ namespace Haley.Utils
             get { return _kind; }
             set { _kind = value; }
         }
-        public void EmptyConverterLists() {
-            List<string> converterslist = new List<string>() {
-                nameof(Conv.BoolToVisibilityConverter),
-                nameof(Conv.ColorToBrushConverter),
-                nameof(Conv.EnumToDescriptionConverter),
-                nameof(Conv.EnumListToDescriptionListConverter),
-                nameof(Conv.EnumTypeToDescriptionListConverter),
-                nameof(Conv.EnumTypeToValuesConverter),
-                nameof(Conv.EqualityCheckConverter),
-                nameof(Conv.EqualityCheckToVisibilityConverter),
-                nameof(Conv.EqualityCheckToVisibilityConverter),
-                nameof(Conv.HalfValueConverter),
-                nameof(Conv.InverseBooleanConverter),
-                nameof(Conv.KeyToControlConverter),
-                nameof(Conv.NegateValueConverter),
-                nameof(Conv.ReducerConverter),
-                nameof(Conv.VerificationConverter),
-                nameof(Conv.MultiValueBinderConverter),
-                nameof(Conv.MultiBindingEqualityCheckConverter),
-                nameof(Conv.NullCheckerConverter),
-                };
-        }
 
         public override object ProvideValue(IServiceProvider serviceProvider) {
 
