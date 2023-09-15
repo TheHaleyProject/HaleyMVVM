@@ -27,7 +27,7 @@ namespace Haley.Enums
         Null2Visibility,
         NullChecker,
         ToString, 
-        Value2Visibility
+        Value2Visibility,
         Verification,
     }
 }
