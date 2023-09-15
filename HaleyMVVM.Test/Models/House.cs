@@ -14,8 +14,8 @@ namespace HaleyMVVM.Test.Models
 {
     public class House
     {
-        public IBaseContainer Container { get; set; }
-        public House(IBaseContainer _container) 
+        public IMicroContainer Container { get; set; }
+        public House(IMicroContainer _container) 
         {
             Container = _container; 
         }
