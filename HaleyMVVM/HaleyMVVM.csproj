@@ -4,7 +4,7 @@
     <UseWPF>true</UseWPF>
     <AssemblyName>Haley.MVVM</AssemblyName>
     <RootNamespace>Haley.MVVM</RootNamespace>
-    <Version>6.3.4.7</Version>
+    <Version>6.4.0</Version>
     <Authors>The Haley Project</Authors>
     <Product>Haley MVVM Core</Product>
     <Company>TheHaleyProject</Company>
@@ -138,7 +138,7 @@
 		</When>
 		<Otherwise>
 			<ItemGroup>
-				<PackageReference Include="Haley.Abstractions" Version="1.0.21" />
+				<PackageReference Include="Haley.Abstractions" Version="1.1.0" />
 			</ItemGroup>
 		</Otherwise>
 	</Choose>
@@ -168,7 +168,7 @@
 		</When>
 		<Otherwise>
 			<ItemGroup>
-				<PackageReference Include="Haley.Helpers" Version="2.1.12.3" />
+				<PackageReference Include="Haley.Helpers" Version="2.1.13" />
 			</ItemGroup>
 		</Otherwise>
 	</Choose>
@@ -183,7 +183,7 @@
     </When>
     <Otherwise>
      <ItemGroup>
-       <PackageReference Include="Haley.Extensions" Version="2.1.18.4" />
+       <PackageReference Include="Haley.Extensions" Version="2.1.19" />
 	 </ItemGroup>
     </Otherwise>
 </Choose>  
@@ -198,7 +198,7 @@
     </When>
     <Otherwise>
      <ItemGroup>
-       <PackageReference Include="Haley.IOC" Version="3.0.15.2" />
+       <PackageReference Include="Haley.IOC" Version="3.0.16" />
 	 </ItemGroup>
     </Otherwise>
 </Choose>  
