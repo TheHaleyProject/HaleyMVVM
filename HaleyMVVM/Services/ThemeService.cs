@@ -43,7 +43,7 @@ namespace Haley.Services
         object internalLock = new object(); //This internal lock is a REENTRANT (for samethread, meaning it can be locked multiple times inside the same thread).
         object uriLock = new object();
         object _activeTheme;
-        IDialogService _ds = new DialogService();
+        IDialogService _ds = new DialogService(); //Remember, dialog service also has a ThemeService inside.
         bool _internalThemeInitialized = false;
         List<string> _failedGroups = new List<string>();
         bool _registrationsValidated = false;

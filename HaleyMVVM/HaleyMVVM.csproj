@@ -4,7 +4,7 @@
     <UseWPF>true</UseWPF>
     <AssemblyName>Haley.MVVM</AssemblyName>
     <RootNamespace>Haley.MVVM</RootNamespace>
-    <Version>6.4.1</Version>
+    <Version>6.4.2</Version>
     <Authors>The Haley Project</Authors>
     <Product>Haley MVVM Core</Product>
     <Company>TheHaleyProject</Company>
@@ -24,25 +24,43 @@
 	<SignAssembly>true</SignAssembly>
 	<AssemblyOriginatorKeyFile>HaleyProject.snk</AssemblyOriginatorKeyFile>
 	<Configurations>Debug;Release;DebugWB</Configurations>
+  <DebugType>portable</DebugType>
+  <Platforms>AnyCPU;x64</Platforms>
   </PropertyGroup>
 
-	<!--<PropertyGroup>
+  <!--<PropertyGroup>
 		<GenerateAssemblyInfo>false</GenerateAssemblyInfo>
 	</PropertyGroup>-->
 
-	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
     <DefineConstants>HMVVM</DefineConstants>
-		<DebugType>portable</DebugType>
-		<DebugSymbols>true</DebugSymbols>
+    <DebugSymbols>true</DebugSymbols>
 	</PropertyGroup>
-  
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <DefineConstants>HMVVM</DefineConstants>
+    <PlatformTarget>x64</PlatformTarget>
+    <DebugSymbols>true</DebugSymbols>
+  </PropertyGroup>
+
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
     <DefineConstants>TRACE;HMVVM</DefineConstants>
+  </PropertyGroup>
+  
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <DefineConstants>TRACE;HMVVM</DefineConstants>
+    <PlatformTarget>x64</PlatformTarget>
   </PropertyGroup>
   
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='DebugWB|AnyCPU'">
     <DefineConstants>TRACE;HMVVM</DefineConstants>
   </PropertyGroup>
+  
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='DebugWB|x64'">
+    <DefineConstants>TRACE;HMVVM</DefineConstants>
+    <PlatformTarget>x64</PlatformTarget>
+  </PropertyGroup>
+  
   
   <ItemGroup>
     <Compile Remove="Models\Base\CommonDictionary.cs" />
@@ -138,7 +156,7 @@
 		</When>
 		<Otherwise>
 			<ItemGroup>
-				<PackageReference Include="Haley.Abstractions" Version="1.1.2" />
+				<PackageReference Include="Haley.Abstractions" Version="1.1.3" />
 			</ItemGroup>
 		</Otherwise>
 	</Choose>
@@ -168,7 +186,7 @@
 		</When>
 		<Otherwise>
 			<ItemGroup>
-				<PackageReference Include="Haley.Helpers" Version="2.1.14" />
+				<PackageReference Include="Haley.Helpers" Version="2.1.15" />
 			</ItemGroup>
 		</Otherwise>
 	</Choose>
