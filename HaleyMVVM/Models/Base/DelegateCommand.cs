@@ -8,29 +8,18 @@ using System.Windows;
 
 namespace Haley.Models
 {
-   public class DelegateCommand : RelayCommand
-    {
-        public DelegateCommand(Action ActionMethod, Func<bool> ValidationFunction) :base(ActionMethod,ValidationFunction)
+   public class DelegateCommand : DelegateCommand<object> {
+        public DelegateCommand(Action ActionMethod, Func<bool> ValidationFunction) :base((p) => ActionMethod(),(p)=>ValidationFunction())
         {
             //For actions without the need for any parameters. 
         }
 
-        public DelegateCommand(Action ActionMethod) : base(ActionMethod)
+        public DelegateCommand(Action ActionMethod) : base((p)=>ActionMethod())
         {
         }
-
-        public override void RaiseCanExecuteChanged() {
-            CommandManager.InvalidateRequerySuggested();
-        }
-
-        public override event EventHandler CanExecuteChanged {
-            add { CommandManager.RequerySuggested += value; }
-            remove { CommandManager.RequerySuggested -= value; }
-        }
     }
-
     
-    public class DelegateCommand<T> : RelayCommand<T>
+    public class DelegateCommand<T> : DelegateCommandBase<T>
     {
         public override event EventHandler CanExecuteChanged {
             add { CommandManager.RequerySuggested += value; }
@@ -46,7 +35,9 @@ namespace Haley.Models
             
         }
 
-        public override void RaiseCanExecuteChanged()
+
+
+        public override void Invalidate()
         {
             CommandManager.InvalidateRequerySuggested();
         }
