@@ -32,7 +32,7 @@ namespace Haley.Utils {
             set { _compareType = value; }
         }
         public bool SelfBindValue { get; set; }
-        public string Path { get; set; }
+        public string Path { get; set; } //Currently this is referring to property value. What if this is a binding??
         public object Value { get; set; }
         public StringComparison ValueComparision  = StringComparison.OrdinalIgnoreCase;
         public object OnSuccess { get; set; }

@@ -45,6 +45,25 @@ namespace Haley.Models
             InternalSubcribe(d);
         }
 
+        public static bool GetClearContents(DependencyObject obj) {
+            return (bool)obj.GetValue(ClearContentsProperty);
+        }
+
+        public static void SetClearContents(DependencyObject obj, bool value) {
+            obj.SetValue(ClearContentsProperty, value);
+        }
+
+        public static readonly DependencyProperty ClearContentsProperty =
+            DependencyProperty.RegisterAttached("ClearContents", typeof(bool), typeof(InputAP), new PropertyMetadata(false, OnClearContentsChanged));
+
+        private static void OnClearContentsChanged(DependencyObject d, DependencyPropertyChangedEventArgs e) {
+         if (d is TextBox || d.GetType().BaseType == typeof(TextBox)) {
+                if (e.NewValue is true) {
+                    (d as TextBox).Clear();
+                }
+            }   
+        }
+
         public static InputConstraintType GetConstraint(DependencyObject obj)
         { return (InputConstraintType)obj.GetValue(ConstraintProperty); }
 
