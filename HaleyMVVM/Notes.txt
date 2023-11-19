@@ -39,17 +39,38 @@ FOR USING HALEY.WPF RESOURCES: When using Haley.WPF, please add the below resour
 
 1. By default, the dialog service will be registered to containerstore di. Use "var _dservice = ContainerStore.DI.Resolve<IDialogService>()" to get the dialog service. 
 
-2. Use dialog service as "bool is_success = _dservice.send("Title","message",DialogMode.Confirmation")". Use different dialog modes, like confirmation, notification, getinput.
-
-3. Also, for getting inputs as string, use "_dservice.receive" which should get user input and returns in "out" object.
-
 #### 5 ---- IMAGE UTILS.
 
 A fully functional image utility is added and can be accessed by the static class "ImageUtils". It is helpful for converting images, reducing pixels and size etc.
 
 
-#### Theme Details #####
-
+#### Available Converters #####
+    <cnv:BoolToIntConverter x:Key="Bool2Int"/>
+    <cnv:BoolToVisibilityConverter x:Key="BooltoVisibility"/>
+    <cnv:ColorToBrushConverter x:Key="ColorToBrush"/>
+    <cnv:DictionaryValueFetchConveter x:Key="DictionaryValueFetcher"/>
+    <cnv:EnumListToDescriptionListConverter x:Key="EnumListoStringList"/>
+    <cnv:EnumToDescriptionConverter x:Key="EnumtoDescription"/>
+    <cnv:EnumTypeToDescriptionListConverter x:Key="EnumTypeToDescriptionList"/>
+    <cnv:EnumTypeToValuesConverter x:Key="EnumTypeToValues"/>
+    <cnv:EqualityCheckConverter x:Key="EqualityCheck"/>
+    <cnv:EqualityCheckToVisibilityConverter x:Key="EqualityToVisibility"/>
+    <cnv:HalfValueConverter x:Key="HalfValue"/>
+    <cnv:IntToBoolConverter x:Key="Int2Bool"/>
+    <cnv:InverseBooleanConverter x:Key="InverseBoolean"/>
+    <cnv:InverseValueToVisbilityConverter x:Key="InverseValue2Visibility"/>
+    <cnv:KeyToControlConverter x:Key="KeytoControl"/>
+    <cnv:MultiBindingEqualityCheckConverter x:Key="MultiBindingEqualityCheck"/>
+    <cnv:MultiBindingValueCheckerConverter x:Key="MultiBindingValueCheck"/>
+    <cnv:MultiValueBinderConverter x:Key="MultiBinder"/>
+    <cnv:NegateValueConverter x:Key="NegateValue"/>
+    <cnv:Null2VisibilityConverter x:Key="Null2Visibility"/>
+    <cnv:NullCheckerConverter x:Key="NullChecker"/>
+    <cnv:ReducerConverter x:Key="LengthReducer"/>
+    <cnv:ScrollLimitConverter x:Key="ScrollLimit"/>
+    <cnv:ToStringConverter x:Key="ToString"/>
+    <cnv:ValueToVisibilityConverter x:Key="Value2Visibility"/>
+    <cnv:VerificationConverter x:Key="Verification"/>
 
 
 
