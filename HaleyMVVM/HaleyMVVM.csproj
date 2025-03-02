@@ -4,7 +4,7 @@
     <UseWPF>true</UseWPF>
     <AssemblyName>Haley.MVVM</AssemblyName>
     <RootNamespace>Haley.MVVM</RootNamespace>
-    <Version>6.4.4</Version>
+    <Version>6.5.0</Version>
     <Authors>The Haley Project</Authors>
     <Product>Haley MVVM Core</Product>
     <Company>TheHaleyProject</Company>
@@ -85,8 +85,8 @@
   </ItemGroup>
   
   <ItemGroup>
-    <PackageReference Include="Microsoft.Xaml.Behaviors.Wpf" Version="1.1.39" />
-    <PackageReference Include="System.Drawing.Common" Version="7.0.0" />
+    <PackageReference Include="Microsoft.Xaml.Behaviors.Wpf" Version="1.1.135" />
+    <PackageReference Include="System.Drawing.Common" Version="9.0.2" />
   </ItemGroup>
 
   <ItemGroup>
@@ -146,7 +146,7 @@
   <Import Project="..\..\HaleyXamlShared\XamlUtilsShared\XamlUtilsShared.projitems" Label="Shared" />
   <Import Project="$(SolutionDir)ProjectReferences_$(SolutionName).txt" Condition="Exists('$(SolutionDir)ProjectReferences_$(SolutionName).txt')" />
 
-	<Choose>
+	<!--<Choose>
 		<When Condition="Exists($(HaleyAbstractions))">
 			<ItemGroup>
 				<ProjectReference Include="$(HaleyAbstractions)\HaleyAbstractions.csproj">
@@ -156,10 +156,10 @@
 		</When>
 		<Otherwise>
 			<ItemGroup>
-				<PackageReference Include="Haley.Abstractions" Version="1.1.4" />
+				<PackageReference Include="Haley.Abstractions" Version="1.2.0" />
 			</ItemGroup>
 		</Otherwise>
-	</Choose>
+	</Choose>-->
 	
 	<!--<Choose>
 		<When Condition="Exists($(HaleyEvents))">
@@ -186,12 +186,12 @@
 		</When>
 		<Otherwise>
 			<ItemGroup>
-				<PackageReference Include="Haley.Helpers" Version="2.2.8" />
+				<PackageReference Include="Haley.Helpers" Version="2.3.0" />
 			</ItemGroup>
 		</Otherwise>
 	</Choose>
 
-	<Choose>
+	<!--<Choose>
     <When Condition="Exists($(HaleyExtensions))">
       <ItemGroup>
         <ProjectReference Include="$(HaleyExtensions)\HaleyExtensions.csproj">
@@ -201,10 +201,10 @@
     </When>
     <Otherwise>
      <ItemGroup>
-       <PackageReference Include="Haley.Extensions" Version="2.2.7" />
+       <PackageReference Include="Haley.Extensions" Version="2.3.0" />
 	 </ItemGroup>
     </Otherwise>
-</Choose>  
+</Choose>-->  
 
 <Choose>
     <When Condition="Exists($(HaleyIOC))">
@@ -216,7 +216,7 @@
     </When>
     <Otherwise>
      <ItemGroup>
-       <PackageReference Include="Haley.IOC" Version="3.0.18" />
+       <PackageReference Include="Haley.IOC" Version="3.0.19" />
 	 </ItemGroup>
     </Otherwise>
 </Choose>  
