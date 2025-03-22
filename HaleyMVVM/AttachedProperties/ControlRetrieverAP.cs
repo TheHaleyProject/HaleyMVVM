@@ -36,19 +36,19 @@ namespace Haley.Models
 
         #endregion
 
-        #region ResolveMode
-        public static ResolveMode GetResolveMode(DependencyObject obj)
+        #region IOCResolveMode
+        public static IOCResolveMode GetIOCResolveMode(DependencyObject obj)
         {
-            return (ResolveMode)obj.GetValue(ResolveModeProperty);
+            return (IOCResolveMode)obj.GetValue(IOCResolveModeProperty);
         }
 
-        public static void SetResolveMode(DependencyObject obj, ResolveMode value)
+        public static void SetIOCResolveMode(DependencyObject obj, IOCResolveMode value)
         {
-            obj.SetValue(ResolveModeProperty, value);
+            obj.SetValue(IOCResolveModeProperty, value);
         }
 
-        public static readonly DependencyProperty ResolveModeProperty =
-            DependencyProperty.RegisterAttached("ResolveMode", typeof(ResolveMode), typeof(ControlRetrieverAP), new PropertyMetadata(ResolveMode.AsRegistered));
+        public static readonly DependencyProperty IOCResolveModeProperty =
+            DependencyProperty.RegisterAttached("IOCResolveMode", typeof(IOCResolveMode), typeof(ControlRetrieverAP), new PropertyMetadata(IOCResolveMode.AsRegistered));
         #endregion
 
         #region ControlContainer
@@ -133,7 +133,7 @@ namespace Haley.Models
                 if (!(d is ContentControl)) return;
 
                 //Get resolve mode
-                ResolveMode _resolve_mode = (ResolveMode)d.GetValue(ResolveModeProperty);
+                IOCResolveMode _resolve_mode = (IOCResolveMode)d.GetValue(IOCResolveModeProperty);
 
                 //Get Control Container
                 var _container = d.GetValue(ControlContainerProperty) as IControlContainer;

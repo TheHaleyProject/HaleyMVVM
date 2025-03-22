@@ -266,7 +266,7 @@ namespace Haley.Services {
 
         #region Container Methods
 
-        public INotification ShowContainerView(string title, object key, object InputViewModel = null, ResolveMode mode = ResolveMode.AsRegistered, bool blurOtherWindows = false, IControlContainer container = null) {
+        public INotification ShowContainerView(string title, object key, object InputViewModel = null, IOCResolveMode mode = IOCResolveMode.AsRegistered, bool blurOtherWindows = false, IControlContainer container = null) {
             UserControl _view = null;
             try {
                 if (container != null) {
@@ -293,7 +293,7 @@ namespace Haley.Services {
             return Notification.ShowContainerView(_wndw, blurOtherWindows); //notification will fetch the viewmodel and add it to INotification result.
         }
 
-        public INotification ShowContainerView<ViewOrVMType>(string title, object InputViewModel = null, ResolveMode mode = ResolveMode.AsRegistered, bool blurOtherWindows = false, IControlContainer container = null) where ViewOrVMType : class {
+        public INotification ShowContainerView<ViewOrVMType>(string title, object InputViewModel = null, IOCResolveMode mode = IOCResolveMode.AsRegistered, bool blurOtherWindows = false, IControlContainer container = null) where ViewOrVMType : class {
             //either this should be from ihaleyvm (for viewmodels) or it should be an usercontrol
             if (typeof(IHaleyVM).IsAssignableFrom(typeof(ViewOrVMType)) || typeof(UserControl).IsAssignableFrom(typeof(ViewOrVMType))) {
                 //this is a viewmodel input

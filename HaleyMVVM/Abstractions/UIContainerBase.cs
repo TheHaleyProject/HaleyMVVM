@@ -65,7 +65,7 @@ namespace Haley.Abstractions
 
         #region Register Methods
 
-        public virtual string RegisterWithKey<viewmodelType, viewType>(object key, viewmodelType InputViewModel = null, RegisterMode mode = RegisterMode.ContainerSingleton, bool groupByKey = false)
+        public virtual string RegisterWithKey<viewmodelType, viewType>(object key, viewmodelType InputViewModel = null, IOCRegisterMode mode = IOCRegisterMode.ContainerSingleton, bool groupByKey = false)
             where viewmodelType : class, BaseViewModelType
             where viewType : class
         {
@@ -74,7 +74,7 @@ namespace Haley.Abstractions
             return RegisterInternal<viewmodelType, viewType>(_key, InputViewModel,null, mode,groupByKey);
         }
 
-        public virtual string LazyRegister<viewmodelType, viewType>(Func<viewmodelType> creator, bool use_vm_as_key = true, RegisterMode mode = RegisterMode.ContainerSingleton)
+        public virtual string LazyRegister<viewmodelType, viewType>(Func<viewmodelType> creator, bool use_vm_as_key = true, IOCRegisterMode mode = IOCRegisterMode.ContainerSingleton)
             where viewmodelType : class, BaseViewModelType
             where viewType : class
         {
@@ -91,7 +91,7 @@ namespace Haley.Abstractions
             return LazyRegisterWithKey<viewmodelType, viewType>(_key, creator, mode);
         }
 
-        public virtual string LazyRegisterWithKey<viewmodelType, viewType>(object key, Func<viewmodelType> creator, RegisterMode mode = RegisterMode.ContainerSingleton, bool groupByKey = false)
+        public virtual string LazyRegisterWithKey<viewmodelType, viewType>(object key, Func<viewmodelType> creator, IOCRegisterMode mode = IOCRegisterMode.ContainerSingleton, bool groupByKey = false)
             where viewmodelType : class, BaseViewModelType
             where viewType : class
         {
@@ -99,7 +99,7 @@ namespace Haley.Abstractions
             return RegisterInternal<viewmodelType, viewType>(_key, null,creator,  mode,groupByKey);
         }
 
-        public virtual string Register<viewmodelType, viewType>(viewmodelType InputViewModel = null, bool use_vm_as_key = true, RegisterMode mode = RegisterMode.ContainerSingleton)
+        public virtual string Register<viewmodelType, viewType>(viewmodelType InputViewModel = null, bool use_vm_as_key = true, IOCRegisterMode mode = IOCRegisterMode.ContainerSingleton)
             where viewmodelType : class, BaseViewModelType
             where viewType : class
         {
@@ -116,7 +116,7 @@ namespace Haley.Abstractions
            return RegisterInternal<viewmodelType, viewType>(_key, InputViewModel,null, mode);
         }
 
-        protected string RegisterInternal<viewmodelType, viewType>(string key, viewmodelType InputViewModel = null, Func<viewmodelType> vmCreator = null, RegisterMode mode = RegisterMode.ContainerSingleton, bool groupByKey = false)
+        protected string RegisterInternal<viewmodelType, viewType>(string key, viewmodelType InputViewModel = null, Func<viewmodelType> vmCreator = null, IOCRegisterMode mode = IOCRegisterMode.ContainerSingleton, bool groupByKey = false)
             where viewmodelType : class, BaseViewModelType
             where viewType : class
         {
@@ -139,14 +139,14 @@ namespace Haley.Abstractions
                 //If service provider is of type base provider then we can register it aswell (as it will have an implementation)
 
                 if(!(service_provider is IMicroContainer baseContainer))return key;
-                //If registermode is anything other than singleton or weaksingleton, do not validate.
+                //If IOCRegisterMode is anything other than singleton or weaksingleton, do not validate.
 
-                if (mode == RegisterMode.UniversalSingleton)
+                if (mode == IOCRegisterMode.UniversalSingleton)
                 {
                     throw new ArgumentException("Universal singleton registrations has to be directly done on the Root DI container. Cannot register from the Control/Window or child containers.");
                 }
 
-                if (mode != RegisterMode.ContainerSingleton && mode != RegisterMode.ContainerWeakSingleton)return key;
+                if (mode != IOCRegisterMode.ContainerSingleton && mode != IOCRegisterMode.ContainerWeakSingleton)return key;
 
                 //For ContainerSingletonMode, directly register using the view or the viewmodel type as key.
                 //For WeakSingleton, register using (View/Viewmodel-combo key).
@@ -197,15 +197,15 @@ namespace Haley.Abstractions
         #endregion
 
         #region Private Methods
-        private SingletonMode GetMode(RegisterMode mode)
+        private SingletonMode GetMode(IOCRegisterMode mode)
         {
             switch (mode)
             {
-                case RegisterMode.ContainerSingleton:
+                case IOCRegisterMode.ContainerSingleton:
                     return SingletonMode.ContainerSingleton;
-                case RegisterMode.ContainerWeakSingleton:
+                case IOCRegisterMode.ContainerWeakSingleton:
                     return SingletonMode.ContainerWeakSingleton;
-                case RegisterMode.UniversalSingleton:
+                case IOCRegisterMode.UniversalSingleton:
                     return SingletonMode.UniversalSingleton;
             }
             return SingletonMode.ContainerSingleton;
@@ -218,7 +218,7 @@ namespace Haley.Abstractions
             }
             return true;
         }
-        protected (BaseViewModelType view_model, object view) _generateValuePair(string key, ResolveMode mode)
+        protected (BaseViewModelType view_model, object view) _generateValuePair(string key, IOCResolveMode mode)
         {
             var _mapping_value = GetMappingValue(key);
 
@@ -227,7 +227,7 @@ namespace Haley.Abstractions
             BaseViewModelType resultViewModel = _generateViewModel(key,_mapping_value.ViewModelType, mode);
             return (resultViewModel, resultcontrol);
         }
-        protected object _generateView(string key, Type viewType, ResolveMode mode)
+        protected object _generateView(string key, Type viewType, IOCResolveMode mode)
         {
             try
             {
@@ -264,7 +264,7 @@ namespace Haley.Abstractions
             }
         }
 
-        protected BaseViewModelType _generateViewModel(string key, Type viewModelType, ResolveMode mode) //If required we can even return the actual viewmodel concrete type as well.
+        protected BaseViewModelType _generateViewModel(string key, Type viewModelType, IOCResolveMode mode) //If required we can even return the actual viewmodel concrete type as well.
         {
             try
             {
@@ -299,20 +299,20 @@ namespace Haley.Abstractions
 
         #region View Retrieval Methods
         //Return a generic type which implements BaseViewType 
-        public object GenerateView<viewmodelType>(viewmodelType InputViewModel = null, ResolveMode mode = ResolveMode.AsRegistered) 
+        public object GenerateView<viewmodelType>(viewmodelType InputViewModel = null, IOCResolveMode mode = IOCResolveMode.AsRegistered) 
             where viewmodelType : class, BaseViewModelType
         {
             string _key = typeof(viewmodelType).ToString();
             return GenerateViewFromKey(_key, InputViewModel, mode);
         }
-        public viewType GenerateView<viewType>(object InputViewModel = null, ResolveMode mode = ResolveMode.AsRegistered)
+        public viewType GenerateView<viewType>(object InputViewModel = null, IOCResolveMode mode = IOCResolveMode.AsRegistered)
             where viewType : class
         {
             ValidateViewType(typeof(viewType));
             string _key = typeof(viewType).ToString();
             return GenerateViewFromKey(_key, InputViewModel, mode) as viewType;
         }
-        public abstract object GenerateViewFromKey(object key, object InputViewModel = null, ResolveMode mode = ResolveMode.AsRegistered) ;
+        public abstract object GenerateViewFromKey(object key, object InputViewModel = null, IOCResolveMode mode = IOCResolveMode.AsRegistered) ;
         
         #endregion
 
@@ -330,7 +330,7 @@ namespace Haley.Abstractions
                 throw new ArgumentException($"Key {key} is not registered to any controls. Please check.");
             } 
 
-            //(Type _viewmodel_type, Type _view_type, RegisterMode _mode,bool keyDependent) _registered_tuple = (null, null, RegisterMode.ContainerSingleton);
+            //(Type _viewmodel_type, Type _view_type, IOCRegisterMode _mode,bool keyDependent) _registered_tuple = (null, null, IOCRegisterMode.ContainerSingleton);
             main_mapping.TryGetValue(key, out var _registered_tuple);
 
             //if (_registered_tuple._viewmodel_type == null || _registered_tuple._view_type == null)
@@ -344,7 +344,7 @@ namespace Haley.Abstractions
 
             return _registered_tuple;
         }
-        public BaseViewModelType GenerateViewModelFromKey(object key, ResolveMode mode = ResolveMode.AsRegistered) //If required we can even return the actural viewmodel concrete type as well.
+        public BaseViewModelType GenerateViewModelFromKey(object key, IOCResolveMode mode = IOCResolveMode.AsRegistered) //If required we can even return the actural viewmodel concrete type as well.
         {
             if (!getKey(key, out var _key)) return default(BaseViewModelType);
             var _mapping_value = GetMappingValue(_key);

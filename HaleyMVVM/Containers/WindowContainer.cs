@@ -20,13 +20,13 @@ namespace Haley.IOC
         public WindowContainer(IServiceProvider serviceContainer) : base(serviceContainer,typeof(Window)) { }
 
         #region ShowDialog Methods
-        public bool? ShowDialog<ViewType>(object InputViewModel, ResolveMode resolve_mode = ResolveMode.AsRegistered) where ViewType : class
+        public bool? ShowDialog<ViewType>(object InputViewModel, IOCResolveMode resolve_mode = IOCResolveMode.AsRegistered) where ViewType : class
         {
             //View is expected to be a window
             string _key = typeof(ViewType).ToString();
             return ShowDialog(_key, InputViewModel, resolve_mode);
         }
-        public bool? ShowDialog<ViewOrVMType>(ResolveMode resolve_mode = ResolveMode.AsRegistered) where ViewOrVMType : class
+        public bool? ShowDialog<ViewOrVMType>(IOCResolveMode resolve_mode = IOCResolveMode.AsRegistered) where ViewOrVMType : class
         {
             //either the type should be a window or it should be of ihaleyvm
             if (!(
@@ -36,19 +36,19 @@ namespace Haley.IOC
             string _key = typeof(ViewOrVMType).ToString();
             return ShowDialog(_key, null, resolve_mode);
         }
-        public bool? ShowDialog(object key, object InputViewModel = null, ResolveMode resolve_mode = ResolveMode.AsRegistered)
+        public bool? ShowDialog(object key, object InputViewModel = null, IOCResolveMode resolve_mode = IOCResolveMode.AsRegistered)
         {
             return _invokeDisplay(key, InputViewModel, resolve_mode, is_modeless: false); //This is modal
         }
         #endregion
 
         #region Show Methods
-        public void Show<ViewType>(object InputViewModel, ResolveMode resolve_mode = ResolveMode.AsRegistered) where ViewType : class
+        public void Show<ViewType>(object InputViewModel, IOCResolveMode resolve_mode = IOCResolveMode.AsRegistered) where ViewType : class
         {
             string _key = typeof(ViewType).ToString();
             Show(_key, InputViewModel, resolve_mode);
         }
-        public void Show<ViewOrVMType>(ResolveMode resolve_mode = ResolveMode.AsRegistered) where ViewOrVMType : class
+        public void Show<ViewOrVMType>(IOCResolveMode resolve_mode = IOCResolveMode.AsRegistered) where ViewOrVMType : class
         {
             //either the type should be a window or it should be of ihaleyvm
             if (!(
@@ -60,7 +60,7 @@ namespace Haley.IOC
             string _key = typeof(ViewOrVMType).ToString();
             Show(_key, null, resolve_mode);
         }
-        public void Show(object key, object InputViewModel = null, ResolveMode resolve_mode = ResolveMode.AsRegistered)
+        public void Show(object key, object InputViewModel = null, IOCResolveMode resolve_mode = IOCResolveMode.AsRegistered)
         {
             _invokeDisplay(key, InputViewModel, resolve_mode, is_modeless: true); //This is modeless
         }
@@ -68,7 +68,7 @@ namespace Haley.IOC
         #endregion
 
         #region Overridden Methods
-        public override object GenerateViewFromKey(object key, object InputViewModel = null, ResolveMode mode = ResolveMode.AsRegistered)
+        public override object GenerateViewFromKey(object key, object InputViewModel = null, IOCResolveMode mode = IOCResolveMode.AsRegistered)
         {
             try
             {
@@ -102,7 +102,7 @@ namespace Haley.IOC
         #endregion
 
         #region Private Methods
-        private bool? _invokeDisplay(object key, object InputViewModel, ResolveMode resolve_mode , bool is_modeless)
+        private bool? _invokeDisplay(object key, object InputViewModel, IOCResolveMode resolve_mode , bool is_modeless)
         {
             bool? _result = null;
 

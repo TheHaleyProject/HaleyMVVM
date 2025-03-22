@@ -35,19 +35,19 @@ namespace Haley.Models
 
         #endregion
 
-        #region ResolveMode
-        public static ResolveMode GetResolveMode(DependencyObject obj)
+        #region IOCResolveMode
+        public static IOCResolveMode GetIOCResolveMode(DependencyObject obj)
         {
-            return (ResolveMode)obj.GetValue(ResolveModeProperty);
+            return (IOCResolveMode)obj.GetValue(IOCResolveModeProperty);
         }
 
-        public static void SetResolveMode(DependencyObject obj, ResolveMode value)
+        public static void SetIOCResolveMode(DependencyObject obj, IOCResolveMode value)
         {
-            obj.SetValue(ResolveModeProperty, value);
+            obj.SetValue(IOCResolveModeProperty, value);
         }
 
-        public static readonly DependencyProperty ResolveModeProperty =
-            DependencyProperty.RegisterAttached("ResolveMode", typeof(ResolveMode), typeof(IocAP), new PropertyMetadata(ResolveMode.AsRegistered));
+        public static readonly DependencyProperty IOCResolveModeProperty =
+            DependencyProperty.RegisterAttached("IOCResolveMode", typeof(IOCResolveMode), typeof(IocAP), new PropertyMetadata(IOCResolveMode.AsRegistered));
         #endregion
 
         #region FindKey
@@ -94,7 +94,7 @@ namespace Haley.Models
                     //TODO: ADD IMPLEMENTATIONS TO INCLUDE CUSTOM CONTROLCONTAINER & WINDOW CONTAINER
                     if (d is UserControl)
                     {
-                        var _vm = ContainerStore.Controls.GenerateViewModelFromKey(_key, GetResolveMode(d));
+                        var _vm = ContainerStore.Controls.GenerateViewModelFromKey(_key, GetIOCResolveMode(d));
                         if (_vm != null) //Only if not null, assign it.
                         {
                             ((UserControl)d).DataContext = _vm;
@@ -102,7 +102,7 @@ namespace Haley.Models
                     }
                     else if (d is Window)
                     {
-                        var _vm = ContainerStore.Windows.GenerateViewModelFromKey(_key, GetResolveMode(d));
+                        var _vm = ContainerStore.Windows.GenerateViewModelFromKey(_key, GetIOCResolveMode(d));
                         if (_vm != null) //Only if not null, assign it.
                         {
                             ((Window)d).DataContext = _vm;

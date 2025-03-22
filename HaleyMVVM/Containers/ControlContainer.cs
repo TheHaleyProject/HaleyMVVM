@@ -17,7 +17,7 @@ namespace Haley.IOC
     {
         public ControlContainer(IServiceProvider serviceContainer):base(serviceContainer,typeof(UserControl)) { }
 
-        public override object GenerateViewFromKey(object key, object InputViewModel = null, ResolveMode mode = ResolveMode.AsRegistered)
+        public override object GenerateViewFromKey(object key, object InputViewModel = null, IOCResolveMode mode = IOCResolveMode.AsRegistered)
         {
             try
             {
