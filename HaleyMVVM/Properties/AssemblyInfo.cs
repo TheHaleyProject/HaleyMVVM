@@ -14,7 +14,7 @@ using System.Windows;
                                               // app, or any theme specific resource dictionaries)
 )]
 
-[assembly: XmlnsPrefix("http://schemas.hpod9.com/haley/mvvm", "hly")]
+[assembly: XmlnsPrefix("http://schemas.hpod9.com/haley/mvvm", "hm")]
 //FOR XAML NAMESPACES - MVVM
 [assembly: XmlnsDefinition("http://schemas.hpod9.com/haley/mvvm", "Haley.Enums")]
 [assembly: XmlnsDefinition("http://schemas.hpod9.com/haley/mvvm", "Haley.MVVM.Converters")]
