@@ -4,7 +4,7 @@
     <UseWPF>true</UseWPF>
     <AssemblyName>Haley.MVVM</AssemblyName>
     <RootNamespace>Haley.MVVM</RootNamespace>
-    <Version>6.5.3</Version>
+    <Version>6.5.4</Version>
     <Authors>The Haley Project</Authors>
     <Product>Haley MVVM Core</Product>
     <Company>TheHaleyProject</Company>
@@ -180,13 +180,13 @@
 		<When Condition="Exists($(HaleyHelpers))">
 			<ItemGroup>
 				<ProjectReference Include="$(HaleyHelpers)\HaleyHelpers.csproj">
-					<Name>HaleyExtensions</Name>
+					<Name>HaleyHelpers</Name>
 				</ProjectReference>
 			</ItemGroup>
 		</When>
 		<Otherwise>
 			<ItemGroup>
-				<PackageReference Include="Haley.Helpers" Version="2.3.4" />
+				<PackageReference Include="Haley.Helpers" Version="2.3.9" />
 			</ItemGroup>
 		</Otherwise>
 	</Choose>
@@ -210,13 +210,13 @@
     <When Condition="Exists($(HaleyIOC))">
       <ItemGroup>
         <ProjectReference Include="$(HaleyIOC)\HaleyIOC.csproj">
-          <Name>HaleyExtensions</Name>
+          <Name>HaleyIOC</Name>
         </ProjectReference>
       </ItemGroup>
     </When>
     <Otherwise>
      <ItemGroup>
-       <PackageReference Include="Haley.IOC" Version="3.0.21" />
+       <PackageReference Include="Haley.IOC" Version="3.0.23" />
 	 </ItemGroup>
     </Otherwise>
 </Choose>  
