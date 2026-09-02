@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>netcoreapp3.1</TargetFramework>
@@ -22,9 +22,9 @@
 	<Import Project="$(SolutionDir)ProjectReferences_$(SolutionName).txt" Condition="Exists('$(SolutionDir)ProjectReferences_$(SolutionName).txt')" />
 
 	<Choose>
-		<When Condition="Exists($(HaleyAbstractions))">
+		<When Condition="Exists('$(HaleyAbstractionsProj)')">
 			<ItemGroup>
-				<ProjectReference Include="$(HaleyAbstractions)\HaleyAbstractions.csproj">
+				<ProjectReference Include="$(HaleyAbstractionsProj)">
 					<Name>HaleyAbstractions</Name>
 				</ProjectReference>
 			</ItemGroup>
@@ -37,9 +37,9 @@
 	</Choose>
 	
 	<Choose>
-		<When Condition="Exists($(HaleyExtensions))">
+		<When Condition="Exists('$(HaleyExtensionsProj)')">
 			<ItemGroup>
-				<ProjectReference Include="$(HaleyExtensions)\HaleyExtensions.csproj">
+				<ProjectReference Include="$(HaleyExtensionsProj)">
 					<Name>HaleyExtensions</Name>
 				</ProjectReference>
 			</ItemGroup>
@@ -52,9 +52,9 @@
 	</Choose>
 
 	<Choose>
-		<When Condition="Exists($(HaleyIOC))">
+		<When Condition="Exists('$(HaleyIOCProj)')">
 			<ItemGroup>
-				<ProjectReference Include="$(HaleyIOC)\HaleyIOC.csproj">
+				<ProjectReference Include="$(HaleyIOCProj)">
 					<Name>HaleyIOC</Name>
 				</ProjectReference>
 			</ItemGroup>
@@ -67,9 +67,9 @@
 	</Choose>
 
 	<Choose>
-		<When Condition="Exists($(HaleyMVVM))">
+		<When Condition="Exists('$(HaleyMVVMProj)')">
 			<ItemGroup>
-				<ProjectReference Include="$(HaleyMVVM)\HaleyMVVM.csproj">
+				<ProjectReference Include="$(HaleyMVVMProj)">
 					<Name>HaleyMVVM</Name>
 				</ProjectReference>
 			</ItemGroup>
@@ -82,9 +82,9 @@
 	</Choose>
 
 	<Choose>
-		<When Condition="Exists($(HaleyEvents))">
+		<When Condition="Exists('$(HaleyEventsProj)')">
 			<ItemGroup>
-				<ProjectReference Include="$(HaleyEvents)\HaleyEvents.csproj">
+				<ProjectReference Include="$(HaleyEventsProj)">
 					<Name>HaleyEvents</Name>
 				</ProjectReference>
 			</ItemGroup>

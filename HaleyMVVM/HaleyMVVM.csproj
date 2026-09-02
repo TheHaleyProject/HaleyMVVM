@@ -1,4 +1,10 @@
-﻿<Project Sdk="Microsoft.NET.Sdk.WindowsDesktop">
+<Project Sdk="Microsoft.NET.Sdk.WindowsDesktop">
+  <PropertyGroup>
+    <HaleyProject Condition="'$(HaleyProject)' == ''">$(MSBuildProjectDirectory)\..\..</HaleyProject>
+  </PropertyGroup>
+  <Import Project="$(HaleyProject)\HaleyProject\Haley.Source.Props" />
+  <Import Project="$(HaleyProject)\HaleyProject\Haley.Version.Props" />
+  <Import Project="$(HaleyProject)\HaleyProject\Haley.Paths.Props" />
   <PropertyGroup>
 	<TargetFrameworks>net48;net8.0-windows</TargetFrameworks>
     <UseWPF>true</UseWPF>
@@ -10,7 +16,7 @@
     <Company>TheHaleyProject</Company>
     <Description>A light weight MVVM implementation with IOC Containes, Delegate Commands, ChangeNotifier Model, NotifiableCollection and many more.</Description>
     <PackageTags>WPF MVVM MVVM IOC DI Haley</PackageTags>
-    <RepositoryUrl>https://github.com/TheHaleyProject/HaleyMVVM</RepositoryUrl>
+    <RepositoryUrl>https://github.com/haleyproject/HaleyMVVM</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <Copyright>Haley @ 2020</Copyright>
@@ -144,12 +150,11 @@
   </ItemGroup>
 
   <Import Project="..\..\HaleyXamlShared\XamlUtilsShared\XamlUtilsShared.projitems" Label="Shared" />
-  <Import Project="$(SolutionDir)ProjectReferences_$(SolutionName).txt" Condition="Exists('$(SolutionDir)ProjectReferences_$(SolutionName).txt')" />
 
 	<!--<Choose>
-		<When Condition="Exists($(HaleyAbstractions))">
+		<When Condition="Exists('$(HaleyAbstractionsProj)')">
 			<ItemGroup>
-				<ProjectReference Include="$(HaleyAbstractions)\HaleyAbstractions.csproj">
+				<ProjectReference Include="$(HaleyAbstractionsProj)">
 					<Name>HaleyAbstractions</Name>
 				</ProjectReference>
 			</ItemGroup>
@@ -162,9 +167,9 @@
 	</Choose>-->
 	
 	<!--<Choose>
-		<When Condition="Exists($(HaleyEvents))">
+		<When Condition="Exists('$(HaleyEventsProj)')">
 			<ItemGroup>
-				<ProjectReference Include="$(HaleyEvents)\HaleyEvents.csproj">
+				<ProjectReference Include="$(HaleyEventsProj)">
 					<Name>HaleyEvents</Name>
 				</ProjectReference>
 			</ItemGroup>
@@ -177,9 +182,9 @@
 	</Choose>-->
 
 	<Choose>
-		<When Condition="Exists($(HaleyHelpers))">
+		<When Condition="Exists('$(HaleyHelpersProj)')">
 			<ItemGroup>
-				<ProjectReference Include="$(HaleyHelpers)\HaleyHelpers.csproj">
+				<ProjectReference Include="$(HaleyHelpersProj)">
 					<Name>HaleyHelpers</Name>
 				</ProjectReference>
 			</ItemGroup>
@@ -192,9 +197,9 @@
 	</Choose>
 
 	<!--<Choose>
-    <When Condition="Exists($(HaleyExtensions))">
+    <When Condition="Exists('$(HaleyExtensionsProj)')">
       <ItemGroup>
-        <ProjectReference Include="$(HaleyExtensions)\HaleyExtensions.csproj">
+        <ProjectReference Include="$(HaleyExtensionsProj)">
           <Name>HaleyExtensions</Name>
         </ProjectReference>
       </ItemGroup>
@@ -207,9 +212,9 @@
 </Choose>-->  
 
 <Choose>
-    <When Condition="Exists($(HaleyIOC))">
+    <When Condition="Exists('$(HaleyIOCProj)')">
       <ItemGroup>
-        <ProjectReference Include="$(HaleyIOC)\HaleyIOC.csproj">
+        <ProjectReference Include="$(HaleyIOCProj)">
           <Name>HaleyIOC</Name>
         </ProjectReference>
       </ItemGroup>
